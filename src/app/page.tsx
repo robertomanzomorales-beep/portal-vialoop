@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import styles from "./page.module.css";
 
@@ -104,20 +105,20 @@ export default async function Home() {
         <nav className={styles.navigation}>
           <p className={styles.navigationLabel}>Principal</p>
 
-          <a className={styles.activeLink} href="/">
+          <Link className={styles.activeLink} href="/">
             Dashboard
-          </a>
+          </Link>
 
-          <a href="#">Clientes</a>
-          <a href="#">Proyectos</a>
-          <a href="#">Solicitudes</a>
+          <Link href="/clientes">Clientes</Link>
+          <Link href="/proyectos">Proyectos</Link>
+          <Link href="/solicitudes">Solicitudes</Link>
 
           <p className={styles.navigationLabel}>Administración</p>
 
-          <a href="#">Planes</a>
-          <a href="#">Renovaciones</a>
-          <a href="#">Pagos</a>
-          <a href="#">Documentos</a>
+          <Link href="/planes">Planes</Link>
+          <Link href="/renovaciones">Renovaciones</Link>
+          <Link href="/pagos">Pagos</Link>
+          <Link href="/documentos">Documentos</Link>
         </nav>
 
         <div className={styles.sidebarFooter}>
@@ -141,9 +142,9 @@ export default async function Home() {
             </p>
           </div>
 
-          <button type="button" className={styles.primaryButton}>
+          <Link className={styles.primaryButton} href="/clientes/nuevo">
             Nuevo cliente
-          </button>
+          </Link>
         </header>
 
         <section className={styles.metrics}>
@@ -164,14 +165,19 @@ export default async function Home() {
                 <h2>Actividad reciente</h2>
               </div>
 
-              <button type="button" className={styles.secondaryButton}>
+              <Link
+                className={styles.secondaryButton}
+                href="/solicitudes"
+              >
                 Ver solicitudes
-              </button>
+              </Link>
             </div>
 
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>✓</div>
+
               <h3>No existen solicitudes registradas</h3>
+
               <p>
                 Cuando los clientes creen solicitudes de soporte, aparecerán
                 aquí para su seguimiento.
@@ -192,6 +198,7 @@ export default async function Home() {
                 <div className={styles.planItem} key={plan.id}>
                   <div>
                     <strong>{plan.name}</strong>
+
                     <span>
                       {plan.includedRequests === 0
                         ? "Solicitudes cotizadas por separado"
