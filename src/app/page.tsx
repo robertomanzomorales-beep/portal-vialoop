@@ -1,64 +1,213 @@
-import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import styles from "./page.module.css";
 
-export default function Home() {
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export default async function Home() {
+  const today = new Date();
+  const nextThirtyDays = new Date();
+
+  nextThirtyDays.setDate(today.getDate() + 30);
+
+  const [
+    clientCount,
+    projectCount,
+    openRequestCount,
+    upcomingRenewalCount,
+    plans,
+  ] = await Promise.all([
+    prisma.client.count({
+      where: {
+        status: "ACTIVE",
+      },
+    }),
+
+    prisma.project.count({
+      where: {
+        status: {
+          in: ["DEVELOPMENT", "ACTIVE", "MAINTENANCE"],
+        },
+      },
+    }),
+
+    prisma.supportRequest.count({
+      where: {
+        status: {
+          notIn: ["COMPLETED", "REJECTED", "OUT_OF_SCOPE"],
+        },
+      },
+    }),
+
+    prisma.renewal.count({
+      where: {
+        dueDate: {
+          gte: today,
+          lte: nextThirtyDays,
+        },
+        status: {
+          in: ["UPCOMING", "NOTIFIED"],
+        },
+      },
+    }),
+
+    prisma.plan.findMany({
+      where: {
+        active: true,
+      },
+      orderBy: {
+        monthlyPrice: "asc",
+      },
+    }),
+  ]);
+
+  const metrics = [
+    {
+      label: "Clientes activos",
+      value: clientCount,
+      detail: "Empresas con servicios vigentes",
+    },
+    {
+      label: "Proyectos activos",
+      value: projectCount,
+      detail: "Sitios en desarrollo o mantención",
+    },
+    {
+      label: "Solicitudes abiertas",
+      value: openRequestCount,
+      detail: "Tickets pendientes de resolución",
+    },
+    {
+      label: "Próximas renovaciones",
+      value: upcomingRenewalCount,
+      detail: "Vencimientos durante los próximos 30 días",
+    },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className={styles.portal}>
+      <aside className={styles.sidebar}>
+        <div className={styles.brand}>
+          <div className={styles.brandMark}>V</div>
+
+          <div>
+            <strong>Portal Vialoop</strong>
+            <span>Gestión de clientes</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+
+        <nav className={styles.navigation}>
+          <p className={styles.navigationLabel}>Principal</p>
+
+          <a className={styles.activeLink} href="/">
+            Dashboard
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+          <a href="#">Clientes</a>
+          <a href="#">Proyectos</a>
+          <a href="#">Solicitudes</a>
+
+          <p className={styles.navigationLabel}>Administración</p>
+
+          <a href="#">Planes</a>
+          <a href="#">Renovaciones</a>
+          <a href="#">Pagos</a>
+          <a href="#">Documentos</a>
+        </nav>
+
+        <div className={styles.sidebarFooter}>
+          <div className={styles.avatar}>RM</div>
+
+          <div>
+            <strong>Roberto Manzo</strong>
+            <span>Administrador</span>
+          </div>
         </div>
+      </aside>
+
+      <main className={styles.content}>
+        <header className={styles.header}>
+          <div>
+            <span className={styles.eyebrow}>Panel administrativo</span>
+            <h1>Dashboard</h1>
+            <p>
+              Resumen general de clientes, proyectos, solicitudes y
+              renovaciones de Vialoop.
+            </p>
+          </div>
+
+          <button type="button" className={styles.primaryButton}>
+            Nuevo cliente
+          </button>
+        </header>
+
+        <section className={styles.metrics}>
+          {metrics.map((metric) => (
+            <article className={styles.metricCard} key={metric.label}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+              <p>{metric.detail}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className={styles.grid}>
+          <article className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.panelEyebrow}>Operación</span>
+                <h2>Actividad reciente</h2>
+              </div>
+
+              <button type="button" className={styles.secondaryButton}>
+                Ver solicitudes
+              </button>
+            </div>
+
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>✓</div>
+              <h3>No existen solicitudes registradas</h3>
+              <p>
+                Cuando los clientes creen solicitudes de soporte, aparecerán
+                aquí para su seguimiento.
+              </p>
+            </div>
+          </article>
+
+          <article className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.panelEyebrow}>Servicios</span>
+                <h2>Planes disponibles</h2>
+              </div>
+            </div>
+
+            <div className={styles.planList}>
+              {plans.map((plan) => (
+                <div className={styles.planItem} key={plan.id}>
+                  <div>
+                    <strong>{plan.name}</strong>
+                    <span>
+                      {plan.includedRequests === 0
+                        ? "Solicitudes cotizadas por separado"
+                        : `${plan.includedRequests} solicitudes incluidas`}
+                    </span>
+                  </div>
+
+                  <strong className={styles.planPrice}>
+                    {formatCurrency(Number(plan.monthlyPrice))}
+                    <small> + IVA</small>
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
       </main>
     </div>
   );
