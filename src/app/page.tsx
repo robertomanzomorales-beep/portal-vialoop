@@ -14,13 +14,17 @@ export default async function Home() {
   const today = new Date();
   const nextThirtyDays = new Date();
 
+  today.setHours(0, 0, 0, 0);
   nextThirtyDays.setDate(today.getDate() + 30);
+  nextThirtyDays.setHours(23, 59, 59, 999);
 
   const [
     clientCount,
     projectCount,
     openRequestCount,
     upcomingRenewalCount,
+    overdueRenewalCount,
+    pendingPaymentCount,
     plans,
   ] = await Promise.all([
     prisma.client.count({
@@ -57,6 +61,25 @@ export default async function Home() {
       },
     }),
 
+    prisma.renewal.count({
+      where: {
+        dueDate: {
+          lt: today,
+        },
+        status: {
+          in: ["UPCOMING", "NOTIFIED", "EXPIRED"],
+        },
+      },
+    }),
+
+    prisma.payment.count({
+      where: {
+        status: {
+          in: ["PENDING", "OVERDUE"],
+        },
+      },
+    }),
+
     prisma.plan.findMany({
       where: {
         active: true,
@@ -72,21 +95,25 @@ export default async function Home() {
       label: "Clientes activos",
       value: clientCount,
       detail: "Empresas con servicios vigentes",
+      href: "/clientes",
     },
     {
       label: "Proyectos activos",
       value: projectCount,
       detail: "Sitios en desarrollo o mantención",
+      href: "/proyectos",
     },
     {
       label: "Solicitudes abiertas",
       value: openRequestCount,
       detail: "Tickets pendientes de resolución",
+      href: "/solicitudes",
     },
     {
       label: "Próximas renovaciones",
       value: upcomingRenewalCount,
       detail: "Vencimientos durante los próximos 30 días",
+      href: "/renovaciones?filtro=30",
     },
   ];
 
@@ -135,10 +162,12 @@ export default async function Home() {
         <header className={styles.header}>
           <div>
             <span className={styles.eyebrow}>Panel administrativo</span>
+
             <h1>Dashboard</h1>
+
             <p>
-              Resumen general de clientes, proyectos, solicitudes y
-              renovaciones de Vialoop.
+              Resumen general de clientes, proyectos, solicitudes,
+              renovaciones y cobros de Vialoop.
             </p>
           </div>
 
@@ -149,11 +178,15 @@ export default async function Home() {
 
         <section className={styles.metrics}>
           {metrics.map((metric) => (
-            <article className={styles.metricCard} key={metric.label}>
+            <Link
+              className={styles.metricCard}
+              href={metric.href}
+              key={metric.label}
+            >
               <span>{metric.label}</span>
               <strong>{metric.value}</strong>
               <p>{metric.detail}</p>
-            </article>
+            </Link>
           ))}
         </section>
 
@@ -161,27 +194,60 @@ export default async function Home() {
           <article className={styles.panel}>
             <div className={styles.panelHeader}>
               <div>
-                <span className={styles.panelEyebrow}>Operación</span>
-                <h2>Actividad reciente</h2>
+                <span className={styles.panelEyebrow}>
+                  Renovaciones y cobros
+                </span>
+
+                <h2>Estado operativo</h2>
               </div>
 
               <Link
                 className={styles.secondaryButton}
-                href="/solicitudes"
+                href="/renovaciones"
               >
-                Ver solicitudes
+                Ver renovaciones
               </Link>
             </div>
 
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>✓</div>
+            <div className={styles.planList}>
+              <Link
+                className={styles.planItem}
+                href="/renovaciones?filtro=vencidas"
+              >
+                <div>
+                  <strong>Renovaciones vencidas</strong>
+                  <span>Servicios que requieren revisión inmediata</span>
+                </div>
 
-              <h3>No existen solicitudes registradas</h3>
+                <strong className={styles.planPrice}>
+                  {overdueRenewalCount}
+                </strong>
+              </Link>
 
-              <p>
-                Cuando los clientes creen solicitudes de soporte, aparecerán
-                aquí para su seguimiento.
-              </p>
+              <Link
+                className={styles.planItem}
+                href="/renovaciones?filtro=30"
+              >
+                <div>
+                  <strong>Próximos 30 días</strong>
+                  <span>Vencimientos que deben ser gestionados</span>
+                </div>
+
+                <strong className={styles.planPrice}>
+                  {upcomingRenewalCount}
+                </strong>
+              </Link>
+
+              <Link className={styles.planItem} href="/pagos">
+                <div>
+                  <strong>Cobros pendientes</strong>
+                  <span>Pagos pendientes o vencidos</span>
+                </div>
+
+                <strong className={styles.planPrice}>
+                  {pendingPaymentCount}
+                </strong>
+              </Link>
             </div>
           </article>
 

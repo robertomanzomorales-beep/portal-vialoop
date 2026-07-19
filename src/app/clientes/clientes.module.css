@@ -13,6 +13,12 @@
   margin-bottom: 30px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .eyebrow {
   color: #175cd3;
   font-size: 12px;
@@ -36,7 +42,8 @@
 }
 
 .primaryButton,
-.secondaryButton {
+.secondaryButton,
+.viewButton {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -46,6 +53,12 @@
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .primaryButton {
@@ -55,10 +68,35 @@
   box-shadow: 0 8px 18px rgb(23 92 211 / 16%);
 }
 
+.primaryButton:hover {
+  background: #1849a9;
+  transform: translateY(-1px);
+}
+
 .secondaryButton {
   border: 1px solid #d0d5dd;
   background: #ffffff;
   color: #344054;
+}
+
+.secondaryButton:hover {
+  border-color: #98a2b3;
+  background: #f9fafb;
+}
+
+.viewButton {
+  min-height: 36px;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #175cd3;
+  padding: 0 13px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.viewButton:hover {
+  border-color: #175cd3;
+  background: #eef3ff;
 }
 
 .summary {
@@ -89,7 +127,8 @@
 }
 
 .panel,
-.formPanel {
+.formPanel,
+.detailPanel {
   border: 1px solid #e4e7ec;
   border-radius: 14px;
   background: #ffffff;
@@ -171,6 +210,24 @@
   font-size: 13px;
 }
 
+.table tbody tr {
+  transition: background-color 160ms ease;
+}
+
+.table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.companyLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .companyCell {
   display: flex;
   align-items: center;
@@ -193,6 +250,10 @@
 .contactName {
   display: block;
   color: #101828;
+}
+
+.companyLink:hover .companyCell strong {
+  color: #175cd3;
 }
 
 .companyCell span,
@@ -230,6 +291,10 @@
   border-bottom: 1px solid #eaecf0;
 }
 
+.formSection:last-of-type {
+  border-bottom: 0;
+}
+
 .sectionHeader {
   margin-bottom: 22px;
 }
@@ -253,7 +318,8 @@
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   border: 1px solid #d0d5dd;
   border-radius: 9px;
@@ -266,8 +332,14 @@
     box-shadow 160ms ease;
 }
 
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #98a2b3;
+}
+
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: #175cd3;
   box-shadow: 0 0 0 4px rgb(23 92 211 / 10%);
 }
@@ -288,12 +360,92 @@
   background: #fcfcfd;
 }
 
+/* Ficha individual del cliente */
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.detailPanel {
+  padding: 26px;
+}
+
+.detailList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.detailList > div {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.2fr);
+  gap: 20px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.detailList > div:last-child {
+  border-bottom: 0;
+}
+
+.detailList dt {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.detailList dd {
+  margin: 0;
+  color: #101828;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.inlineEmpty {
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 22px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notesBox {
+  min-height: 150px;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 18px;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1050px) {
+  .table {
+    min-width: 960px;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 800px) {
   .page {
     padding: 28px 18px;
   }
 
   .header {
+    flex-direction: column;
+  }
+
+  .headerActions {
+    width: 100%;
     flex-direction: column;
   }
 
@@ -313,5 +465,10 @@
 
   .formFooter {
     flex-direction: column-reverse;
+  }
+
+  .detailList > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }

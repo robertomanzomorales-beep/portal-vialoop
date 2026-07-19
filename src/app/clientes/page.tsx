@@ -31,12 +31,23 @@ export default async function ClientsPage() {
     },
   });
 
+  const activeClients = clients.filter(
+    (client) => client.status === "ACTIVE",
+  ).length;
+
+  const totalProjects = clients.reduce(
+    (total, client) => total + client._count.projects,
+    0,
+  );
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
           <span className={styles.eyebrow}>Gestión comercial</span>
+
           <h1>Clientes</h1>
+
           <p>
             Administra las empresas, contactos, proyectos y servicios
             recurrentes de Vialoop.
@@ -56,19 +67,12 @@ export default async function ClientsPage() {
 
         <article>
           <span>Clientes activos</span>
-          <strong>
-            {clients.filter((client) => client.status === "ACTIVE").length}
-          </strong>
+          <strong>{activeClients}</strong>
         </article>
 
         <article>
           <span>Proyectos registrados</span>
-          <strong>
-            {clients.reduce(
-              (total, client) => total + client._count.projects,
-              0,
-            )}
-          </strong>
+          <strong>{totalProjects}</strong>
         </article>
       </section>
 
@@ -76,14 +80,20 @@ export default async function ClientsPage() {
         <div className={styles.panelHeader}>
           <div>
             <h2>Directorio de clientes</h2>
-            <p>Empresas registradas en el Portal Vialoop.</p>
+
+            <p>
+              Selecciona una empresa para revisar y editar su información,
+              hosting y renovaciones.
+            </p>
           </div>
         </div>
 
         {clients.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>+</div>
+
             <h3>Todavía no existen clientes registrados</h3>
+
             <p>
               Crea el primer cliente para comenzar a asociar proyectos, planes,
               renovaciones y solicitudes.
@@ -104,6 +114,7 @@ export default async function ClientsPage() {
                   <th>Proyectos</th>
                   <th>Solicitudes</th>
                   <th>Estado</th>
+                  <th aria-label="Acciones" />
                 </tr>
               </thead>
 
@@ -111,29 +122,41 @@ export default async function ClientsPage() {
                 {clients.map((client) => (
                   <tr key={client.id}>
                     <td>
-                      <div className={styles.companyCell}>
-                        <div className={styles.companyMark}>
-                          {client.businessName.charAt(0).toUpperCase()}
-                        </div>
+                      <Link
+                        className={styles.companyLink}
+                        href={`/clientes/${client.id}`}
+                        aria-label={`Abrir ficha de ${client.businessName}`}
+                      >
+                        <div className={styles.companyCell}>
+                          <div className={styles.companyMark}>
+                            {client.businessName.charAt(0).toUpperCase()}
+                          </div>
 
-                        <div>
-                          <strong>{client.businessName}</strong>
-                          <span>{client.rut ?? "Sin RUT registrado"}</span>
+                          <div>
+                            <strong>{client.businessName}</strong>
+
+                            <span>
+                              {client.rut ?? "Sin RUT registrado"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     </td>
 
                     <td>
                       <strong className={styles.contactName}>
                         {client.mainContactName ?? "Sin contacto"}
                       </strong>
+
                       <span className={styles.secondaryText}>
                         {client.email ?? "Sin correo"}
                       </span>
                     </td>
 
                     <td>{client.city ?? "Sin ciudad"}</td>
+
                     <td>{client._count.projects}</td>
+
                     <td>{client._count.supportRequests}</td>
 
                     <td>
@@ -146,6 +169,15 @@ export default async function ClientsPage() {
                       >
                         {getStatusLabel(client.status)}
                       </span>
+                    </td>
+
+                    <td>
+                      <Link
+                        className={styles.viewButton}
+                        href={`/clientes/${client.id}`}
+                      >
+                        Ver ficha
+                      </Link>
                     </td>
                   </tr>
                 ))}
