@@ -1,0 +1,1011 @@
+.page {
+  min-height: 100vh;
+  background: #f4f6fa;
+  padding: 46px;
+  color: #101828;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow,
+.panelEyebrow {
+  color: #175cd3;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 8px 0;
+  font-size: 42px;
+  letter-spacing: -0.04em;
+}
+
+.header p,
+.panelHeader p,
+.sectionHeader p,
+.renewalActionInfo p {
+  max-width: 760px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.primaryButton,
+.secondaryButton,
+.editButton,
+.createRenewalButton,
+.cancelModalButton,
+.confirmModalButton {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 17px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.primaryButton,
+.createRenewalButton,
+.confirmModalButton {
+  border: 1px solid #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+  box-shadow:
+    0 8px 18px
+    rgb(23 92 211 / 15%);
+}
+
+.primaryButton:hover,
+.createRenewalButton:hover,
+.confirmModalButton:hover {
+  background: #1849a9;
+}
+
+.primaryButton:disabled,
+.createRenewalButton:disabled,
+.confirmModalButton:disabled {
+  border-color: #98a2b3;
+  background: #98a2b3;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.secondaryButton,
+.editButton,
+.cancelModalButton {
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+}
+
+.secondaryButton:hover,
+.editButton:hover,
+.cancelModalButton:hover {
+  border-color: #175cd3;
+  background: #eef3ff;
+  color: #175cd3;
+}
+
+.successMessage,
+.warningMessage {
+  margin-bottom: 18px;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.successMessage {
+  border: 1px solid #abefc6;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.warningMessage {
+  border: 1px solid #fedf89;
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.summary article {
+  min-width: 0;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 22px;
+  box-shadow:
+    0 8px 24px
+    rgb(16 24 40 / 4%);
+}
+
+.summary span {
+  display: block;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.summary strong {
+  display: block;
+  margin: 12px 0 8px;
+  font-size: 30px;
+  letter-spacing: -0.04em;
+}
+
+.summary p {
+  margin: 0;
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.controls {
+  margin-bottom: 18px;
+}
+
+.searchForm {
+  margin-bottom: 15px;
+}
+
+.searchField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchField > span {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.searchRow input {
+  width: min(560px, 100%);
+  min-height: 42px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #101828;
+  padding: 0 13px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.searchRow input:focus {
+  border-color: #175cd3;
+  box-shadow:
+    0 0 0 3px
+    rgb(23 92 211 / 10%);
+}
+
+.searchRow button,
+.searchRow a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.searchRow button {
+  border: 1px solid #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.searchRow a {
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #475467;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+
+.filterButton {
+  display: inline-flex;
+  min-height: 39px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475467;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.filterButton span {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #667085;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.activeFilter {
+  border-color: #175cd3;
+  background: #eef3ff;
+  color: #175cd3;
+}
+
+.activeFilter span {
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.panel,
+.formPanel,
+.renewalActionPanel {
+  overflow: hidden;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow:
+    0 8px 24px
+    rgb(16 24 40 / 4%);
+}
+
+.panelHeader {
+  padding: 24px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.panelHeader h2,
+.sectionHeader h2,
+.renewalActionInfo h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 1450px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 16px 18px;
+  border-bottom:
+    1px solid #eaecf0;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  background: #fcfcfd;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: #475467;
+  font-size: 13px;
+}
+
+.table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.clientLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.clientLink strong,
+.projectName,
+.planCell strong {
+  display: block;
+  color: #101828;
+  font-size: 13px;
+}
+
+.clientLink:hover strong {
+  color: #175cd3;
+}
+
+.clientLink span,
+.planCell span,
+.secondaryText {
+  display: block;
+  margin-top: 4px;
+  color: #98a2b3;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.cycleBadge,
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cycleBadge {
+  background: #eef4ff;
+  color: #3538cd;
+}
+
+.statusActive {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.statusPending {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.statusSuspended {
+  background: #f4f3ff;
+  color: #5925dc;
+}
+
+.statusCancelled {
+  background: #f2f4f7;
+  color: #667085;
+}
+
+.statusExpired {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.price,
+.usage,
+.dateValue {
+  display: block;
+  color: #101828;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.price {
+  color: #175cd3;
+  font-size: 15px;
+}
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recordList span {
+  color: #667085;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.editButton {
+  min-height: 35px;
+  padding: 0 12px;
+}
+
+.emptyState {
+  display: flex;
+  min-height: 380px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef4ff;
+  color: #175cd3;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.emptyState h3 {
+  margin: 16px 0 8px;
+}
+
+.emptyState p {
+  max-width: 490px;
+  margin: 0 0 20px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.informationBox {
+  margin-top: 18px;
+  border: 1px solid #b2ccff;
+  border-radius: 12px;
+  background: #f5f8ff;
+  color: #344054;
+  padding: 16px 18px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.formSection {
+  padding: 28px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.sectionHeader {
+  margin-bottom: 22px;
+}
+
+.formGrid,
+.modalFields {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.field > span {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #101828;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.field input,
+.field select {
+  min-height: 43px;
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #175cd3;
+  box-shadow:
+    0 0 0 3px
+    rgb(23 92 211 / 10%);
+}
+
+.field select:disabled {
+  background: #f2f4f7;
+  color: #98a2b3;
+  cursor: not-allowed;
+}
+
+.field small {
+  color: #98a2b3;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.safetyNotice {
+  margin: 24px 28px 0;
+  border: 1px solid #fedf89;
+  border-radius: 10px;
+  background: #fffaeb;
+  padding: 18px;
+}
+
+.safetyNotice strong {
+  display: block;
+  color: #b54708;
+  font-size: 13px;
+}
+
+.safetyNotice p {
+  margin: 7px 0 0;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 22px 28px;
+  background: #fcfcfd;
+}
+
+.formFooter button {
+  appearance: none;
+}
+
+.detailBanner {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.detailBanner > div {
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow:
+    0 8px 24px
+    rgb(16 24 40 / 4%);
+}
+
+.detailBanner span {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.detailBanner strong {
+  display: block;
+  margin-top: 10px;
+  color: #101828;
+  font-size: 20px;
+}
+
+.detailBanner .bannerPrice {
+  color: #175cd3;
+}
+
+.renewalActionPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 18px;
+  padding: 24px;
+  border-color: #b2ccff;
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f5f8ff 100%
+    );
+}
+
+.renewalActionInfo {
+  min-width: 0;
+}
+
+.renewalActionInfo h2 {
+  margin-top: 7px;
+}
+
+.renewalMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+}
+
+.renewalMeta span {
+  color: #667085;
+  font-size: 11px;
+}
+
+.renewalMeta strong {
+  color: #344054;
+}
+
+.renewalButtonArea {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.disabledHint {
+  max-width: 240px;
+  color: #b42318;
+  font-size: 10px;
+  text-align: right;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background:
+    rgb(16 24 40 / 58%);
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow:
+    0 24px 70px
+    rgb(16 24 40 / 24%);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.modalEyebrow {
+  color: #175cd3;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modalHeader h2 {
+  margin: 7px 0 0;
+  color: #101828;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.modalClose {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475467;
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalClose:hover {
+  border-color: #98a2b3;
+  background: #f9fafb;
+}
+
+.modalIntro {
+  margin: 0;
+  padding: 18px 24px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.renewalSummary {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 24px 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #fcfcfd;
+  padding: 17px;
+}
+
+.renewalSummary span {
+  display: block;
+  color: #667085;
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.renewalSummary strong {
+  display: block;
+  margin-top: 6px;
+  color: #101828;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.modalForm {
+  padding: 0 24px 24px;
+}
+
+.amountBreakdown {
+  margin-top: 20px;
+  overflow: hidden;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.amountBreakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.amountBreakdown > div:last-child {
+  border-bottom: 0;
+}
+
+.amountBreakdown span {
+  color: #667085;
+  font-size: 12px;
+}
+
+.amountBreakdown strong {
+  color: #101828;
+  font-size: 14px;
+}
+
+.amountBreakdown .totalRow {
+  background: #eef4ff;
+}
+
+.amountBreakdown .totalRow span {
+  color: #175cd3;
+  font-weight: 700;
+}
+
+.amountBreakdown .totalRow strong {
+  color: #175cd3;
+  font-size: 18px;
+}
+
+.confirmationBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 20px;
+  border: 1px solid #fedf89;
+  border-radius: 10px;
+  background: #fffaeb;
+  padding: 15px;
+  cursor: pointer;
+}
+
+.confirmationBox input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 1px 0 0;
+  accent-color: #175cd3;
+}
+
+.confirmationBox span {
+  color: #475467;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #eaecf0;
+}
+
+@media (max-width: 1100px) {
+  .summary,
+  .detailBanner {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 28px 18px;
+  }
+
+  .header,
+  .headerActions {
+    flex-direction: column;
+  }
+
+  .headerActions,
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+
+  .summary,
+  .detailBanner,
+  .formGrid,
+  .modalFields,
+  .renewalSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: auto;
+  }
+
+  .searchRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchRow input,
+  .searchRow button,
+  .searchRow a {
+    width: 100%;
+  }
+
+  .filters {
+    margin-right: -18px;
+  }
+
+  .formSection {
+    padding: 22px 18px;
+  }
+
+  .safetyNotice {
+    margin: 20px 18px 0;
+  }
+
+  .formFooter {
+    flex-direction: column-reverse;
+    padding: 20px 18px;
+  }
+
+  .renewalActionPanel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .renewalButtonArea,
+  .createRenewalButton {
+    width: 100%;
+  }
+
+  .renewalButtonArea {
+    align-items: stretch;
+  }
+
+  .disabledHint {
+    max-width: none;
+    text-align: left;
+  }
+
+  .modalBackdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    border-radius: 15px;
+  }
+
+  .modalHeader,
+  .modalIntro,
+  .modalForm {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .renewalSummary {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+  }
+
+  .cancelModalButton,
+  .confirmModalButton {
+    width: 100%;
+  }
+}
