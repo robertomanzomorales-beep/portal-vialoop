@@ -100,6 +100,14 @@ enum RenewalStatus {
   CANCELLED
 }
 
+enum RenewalReminderType {
+  FIRST_NOTICE
+  SECOND_NOTICE
+  FINAL_NOTICE
+  OVERDUE_NOTICE
+  MANUAL
+}
+
 enum PaymentStatus {
   PENDING
   PAID
@@ -315,29 +323,47 @@ model Document {
 }
 
 model Renewal {
-  id             String        @id @default(cuid())
+  id             String                @id @default(cuid())
   clientId       String
-  client         Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client         Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
   projectId      String?
-  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  project        Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
   subscriptionId String?
-  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  subscription   Subscription?         @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   type           RenewalType
   description    String
   dueDate        DateTime
-  amount         Decimal?      @db.Decimal(12, 2)
-  status         RenewalStatus @default(UPCOMING)
+  amount         Decimal?              @db.Decimal(12, 2)
+  status         RenewalStatus         @default(UPCOMING)
   notifiedAt     DateTime?
   renewedAt      DateTime?
   notes          String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  notifications  RenewalNotification[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
 
   @@index([clientId])
   @@index([projectId])
   @@index([subscriptionId])
   @@index([dueDate])
   @@index([status])
+}
+
+model RenewalNotification {
+  id        String              @id @default(cuid())
+  renewalId String
+  renewal   Renewal             @relation(fields: [renewalId], references: [id], onDelete: Cascade)
+  type      RenewalReminderType
+  recipient String
+  subject   String
+  body      String              @db.Text
+  sentOn    DateTime            @db.Date
+  sentAt    DateTime            @default(now())
+
+  @@unique([renewalId, type, sentOn])
+  @@index([renewalId])
+  @@index([type])
+  @@index([sentAt])
 }
 
 model Payment {

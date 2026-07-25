@@ -13,10 +13,19 @@
   margin-bottom: 30px;
 }
 
-.headerActions {
+.headerActions,
+.actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+
+.actions {
+  justify-content: flex-end;
+}
+
+.actions form {
+  margin: 0;
 }
 
 .eyebrow {
@@ -42,24 +51,37 @@
 }
 
 .secondaryButton,
-.viewButton {
+.viewButton,
+.emailAction {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d0d5dd;
   border-radius: 9px;
-  background: #ffffff;
-  color: #344054;
   padding: 0 17px;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
     color 160ms ease;
+}
+
+.secondaryButton,
+.viewButton {
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+}
+
+.emailAction {
+  border: 1px solid #175cd3;
+  background: #175cd3;
+  color: #ffffff;
 }
 
 .secondaryButton:hover,
@@ -67,6 +89,31 @@
   border-color: #175cd3;
   background: #eef3ff;
   color: #175cd3;
+}
+
+.emailAction:hover {
+  background: #1849a9;
+}
+
+.successMessage,
+.noticeMessage {
+  margin-bottom: 18px;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.successMessage {
+  border: 1px solid #abefc6;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.noticeMessage {
+  border: 1px solid #fedf89;
+  background: #fffaeb;
+  color: #b54708;
 }
 
 .summary {
@@ -196,7 +243,7 @@
 
 .table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 1640px;
   border-collapse: collapse;
 }
 
@@ -275,7 +322,8 @@
 }
 
 .deadline,
-.status {
+.status,
+.reminder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -327,11 +375,53 @@
   color: #667085;
 }
 
-.viewButton {
+.reminderExpired {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.reminderFinal {
+  background: #fff1f3;
+  color: #c01048;
+}
+
+.reminderSecond {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.reminderFirst {
+  background: #eef4ff;
+  color: #3538cd;
+}
+
+.reminderScheduled {
+  background: #f2f4f7;
+  color: #475467;
+}
+
+.notificationMeta {
+  display: flex;
+  margin-top: 7px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notificationMeta span {
+  color: #475467;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.notificationMeta small {
+  color: #98a2b3;
+  font-size: 10px;
+}
+
+.viewButton,
+.emailAction {
   min-height: 35px;
   padding: 0 12px;
-  color: #175cd3;
-  white-space: nowrap;
 }
 
 .emptyState {
@@ -367,6 +457,353 @@
   line-height: 1.6;
 }
 
+.modalBackdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgb(16 24 40 / 58%);
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width: min(800px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 28px;
+  box-shadow: 0 30px 90px rgb(16 24 40 / 28%);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.modalEyebrow {
+  color: #175cd3;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modalHeader h2 {
+  margin: 7px 0 0;
+  color: #101828;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.modalClose {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475467;
+  font-family: inherit;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalClose:hover {
+  border-color: #98a2b3;
+  background: #f9fafb;
+}
+
+.modalIntro {
+  margin: 14px 0 20px;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.emailSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #f9fafb;
+  padding: 16px;
+}
+
+.emailSummary div {
+  min-width: 0;
+}
+
+.emailSummary span {
+  display: block;
+  margin-bottom: 5px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.emailSummary strong {
+  display: block;
+  overflow: hidden;
+  color: #101828;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+
+.reminderNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+  border: 1px solid #b2ccff;
+  border-radius: 11px;
+  background: #eef4ff;
+  padding: 14px 16px;
+}
+
+.reminderNotice span {
+  color: #475467;
+  font-size: 12px;
+}
+
+.reminderNotice strong {
+  color: #175cd3;
+  font-size: 13px;
+}
+
+.todayNotice {
+  margin-bottom: 18px;
+  border: 1px solid #fedf89;
+  border-radius: 10px;
+  background: #fffaeb;
+  color: #b54708;
+  padding: 12px 15px;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.emailForm {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field > span {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #101828;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.field input {
+  min-height: 43px;
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+}
+
+.emailTools {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.copyButton,
+.openMailButton,
+.cancelModalButton,
+.confirmSentButton {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 17px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copyButton,
+.cancelModalButton {
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+}
+
+.openMailButton,
+.confirmSentButton {
+  border: 1px solid #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.copyButton:hover,
+.cancelModalButton:hover {
+  background: #f9fafb;
+}
+
+.openMailButton:hover,
+.confirmSentButton:hover {
+  background: #1849a9;
+}
+
+.openMailButton:disabled,
+.confirmSentButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.manualNotice {
+  border: 1px solid #fedf89;
+  border-radius: 11px;
+  background: #fffaeb;
+  padding: 14px 16px;
+}
+
+.manualNotice strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #b54708;
+  font-size: 12px;
+}
+
+.manualNotice p {
+  margin: 0;
+  color: #7a2e0e;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.historyPanel {
+  overflow: hidden;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #eaecf0;
+  background: #f9fafb;
+  padding: 14px 16px;
+}
+
+.historyHeader span {
+  display: block;
+  color: #175cd3;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.historyHeader h3 {
+  margin: 3px 0 0;
+  color: #101828;
+  font-size: 15px;
+}
+
+.historyHeader > strong {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: #175cd3;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.historyList {
+  display: grid;
+}
+
+.historyItem {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.3fr);
+  gap: 18px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.historyItem:last-child {
+  border-bottom: 0;
+}
+
+.historyItem div {
+  min-width: 0;
+}
+
+.historyItem strong {
+  display: block;
+  color: #101828;
+  font-size: 12px;
+}
+
+.historyItem span,
+.historyItem small {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
 @media (max-width: 1100px) {
   .summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -382,7 +819,11 @@
     flex-direction: column;
   }
 
-  .headerActions,
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
   .secondaryButton {
     width: 100%;
   }
@@ -393,5 +834,42 @@
 
   .filters {
     margin-right: -18px;
+  }
+
+  .modalBackdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: none;
+    padding: 21px;
+  }
+
+  .emailSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .reminderNotice {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .emailTools,
+  .modalFooter {
+    flex-direction: column;
+  }
+
+  .copyButton,
+  .openMailButton,
+  .cancelModalButton,
+  .confirmSentButton {
+    width: 100%;
+  }
+
+  .historyItem {
+    grid-template-columns: 1fr;
+    gap: 9px;
   }
 }
