@@ -4,15 +4,23 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 html {
   background: #f4f6fa;
 }
 
 body {
+  min-width: 320px;
   margin: 0;
+  overflow-x: hidden;
   background: #f4f6fa;
   color: #101828;
   font-family:
+    var(--font-geist-sans),
     Arial,
     Helvetica,
     sans-serif;
@@ -23,4 +31,9 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }

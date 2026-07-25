@@ -2,43 +2,66 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import styles from "./page.module.css";
 
-function formatCurrency(value: unknown) {
+function formatCurrency(
+  value: unknown,
+) {
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
     return "$0";
   }
 
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat(
+    "es-CL",
+    {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    },
+  ).format(amount);
 }
 
-function formatDate(date: Date | null | undefined) {
+function formatDate(
+  date: Date | null | undefined,
+) {
   if (!date) {
     return "Sin fecha";
   }
 
-  return new Intl.DateTimeFormat("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "America/Santiago",
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "es-CL",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone:
+        "America/Santiago",
+    },
+  ).format(date);
 }
 
-function formatLongDate(date: Date) {
-  const formattedDate = new Intl.DateTimeFormat("es-CL", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "America/Santiago",
-  }).format(date);
+function formatLongDate(
+  date: Date,
+) {
+  const formattedDate =
+    new Intl.DateTimeFormat(
+      "es-CL",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone:
+          "America/Santiago",
+      },
+    ).format(date);
 
-  return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+  return (
+    formattedDate
+      .charAt(0)
+      .toUpperCase() +
+    formattedDate.slice(1)
+  );
 }
 
 function getStartOfDay() {
@@ -49,24 +72,46 @@ function getStartOfDay() {
   return date;
 }
 
-function addDays(date: Date, days: number) {
+function addDays(
+  date: Date,
+  days: number,
+) {
   const result = new Date(date);
 
-  result.setDate(result.getDate() + days);
-  result.setHours(23, 59, 59, 999);
+  result.setDate(
+    result.getDate() + days,
+  );
+
+  result.setHours(
+    23,
+    59,
+    59,
+    999,
+  );
 
   return result;
 }
 
-function getDaysDifference(dueDate: Date, today: Date) {
-  const difference = dueDate.getTime() - today.getTime();
+function getDaysDifference(
+  dueDate: Date,
+  today: Date,
+) {
+  const difference =
+    dueDate.getTime() -
+    today.getTime();
 
-  return Math.ceil(difference / (1000 * 60 * 60 * 24));
+  return Math.ceil(
+    difference /
+      (1000 * 60 * 60 * 24),
+  );
 }
 
-function getDeadlineLabel(days: number) {
+function getDeadlineLabel(
+  days: number,
+) {
   if (days < 0) {
-    const overdueDays = Math.abs(days);
+    const overdueDays =
+      Math.abs(days);
 
     return overdueDays === 1
       ? "Vencida hace 1 día"
@@ -84,7 +129,9 @@ function getDeadlineLabel(days: number) {
   return `Faltan ${days} días`;
 }
 
-function getReminderLabel(days: number) {
+function getReminderLabel(
+  days: number,
+) {
   if (days < 0) {
     return "Seguimiento vencido";
   }
@@ -100,7 +147,9 @@ function getReminderLabel(days: number) {
   return "Primer aviso";
 }
 
-function getUrgencyClass(days: number) {
+function getUrgencyClass(
+  days: number,
+) {
   if (days < 0) {
     return styles.urgencyExpired;
   }
@@ -118,7 +167,9 @@ function getUrgencyClass(days: number) {
 
 export default async function Home() {
   const today = getStartOfDay();
-  const nextThirtyDays = addDays(today, 30);
+
+  const nextThirtyDays =
+    addDays(today, 30);
 
   const [
     clientCount,
@@ -141,7 +192,11 @@ export default async function Home() {
     prisma.project.count({
       where: {
         status: {
-          in: ["DEVELOPMENT", "ACTIVE", "MAINTENANCE"],
+          in: [
+            "DEVELOPMENT",
+            "ACTIVE",
+            "MAINTENANCE",
+          ],
         },
       },
     }),
@@ -149,7 +204,11 @@ export default async function Home() {
     prisma.supportRequest.count({
       where: {
         status: {
-          notIn: ["COMPLETED", "REJECTED", "OUT_OF_SCOPE"],
+          notIn: [
+            "COMPLETED",
+            "REJECTED",
+            "OUT_OF_SCOPE",
+          ],
         },
       },
     }),
@@ -161,7 +220,11 @@ export default async function Home() {
           lte: nextThirtyDays,
         },
         status: {
-          in: ["UPCOMING", "NOTIFIED", "EXPIRED"],
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
         },
       },
     }),
@@ -172,7 +235,11 @@ export default async function Home() {
           lt: today,
         },
         status: {
-          in: ["UPCOMING", "NOTIFIED", "EXPIRED"],
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
         },
       },
     }),
@@ -180,7 +247,10 @@ export default async function Home() {
     prisma.payment.count({
       where: {
         status: {
-          in: ["PENDING", "OVERDUE"],
+          in: [
+            "PENDING",
+            "OVERDUE",
+          ],
         },
       },
     }),
@@ -188,7 +258,10 @@ export default async function Home() {
     prisma.payment.aggregate({
       where: {
         status: {
-          in: ["PENDING", "OVERDUE"],
+          in: [
+            "PENDING",
+            "OVERDUE",
+          ],
         },
       },
       _sum: {
@@ -211,7 +284,11 @@ export default async function Home() {
           lte: nextThirtyDays,
         },
         status: {
-          in: ["UPCOMING", "NOTIFIED", "EXPIRED"],
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
         },
       },
       orderBy: {
@@ -249,204 +326,293 @@ export default async function Home() {
     }),
   ]);
 
-  const pendingPaymentAmount = Number(
-    pendingPaymentAmountResult._sum.amount ?? 0,
-  );
+  const pendingPaymentAmount =
+    Number(
+      pendingPaymentAmountResult
+        ._sum.amount ?? 0,
+    );
 
-  const recentPayments = recentPaidCandidates
-    .filter((payment) => !payment.notes?.includes("[PRUEBA]"))
-    .slice(0, 5);
+  const recentPayments =
+    recentPaidCandidates
+      .filter(
+        (payment) =>
+          !payment.notes?.includes(
+            "[PRUEBA]",
+          ),
+      )
+      .slice(0, 5);
 
   const priorityTaskCount =
-    overdueRenewalCount + upcomingRenewalCount + pendingPaymentCount;
+    overdueRenewalCount +
+    upcomingRenewalCount +
+    pendingPaymentCount;
 
   const metrics = [
     {
       label: "Clientes activos",
       value: clientCount,
-      detail: "Empresas con servicios vigentes",
+      detail:
+        "Empresas con servicios vigentes",
       href: "/clientes",
       alert: false,
     },
     {
       label: "Proyectos activos",
       value: projectCount,
-      detail: "Sitios en desarrollo o mantención",
+      detail:
+        "Sitios en desarrollo o mantención",
       href: "/proyectos",
       alert: false,
     },
     {
       label: "Solicitudes abiertas",
       value: openRequestCount,
-      detail: "Tickets pendientes de resolución",
+      detail:
+        "Tickets pendientes de resolución",
       href: "/solicitudes",
-      alert: openRequestCount > 0,
+      alert:
+        openRequestCount > 0,
     },
     {
       label: "Trabajo pendiente",
       value: priorityTaskCount,
-      detail: "Renovaciones y cobros por gestionar",
+      detail:
+        "Renovaciones y cobros por gestionar",
       href: "/renovaciones",
-      alert: priorityTaskCount > 0,
+      alert:
+        priorityTaskCount > 0,
     },
   ];
 
   return (
-    <div className={styles.portal}>
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}>
-          <div className={styles.brandMark}>V</div>
+    <main className={styles.content}>
+      <header className={styles.header}>
+        <div>
+          <span
+            className={styles.eyebrow}
+          >
+            Panel administrativo
+          </span>
 
-          <div>
-            <strong>Portal Vialoop</strong>
-            <span>Gestión de clientes</span>
-          </div>
+          <h1>Dashboard</h1>
+
+          <p>
+            Control diario de clientes,
+            renovaciones, cobros y actividad
+            operativa de Vialoop.
+          </p>
+
+          <span
+            className={
+              styles.currentDate
+            }
+          >
+            {formatLongDate(today)}
+          </span>
         </div>
 
-        <nav className={styles.navigation}>
-          <p className={styles.navigationLabel}>Principal</p>
+        <Link
+          className={
+            styles.primaryButton
+          }
+          href="/clientes/nuevo"
+        >
+          Nuevo cliente
+        </Link>
+      </header>
 
-          <Link className={styles.activeLink} href="/">
-            Dashboard
+      <section className={styles.metrics}>
+        {metrics.map((metric) => (
+          <Link
+            className={`${
+              styles.metricCard
+            } ${
+              metric.alert
+                ? styles.metricCardAlert
+                : ""
+            }`}
+            href={metric.href}
+            key={metric.label}
+          >
+            <span>{metric.label}</span>
+
+            <strong>{metric.value}</strong>
+
+            <p>{metric.detail}</p>
           </Link>
+        ))}
+      </section>
 
-          <Link href="/clientes">Clientes</Link>
-          <Link href="/proyectos">Proyectos</Link>
-          <Link href="/solicitudes">Solicitudes</Link>
-
-          <p className={styles.navigationLabel}>Administración</p>
-
-          <Link href="/planes">Planes</Link>
-          <Link href="/renovaciones">Renovaciones</Link>
-          <Link href="/pagos">Pagos</Link>
-          <Link href="/documentos">Documentos</Link>
-        </nav>
-
-        <div className={styles.sidebarFooter}>
-          <div className={styles.avatar}>RM</div>
-
-          <div>
-            <strong>Roberto Manzo</strong>
-            <span>Administrador</span>
-          </div>
-        </div>
-      </aside>
-
-      <main className={styles.content}>
-        <header className={styles.header}>
-          <div>
-            <span className={styles.eyebrow}>Panel administrativo</span>
-
-            <h1>Dashboard</h1>
-
-            <p>
-              Control diario de clientes, renovaciones, cobros y actividad
-              operativa de Vialoop.
-            </p>
-
-            <span className={styles.currentDate}>
-              {formatLongDate(today)}
-            </span>
-          </div>
-
-          <Link className={styles.primaryButton} href="/clientes/nuevo">
-            Nuevo cliente
-          </Link>
-        </header>
-
-        <section className={styles.metrics}>
-          {metrics.map((metric) => (
-            <Link
-              className={`${styles.metricCard} ${
-                metric.alert ? styles.metricCardAlert : ""
-              }`}
-              href={metric.href}
-              key={metric.label}
-            >
-              <span>{metric.label}</span>
-
-              <strong>{metric.value}</strong>
-
-              <p>{metric.detail}</p>
-            </Link>
-          ))}
-        </section>
-
-        <section className={styles.operationsGrid}>
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>Trabajo diario</span>
-
-                <h2>Renovaciones prioritarias</h2>
-
-                <p>
-                  Servicios vencidos o con vencimiento durante los próximos
-                  30 días.
-                </p>
-              </div>
-
-              <Link
-                className={styles.secondaryButton}
-                href="/renovaciones"
+      <section
+        className={
+          styles.operationsGrid
+        }
+      >
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
               >
-                Ver todas
-              </Link>
+                Trabajo diario
+              </span>
+
+              <h2>
+                Renovaciones prioritarias
+              </h2>
+
+              <p>
+                Servicios vencidos o con
+                vencimiento durante los
+                próximos 30 días.
+              </p>
             </div>
 
-            {priorityRenewals.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>✓</div>
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/renovaciones"
+            >
+              Ver todas
+            </Link>
+          </div>
 
-                <h3>No existen renovaciones urgentes</h3>
-
-                <p>
-                  No hay servicios vencidos ni renovaciones próximas durante
-                  los siguientes 30 días.
-                </p>
+          {priorityRenewals.length ===
+          0 ? (
+            <div
+              className={
+                styles.emptyState
+              }
+            >
+              <div
+                className={
+                  styles.emptyIcon
+                }
+              >
+                ✓
               </div>
-            ) : (
-              <div className={styles.priorityList}>
-                {priorityRenewals.map((renewal) => {
-                  const days = getDaysDifference(renewal.dueDate, today);
+
+              <h3>
+                No existen renovaciones
+                urgentes
+              </h3>
+
+              <p>
+                No hay servicios vencidos
+                ni renovaciones próximas
+                durante los siguientes 30
+                días.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={
+                styles.priorityList
+              }
+            >
+              {priorityRenewals.map(
+                (renewal) => {
+                  const days =
+                    getDaysDifference(
+                      renewal.dueDate,
+                      today,
+                    );
+
                   const domain =
-                    renewal.project?.domain ??
-                    renewal.project?.name ??
+                    renewal.project
+                      ?.domain ??
+                    renewal.project
+                      ?.name ??
                     renewal.description;
 
                   const latestNotification =
-                    renewal.notifications[0] ?? null;
+                    renewal
+                      .notifications[0] ??
+                    null;
 
                   return (
-                    <article className={styles.priorityItem} key={renewal.id}>
-                      <div className={styles.priorityMain}>
-                        <div className={styles.priorityTopline}>
+                    <article
+                      className={
+                        styles.priorityItem
+                      }
+                      key={renewal.id}
+                    >
+                      <div
+                        className={
+                          styles.priorityMain
+                        }
+                      >
+                        <div
+                          className={
+                            styles.priorityTopline
+                          }
+                        >
                           <Link
-                            className={styles.priorityClient}
+                            className={
+                              styles.priorityClient
+                            }
                             href={`/clientes/${renewal.clientId}`}
                           >
-                            {renewal.client.businessName}
+                            {
+                              renewal
+                                .client
+                                .businessName
+                            }
                           </Link>
 
                           <span
-                            className={`${styles.urgencyBadge} ${getUrgencyClass(
+                            className={`${
+                              styles.urgencyBadge
+                            } ${getUrgencyClass(
                               days,
                             )}`}
                           >
-                            {getReminderLabel(days)}
+                            {getReminderLabel(
+                              days,
+                            )}
                           </span>
                         </div>
 
-                        <strong className={styles.priorityDomain}>
+                        <strong
+                          className={
+                            styles.priorityDomain
+                          }
+                        >
                           {domain}
                         </strong>
 
-                        <div className={styles.priorityMeta}>
-                          <span>{formatDate(renewal.dueDate)}</span>
-                          <span>{getDeadlineLabel(days)}</span>
+                        <div
+                          className={
+                            styles.priorityMeta
+                          }
+                        >
                           <span>
-                            {renewal._count.notifications}{" "}
-                            {renewal._count.notifications === 1
+                            {formatDate(
+                              renewal.dueDate,
+                            )}
+                          </span>
+
+                          <span>
+                            {getDeadlineLabel(
+                              days,
+                            )}
+                          </span>
+
+                          <span>
+                            {
+                              renewal._count
+                                .notifications
+                            }{" "}
+                            {renewal._count
+                              .notifications ===
+                            1
                               ? "aviso"
                               : "avisos"}
                           </span>
@@ -454,19 +620,33 @@ export default async function Home() {
                           {latestNotification && (
                             <span>
                               Último aviso:{" "}
-                              {formatDate(latestNotification.sentAt)}
+                              {formatDate(
+                                latestNotification.sentAt,
+                              )}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className={styles.priorityAside}>
-                        <strong className={styles.priorityAmount}>
-                          {formatCurrency(renewal.amount)}
+                      <div
+                        className={
+                          styles.priorityAside
+                        }
+                      >
+                        <strong
+                          className={
+                            styles.priorityAmount
+                          }
+                        >
+                          {formatCurrency(
+                            renewal.amount,
+                          )}
                         </strong>
 
                         <Link
-                          className={styles.inlineAction}
+                          className={
+                            styles.inlineAction
+                          }
                           href="/renovaciones"
                         >
                           Gestionar
@@ -474,160 +654,320 @@ export default async function Home() {
                       </div>
                     </article>
                   );
-                })}
-              </div>
-            )}
-          </article>
-
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>Estado financiero</span>
-
-                <h2>Cobros y vencimientos</h2>
-
-                <p>Resumen de obligaciones pendientes de gestión.</p>
-              </div>
+                },
+              )}
             </div>
+          )}
+        </article>
 
-            <div className={styles.operationalList}>
-              <Link
-                className={`${styles.operationalItem} ${
-                  overdueRenewalCount > 0 ? styles.operationalAlert : ""
-                }`}
-                href="/renovaciones?filtro=vencidas"
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
               >
-                <div>
-                  <strong>Renovaciones vencidas</strong>
-                  <span>Requieren seguimiento inmediato</span>
-                </div>
+                Estado financiero
+              </span>
 
-                <strong>{overdueRenewalCount}</strong>
-              </Link>
+              <h2>
+                Cobros y vencimientos
+              </h2>
 
-              <Link
-                className={styles.operationalItem}
-                href="/renovaciones?filtro=30"
-              >
-                <div>
-                  <strong>Próximos 30 días</strong>
-                  <span>Servicios próximos a vencer</span>
-                </div>
+              <p>
+                Resumen de obligaciones
+                pendientes de gestión.
+              </p>
+            </div>
+          </div>
 
-                <strong>{upcomingRenewalCount}</strong>
-              </Link>
-
-              <Link
-                className={styles.operationalItem}
-                href="/pagos?filtro=pendientes"
-              >
-                <div>
-                  <strong>Cobros pendientes</strong>
-                  <span>{pendingPaymentCount} operaciones abiertas</span>
-                </div>
-
-                <strong className={styles.operationalAmount}>
-                  {formatCurrency(pendingPaymentAmount)}
+          <div
+            className={
+              styles.operationalList
+            }
+          >
+            <Link
+              className={`${
+                styles.operationalItem
+              } ${
+                overdueRenewalCount >
+                0
+                  ? styles.operationalAlert
+                  : ""
+              }`}
+              href="/renovaciones?filtro=vencidas"
+            >
+              <div>
+                <strong>
+                  Renovaciones vencidas
                 </strong>
-              </Link>
-            </div>
 
-            <div className={styles.panelFooter}>
-              <Link className={styles.secondaryButton} href="/pagos">
-                Revisar pagos
-              </Link>
-            </div>
-          </article>
-        </section>
+                <span>
+                  Requieren seguimiento
+                  inmediato
+                </span>
+              </div>
 
-        <section className={styles.lowerGrid}>
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
+              <strong>
+                {overdueRenewalCount}
+              </strong>
+            </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/renovaciones?filtro=30"
+            >
               <div>
-                <span className={styles.panelEyebrow}>Ingresos</span>
+                <strong>
+                  Próximos 30 días
+                </strong>
 
-                <h2>Pagos recientes</h2>
-
-                <p>Últimos pagos reales registrados en el portal.</p>
+                <span>
+                  Servicios próximos a
+                  vencer
+                </span>
               </div>
 
-              <Link className={styles.secondaryButton} href="/pagos?filtro=pagados">
-                Ver historial
-              </Link>
+              <strong>
+                {upcomingRenewalCount}
+              </strong>
+            </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/pagos?filtro=pendientes"
+            >
+              <div>
+                <strong>
+                  Cobros pendientes
+                </strong>
+
+                <span>
+                  {pendingPaymentCount}{" "}
+                  operaciones abiertas
+                </span>
+              </div>
+
+              <strong
+                className={
+                  styles.operationalAmount
+                }
+              >
+                {formatCurrency(
+                  pendingPaymentAmount,
+                )}
+              </strong>
+            </Link>
+          </div>
+
+          <div
+            className={
+              styles.panelFooter
+            }
+          >
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/pagos"
+            >
+              Revisar pagos
+            </Link>
+          </div>
+        </article>
+      </section>
+
+      <section
+        className={styles.lowerGrid}
+      >
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Ingresos
+              </span>
+
+              <h2>Pagos recientes</h2>
+
+              <p>
+                Últimos pagos reales
+                registrados en el portal.
+              </p>
             </div>
 
-            {recentPayments.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>$</div>
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/pagos?filtro=pagados"
+            >
+              Ver historial
+            </Link>
+          </div>
 
-                <h3>No existen pagos recientes</h3>
-
-                <p>
-                  Los pagos confirmados aparecerán aquí automáticamente.
-                </p>
+          {recentPayments.length === 0 ? (
+            <div
+              className={
+                styles.emptyState
+              }
+            >
+              <div
+                className={
+                  styles.emptyIcon
+                }
+              >
+                $
               </div>
-            ) : (
-              <div className={styles.recentList}>
-                {recentPayments.map((payment) => (
+
+              <h3>
+                No existen pagos recientes
+              </h3>
+
+              <p>
+                Los pagos confirmados
+                aparecerán aquí
+                automáticamente.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={
+                styles.recentList
+              }
+            >
+              {recentPayments.map(
+                (payment) => (
                   <Link
-                    className={styles.recentItem}
+                    className={
+                      styles.recentItem
+                    }
                     href={`/clientes/${payment.clientId}`}
                     key={payment.id}
                   >
                     <div>
-                      <strong>{payment.client.businessName}</strong>
+                      <strong>
+                        {
+                          payment.client
+                            .businessName
+                        }
+                      </strong>
 
-                      <span>{payment.description}</span>
+                      <span>
+                        {
+                          payment.description
+                        }
+                      </span>
 
                       <small>
                         Pagado el{" "}
-                        {formatDate(payment.paidAt ?? payment.updatedAt)}
+                        {formatDate(
+                          payment.paidAt ??
+                            payment.updatedAt,
+                        )}
                       </small>
                     </div>
 
-                    <strong className={styles.paymentAmount}>
-                      {formatCurrency(payment.amount)}
+                    <strong
+                      className={
+                        styles.paymentAmount
+                      }
+                    >
+                      {formatCurrency(
+                        payment.amount,
+                      )}
                     </strong>
                   </Link>
-                ))}
-              </div>
-            )}
-          </article>
-
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.panelEyebrow}>Servicios</span>
-
-                <h2>Planes disponibles</h2>
-
-                <p>Planes comerciales activos en el sistema.</p>
-              </div>
+                ),
+              )}
             </div>
+          )}
+        </article>
 
-            <div className={styles.planList}>
-              {plans.map((plan) => (
-                <div className={styles.planItem} key={plan.id}>
-                  <div>
-                    <strong>{plan.name}</strong>
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Servicios
+              </span>
 
-                    <span>
-                      {plan.includedRequests === 0
-                        ? "Solicitudes cotizadas por separado"
-                        : `${plan.includedRequests} solicitudes incluidas`}
-                    </span>
-                  </div>
+              <h2>
+                Planes disponibles
+              </h2>
 
-                  <strong className={styles.planPrice}>
-                    {formatCurrency(plan.monthlyPrice)}
-                    <small> + IVA</small>
+              <p>
+                Planes comerciales activos
+                en el sistema.
+              </p>
+            </div>
+          </div>
+
+          <div
+            className={styles.planList}
+          >
+            {plans.map((plan) => (
+              <div
+                className={
+                  styles.planItem
+                }
+                key={plan.id}
+              >
+                <div>
+                  <strong>
+                    {plan.name}
                   </strong>
+
+                  <span>
+                    {plan.includedRequests ===
+                    0
+                      ? "Solicitudes cotizadas por separado"
+                      : `${plan.includedRequests} solicitudes incluidas`}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </article>
-        </section>
-      </main>
-    </div>
+
+                <strong
+                  className={
+                    styles.planPrice
+                  }
+                >
+                  {formatCurrency(
+                    plan.monthlyPrice,
+                  )}
+
+                  <small>
+                    {" "}
+                    + IVA
+                  </small>
+                </strong>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+    </main>
   );
 }
