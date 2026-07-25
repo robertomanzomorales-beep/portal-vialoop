@@ -55,15 +55,13 @@
   min-width: 0;
 }
 
-.brandText strong,
-.sidebarFooter strong {
+.brandText strong {
   display: block;
   color: #101828;
   font-size: 14px;
 }
 
-.brandText small,
-.sidebarFooter span {
+.brandText small {
   display: block;
   margin-top: 3px;
   color: #667085;
@@ -124,11 +122,18 @@
 
 .sidebarFooter {
   display: flex;
-  align-items: center;
-  gap: 11px;
+  flex-direction: column;
+  gap: 13px;
   margin-top: 24px;
   border-top: 1px solid #eaecf0;
   padding: 20px 8px 0;
+}
+
+.userRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
 }
 
 .avatar {
@@ -142,6 +147,61 @@
   color: #175cd3;
   font-size: 12px;
   font-weight: 800;
+}
+
+.userDetails {
+  min-width: 0;
+}
+
+.userDetails strong,
+.userDetails span,
+.userDetails small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userDetails strong {
+  color: #101828;
+  font-size: 13px;
+}
+
+.userDetails span {
+  margin-top: 3px;
+  color: #667085;
+  font-size: 11px;
+}
+
+.userDetails small {
+  margin-top: 2px;
+  color: #98a2b3;
+  font-size: 9px;
+}
+
+.sidebarFooter form {
+  margin: 0;
+}
+
+.logoutButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logoutButton:hover {
+  border-color: #f04438;
+  background: #fef3f2;
+  color: #b42318;
 }
 
 .main {

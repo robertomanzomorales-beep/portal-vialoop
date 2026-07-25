@@ -1,21 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import {
+  usePathname,
+} from "next/navigation";
 import {
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
+import {
+  logout,
+} from "@/app/login/actions";
 import styles from "./PortalLayout.module.css";
+
+type PortalUser = {
+  id: string;
+  name: string;
+  email: string;
+  role:
+    | "ADMIN"
+    | "COLLABORATOR";
+};
 
 type PortalLayoutProps = {
   children: ReactNode;
+  user: PortalUser;
 };
 
 type NavigationItem = {
   label: string;
   href: string;
+  adminOnly?: boolean;
 };
 
 type NavigationGroup = {
@@ -71,6 +88,7 @@ const navigationGroups: NavigationGroup[] = [
       {
         label: "Equipo",
         href: "/equipo",
+        adminOnly: true,
       },
     ],
   },
@@ -86,17 +104,70 @@ function isCurrentRoute(
 
   return (
     pathname === href ||
-    pathname.startsWith(`${href}/`)
+    pathname.startsWith(
+      `${href}/`,
+    )
   );
+}
+
+function getInitials(
+  name: string,
+) {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 0) {
+    return "VL";
+  }
+
+  if (words.length === 1) {
+    return words[0]
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return `${words[0][0]}${
+    words[words.length - 1][0]
+  }`.toUpperCase();
+}
+
+function getRoleLabel(
+  role: PortalUser["role"],
+) {
+  return role === "ADMIN"
+    ? "Administrador"
+    : "Colaborador";
 }
 
 export default function PortalLayout({
   children,
+  user,
 }: PortalLayoutProps) {
   const pathname = usePathname();
 
-  const [menuOpen, setMenuOpen] =
-    useState(false);
+  const [
+    menuOpen,
+    setMenuOpen,
+  ] = useState(false);
+
+  const visibleNavigationGroups =
+    useMemo(
+      () =>
+        navigationGroups.map(
+          (group) => ({
+            ...group,
+            items: group.items.filter(
+              (item) =>
+                !item.adminOnly ||
+                user.role ===
+                  "ADMIN",
+            ),
+          }),
+        ),
+      [user.role],
+    );
 
   useEffect(() => {
     setMenuOpen(false);
@@ -113,7 +184,9 @@ export default function PortalLayout({
     const handleKeyDown = (
       event: KeyboardEvent,
     ) => {
-      if (event.key === "Escape") {
+      if (
+        event.key === "Escape"
+      ) {
         setMenuOpen(false);
       }
     };
@@ -137,13 +210,20 @@ export default function PortalLayout({
     };
   }, [menuOpen]);
 
+  const initials =
+    getInitials(user.name);
+
   return (
     <div className={styles.shell}>
       <header
-        className={styles.mobileHeader}
+        className={
+          styles.mobileHeader
+        }
       >
         <Link
-          className={styles.mobileBrand}
+          className={
+            styles.mobileBrand
+          }
           href="/"
         >
           <span
@@ -177,7 +257,9 @@ export default function PortalLayout({
               ? "Cerrar menú"
               : "Abrir menú"
           }
-          className={styles.menuButton}
+          className={
+            styles.menuButton
+          }
           onClick={() =>
             setMenuOpen(
               (currentValue) =>
@@ -195,7 +277,9 @@ export default function PortalLayout({
       {menuOpen && (
         <button
           aria-label="Cerrar menú"
-          className={styles.backdrop}
+          className={
+            styles.backdrop
+          }
           onClick={() =>
             setMenuOpen(false)
           }
@@ -221,13 +305,17 @@ export default function PortalLayout({
             href="/"
           >
             <span
-              className={styles.brandMark}
+              className={
+                styles.brandMark
+              }
             >
               V
             </span>
 
             <span
-              className={styles.brandText}
+              className={
+                styles.brandText
+              }
             >
               <strong>
                 Portal Vialoop
@@ -255,9 +343,11 @@ export default function PortalLayout({
 
         <nav
           aria-label="Navegación principal"
-          className={styles.navigation}
+          className={
+            styles.navigation
+          }
         >
-          {navigationGroups.map(
+          {visibleNavigationGroups.map(
             (group) => (
               <div
                 className={
@@ -311,19 +401,50 @@ export default function PortalLayout({
             styles.sidebarFooter
           }
         >
-          <div className={styles.avatar}>
-            RM
+          <div
+            className={
+              styles.userRow
+            }
+          >
+            <div
+              className={
+                styles.avatar
+              }
+            >
+              {initials}
+            </div>
+
+            <div
+              className={
+                styles.userDetails
+              }
+            >
+              <strong>
+                {user.name}
+              </strong>
+
+              <span>
+                {getRoleLabel(
+                  user.role,
+                )}
+              </span>
+
+              <small>
+                {user.email}
+              </small>
+            </div>
           </div>
 
-          <div>
-            <strong>
-              Roberto Manzo
-            </strong>
-
-            <span>
-              Administrador
-            </span>
-          </div>
+          <form action={logout}>
+            <button
+              className={
+                styles.logoutButton
+              }
+              type="submit"
+            >
+              Cerrar sesión
+            </button>
+          </form>
         </div>
       </aside>
 

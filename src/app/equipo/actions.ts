@@ -1,7 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import {
+  revalidatePath,
+} from "next/cache";
+import {
+  redirect,
+} from "next/navigation";
+import {
+  requireAdmin,
+} from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 type InternalRole =
@@ -18,36 +25,46 @@ function getRequiredString(
   field: string,
   label: string,
 ) {
-  const value = formData.get(field);
+  const value =
+    formData.get(field);
 
   if (
     typeof value !== "string" ||
     value.trim().length === 0
   ) {
-    throw new Error(`${label} es obligatorio.`);
+    throw new Error(
+      `${label} es obligatorio.`,
+    );
   }
 
   return value.trim();
 }
 
-function normalizeEmail(value: string) {
+function normalizeEmail(
+  value: string,
+) {
   return value
     .trim()
     .toLowerCase();
 }
 
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+function isValidEmail(
+  value: string,
+) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    value,
+  );
 }
 
 function getInternalRole(
   formData: FormData,
 ): InternalRole {
-  const value = getRequiredString(
-    formData,
-    "role",
-    "El rol",
-  );
+  const value =
+    getRequiredString(
+      formData,
+      "role",
+      "El rol",
+    );
 
   if (
     !allowedRoles.includes(
@@ -62,10 +79,16 @@ function getInternalRole(
   return value as InternalRole;
 }
 
-function getRoleLabel(role: string) {
-  const labels: Record<string, string> = {
+function getRoleLabel(
+  role: string,
+) {
+  const labels: Record<
+    string,
+    string
+  > = {
     ADMIN: "Administrador",
-    COLLABORATOR: "Colaborador",
+    COLLABORATOR:
+      "Colaborador",
   };
 
   return labels[role] ?? role;
@@ -74,11 +97,15 @@ function getRoleLabel(role: string) {
 export async function createTeamMember(
   formData: FormData,
 ) {
-  const name = getRequiredString(
-    formData,
-    "name",
-    "El nombre",
-  );
+  const administrator =
+    await requireAdmin();
+
+  const name =
+    getRequiredString(
+      formData,
+      "name",
+      "El nombre",
+    );
 
   const email = normalizeEmail(
     getRequiredString(
@@ -88,7 +115,8 @@ export async function createTeamMember(
     ),
   );
 
-  const role = getInternalRole(formData);
+  const role =
+    getInternalRole(formData);
 
   if (!isValidEmail(email)) {
     throw new Error(
@@ -131,14 +159,19 @@ export async function createTeamMember(
 
       await transaction.activityLog.create({
         data: {
-          userId: createdUser.id,
-          action: "TEAM_MEMBER_CREATED",
+          userId:
+            administrator.id,
+          action:
+            "TEAM_MEMBER_CREATED",
           entityType: "User",
-          entityId: createdUser.id,
-          description: `${name} fue registrado como ${getRoleLabel(
+          entityId:
+            createdUser.id,
+          description: `${administrator.name} registró a ${name} como ${getRoleLabel(
             role,
           ).toLowerCase()}.`,
           metadata: {
+            createdUserId:
+              createdUser.id,
             name,
             email,
             role,
@@ -153,12 +186,17 @@ export async function createTeamMember(
   revalidatePath("/equipo");
   revalidatePath("/solicitudes");
 
-  redirect("/equipo?resultado=creado");
+  redirect(
+    "/equipo?resultado=creado",
+  );
 }
 
 export async function toggleTeamMemberStatus(
   userId: string,
 ) {
+  const administrator =
+    await requireAdmin();
+
   const user =
     await prisma.user.findUnique({
       where: {
@@ -181,10 +219,21 @@ export async function toggleTeamMemberStatus(
 
   if (
     user.role !== "ADMIN" &&
-    user.role !== "COLLABORATOR"
+    user.role !==
+      "COLLABORATOR"
   ) {
     throw new Error(
       "Solo se pueden administrar usuarios internos.",
+    );
+  }
+
+  if (
+    user.id ===
+      administrator.id &&
+    user.active
+  ) {
+    redirect(
+      "/equipo?error=cuenta-propia",
     );
   }
 
@@ -219,27 +268,33 @@ export async function toggleTeamMemberStatus(
           id: user.id,
         },
         data: {
-          active: nextActiveStatus,
+          active:
+            nextActiveStatus,
         },
       });
 
       await transaction.activityLog.create({
         data: {
-          userId: user.id,
-          action: nextActiveStatus
-            ? "TEAM_MEMBER_ACTIVATED"
-            : "TEAM_MEMBER_DEACTIVATED",
+          userId:
+            administrator.id,
+          action:
+            nextActiveStatus
+              ? "TEAM_MEMBER_ACTIVATED"
+              : "TEAM_MEMBER_DEACTIVATED",
           entityType: "User",
           entityId: user.id,
-          description: `${user.name} fue ${
+          description: `${administrator.name} ${
             nextActiveStatus
-              ? "activado"
-              : "desactivado"
-          } en el equipo interno.`,
+              ? "activó"
+              : "desactivó"
+          } la cuenta de ${user.name}.`,
           metadata: {
+            affectedUserId:
+              user.id,
             email: user.email,
             role: user.role,
-            active: nextActiveStatus,
+            active:
+              nextActiveStatus,
           },
         },
       });
