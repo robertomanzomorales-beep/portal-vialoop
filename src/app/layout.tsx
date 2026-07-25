@@ -6,9 +6,7 @@ import {
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import PortalLayout from "@/components/PortalLayout";
-import {
-  getCurrentUser,
-} from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,6 +27,24 @@ export const metadata: Metadata = {
   },
   description:
     "Portal administrativo para la gestión de clientes, proyectos, solicitudes, renovaciones, pagos y suscripciones de Vialoop.",
+  icons: {
+    icon: [
+      {
+        url: "/logo-negro-vialoop-transparente.webp",
+        sizes: "512x512",
+        type: "image/webp",
+      },
+    ],
+    shortcut:
+      "/logo-negro-vialoop-transparente.webp",
+    apple: [
+      {
+        url: "/logo-negro-vialoop-transparente.webp",
+        sizes: "512x512",
+        type: "image/webp",
+      },
+    ],
+  },
 };
 
 export default async function RootLayout({

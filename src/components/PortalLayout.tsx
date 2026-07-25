@@ -1,18 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import {
-  usePathname,
-} from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import {
-  logout,
-} from "@/app/login/actions";
+import { logout } from "@/app/login/actions";
 import styles from "./PortalLayout.module.css";
 
 type PortalUser = {
@@ -39,6 +36,9 @@ type NavigationGroup = {
   label: string;
   items: NavigationItem[];
 };
+
+const portalLogo =
+  "/logo-negro-vialoop-transparente.webp";
 
 const navigationGroups: NavigationGroup[] = [
   {
@@ -231,7 +231,16 @@ export default function PortalLayout({
               styles.mobileBrandMark
             }
           >
-            V
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={
+                styles.mobileBrandLogo
+              }
+              height={42}
+              src={portalLogo}
+              width={42}
+            />
           </span>
 
           <span
@@ -309,7 +318,16 @@ export default function PortalLayout({
                 styles.brandMark
               }
             >
-              V
+              <Image
+                alt=""
+                aria-hidden="true"
+                className={
+                  styles.brandLogo
+                }
+                height={48}
+                src={portalLogo}
+                width={48}
+              />
             </span>
 
             <span

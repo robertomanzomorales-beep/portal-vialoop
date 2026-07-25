@@ -41,42 +41,46 @@ export default async function EditClientPage({
     where: {
       id,
     },
-    include: {
-      projects: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          renewals: {
-            orderBy: {
-              dueDate: "asc",
-            },
-          },
-        },
-      },
-      renewals: {
-        orderBy: {
-          dueDate: "asc",
-        },
-      },
-    },
   });
 
   if (!client) {
     notFound();
   }
 
-  const mainProject = client.projects[0] ?? null;
+  const [mainProject, clientRenewals] = await Promise.all([
+    prisma.project.findFirst({
+      where: {
+        clientId: client.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.renewal.findMany({
+      where: {
+        clientId: client.id,
+      },
+      orderBy: {
+        dueDate: "asc",
+      },
+    }),
+  ]);
+
+  const projectRenewals = mainProject
+    ? clientRenewals.filter(
+        (renewal) => renewal.projectId === mainProject.id,
+      )
+    : [];
 
   const mainRenewal =
-    mainProject?.renewals.find(
+    projectRenewals.find(
       (renewal) =>
         renewal.status === "UPCOMING" ||
         renewal.status === "NOTIFIED" ||
         renewal.status === "EXPIRED",
     ) ??
-    mainProject?.renewals[0] ??
-    client.renewals[0] ??
+    projectRenewals[0] ??
+    clientRenewals[0] ??
     null;
 
   const updateClientWithId = updateClient.bind(null, client.id);
@@ -105,10 +109,7 @@ export default async function EditClientPage({
         </div>
       </header>
 
-      <form
-        action={updateClientWithId}
-        className={styles.formPanel}
-      >
+      <form action={updateClientWithId} className={styles.formPanel}>
         <input
           type="hidden"
           name="projectId"
@@ -125,9 +126,7 @@ export default async function EditClientPage({
           <div className={styles.sectionHeader}>
             <h2>Información de la empresa</h2>
 
-            <p>
-              Antecedentes generales y estado comercial del cliente.
-            </p>
+            <p>Antecedentes generales y estado comercial del cliente.</p>
           </div>
 
           <div className={styles.formGrid}>

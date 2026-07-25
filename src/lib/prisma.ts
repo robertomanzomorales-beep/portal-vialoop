@@ -1,19 +1,20 @@
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaClient } from "@/generated/prisma/client";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: ReturnType<typeof createPrismaClient> | undefined;
-};
+const databaseUrl = process.env.DATABASE_URL;
 
-function createPrismaClient() {
-  return new PrismaClient({
-    accelerateUrl: process.env.DATABASE_URL,
-  }).$extends(withAccelerate());
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL no está definida en el archivo .env");
 }
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
 export const prisma =
   globalForPrisma.prisma ??
-  createPrismaClient();
+  new PrismaClient({
+    accelerateUrl: databaseUrl,
+  });
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
