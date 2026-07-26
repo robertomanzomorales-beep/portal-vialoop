@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { generatePaymentFromRenewal } from "./actions";
+import {
+  generatePaymentFromRenewal,
+} from "./actions";
 import RenewalEmailComposer from "./RenewalEmailComposer";
 import styles from "./renovaciones.module.css";
 
@@ -30,9 +32,15 @@ type ReminderType =
   | "MANUAL";
 
 function getStartOfDay() {
-  const date = new Date();
+  const date =
+    new Date();
 
-  date.setHours(0, 0, 0, 0);
+  date.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
 
   return date;
 }
@@ -73,7 +81,9 @@ function addDays(
   return result;
 }
 
-function formatDate(date: Date) {
+function formatDate(
+  date: Date,
+) {
   return new Intl.DateTimeFormat(
     "es-CL",
     {
@@ -113,10 +123,13 @@ function formatCurrency(
     return "Sin monto";
   }
 
-  const amount = Number(value);
+  const amount =
+    Number(value);
 
   if (
-    !Number.isFinite(amount)
+    !Number.isFinite(
+      amount,
+    )
   ) {
     return "Sin monto";
   }
@@ -138,11 +151,21 @@ function getRenewalTypeLabel(
     string,
     string
   > = {
-    DOMAIN: "Dominio",
-    HOSTING: "Hosting",
-    EMAIL: "Correo",
-    SSL: "Certificado SSL",
-    SUBSCRIPTION: "Suscripción",
+    DOMAIN:
+      "Dominio",
+
+    HOSTING:
+      "Hosting",
+
+    EMAIL:
+      "Correo",
+
+    SSL:
+      "Certificado SSL",
+
+    SUBSCRIPTION:
+      "Suscripción",
+
     ADDITIONAL_SERVICE:
       "Servicio adicional",
   };
@@ -157,12 +180,23 @@ function getRenewalStatusLabel(
     string,
     string
   > = {
-    UPCOMING: "Próxima",
-    NOTIFIED: "Notificada",
-    PAID: "Pagada",
-    RENEWED: "Renovada",
-    EXPIRED: "Vencida",
-    CANCELLED: "Cancelada",
+    UPCOMING:
+      "Próxima",
+
+    NOTIFIED:
+      "Notificada",
+
+    PAID:
+      "Pagada",
+
+    RENEWED:
+      "Renovada",
+
+    EXPIRED:
+      "Vencida",
+
+    CANCELLED:
+      "Cancelada",
   };
 
   return labels[status] ?? status;
@@ -177,12 +211,16 @@ function getReminderTypeLabel(
   > = {
     FIRST_NOTICE:
       "Primer aviso",
+
     SECOND_NOTICE:
       "Segundo recordatorio",
+
     FINAL_NOTICE:
       "Recordatorio final",
+
     OVERDUE_NOTICE:
       "Seguimiento vencido",
+
     MANUAL:
       "Aviso manual",
   };
@@ -239,9 +277,12 @@ function getReminderInfo(
 ) {
   if (days < 0) {
     return {
-      type: "OVERDUE_NOTICE" as const,
+      type:
+        "OVERDUE_NOTICE" as const,
+
       label:
         "Seguimiento inmediato",
+
       className:
         styles.reminderExpired,
     };
@@ -249,9 +290,12 @@ function getReminderInfo(
 
   if (days <= 7) {
     return {
-      type: "FINAL_NOTICE" as const,
+      type:
+        "FINAL_NOTICE" as const,
+
       label:
         "Recordatorio final",
+
       className:
         styles.reminderFinal,
     };
@@ -259,9 +303,12 @@ function getReminderInfo(
 
   if (days <= 15) {
     return {
-      type: "SECOND_NOTICE" as const,
+      type:
+        "SECOND_NOTICE" as const,
+
       label:
         "Segundo recordatorio",
+
       className:
         styles.reminderSecond,
     };
@@ -269,17 +316,24 @@ function getReminderInfo(
 
   if (days <= 30) {
     return {
-      type: "FIRST_NOTICE" as const,
+      type:
+        "FIRST_NOTICE" as const,
+
       label:
         "Primer aviso",
+
       className:
         styles.reminderFirst,
     };
   }
 
   return {
-    type: "MANUAL" as const,
-    label: "Programado",
+    type:
+      "MANUAL" as const,
+
+    label:
+      "Programado",
+
     className:
       styles.reminderScheduled,
   };
@@ -301,10 +355,14 @@ function isRenewalVisibleByFilter(
     status: string;
     notifications: unknown[];
   },
+
   filter: RenewalFilter,
+
   today: Date,
 ) {
-  if (filter === "todas") {
+  if (
+    filter === "todas"
+  ) {
     return true;
   }
 
@@ -315,12 +373,13 @@ function isRenewalVisibleByFilter(
       isOpenRenewalStatus(
         renewal.status,
       ) &&
-      renewal.notifications.length ===
-        0
+      renewal.notifications.length === 0
     );
   }
 
-  if (filter === "vencidas") {
+  if (
+    filter === "vencidas"
+  ) {
     return (
       renewal.dueDate < today &&
       isOpenRenewalStatus(
@@ -338,28 +397,37 @@ function isRenewalVisibleByFilter(
     );
   }
 
-  if (filter === "pagadas") {
+  if (
+    filter === "pagadas"
+  ) {
     return (
-      renewal.status === "PAID"
+      renewal.status ===
+      "PAID"
     );
   }
 
-  if (filter === "renovadas") {
+  if (
+    filter === "renovadas"
+  ) {
     return (
       renewal.status ===
       "RENEWED"
     );
   }
 
-  const days = Number(filter);
+  const days =
+    Number(filter);
 
   if (
-    [7, 15, 30].includes(days)
-  ) {
-    const limit = addDays(
-      today,
+    [7, 15, 30].includes(
       days,
-    );
+    )
+  ) {
+    const limit =
+      addDays(
+        today,
+        days,
+      );
 
     return (
       renewal.dueDate >= today &&
@@ -379,18 +447,17 @@ export default async function RenewalsPage({
   const resolvedSearchParams =
     await searchParams;
 
-  const allowedFilters: RenewalFilter[] =
-    [
-      "todas",
-      "sin-aviso",
-      "vencidas",
-      "7",
-      "15",
-      "30",
-      "notificadas",
-      "pagadas",
-      "renovadas",
-    ];
+  const allowedFilters: RenewalFilter[] = [
+    "todas",
+    "sin-aviso",
+    "vencidas",
+    "7",
+    "15",
+    "30",
+    "notificadas",
+    "pagadas",
+    "renovadas",
+  ];
 
   const requestedFilter =
     resolvedSearchParams.filtro ??
@@ -400,27 +467,34 @@ export default async function RenewalsPage({
     allowedFilters.includes(
       requestedFilter as RenewalFilter,
     )
-      ? (requestedFilter as RenewalFilter)
+      ? (
+          requestedFilter as RenewalFilter
+        )
       : "todas";
 
-  const today = getStartOfDay();
+  const today =
+    getStartOfDay();
+
   const todayChileKey =
     getChileDateKey();
 
-  const sevenDays = addDays(
-    today,
-    7,
-  );
+  const sevenDays =
+    addDays(
+      today,
+      7,
+    );
 
-  const fifteenDays = addDays(
-    today,
-    15,
-  );
+  const fifteenDays =
+    addDays(
+      today,
+      15,
+    );
 
-  const thirtyDays = addDays(
-    today,
-    30,
-  );
+  const thirtyDays =
+    addDays(
+      today,
+      30,
+    );
 
   const [
     renewals,
@@ -430,14 +504,18 @@ export default async function RenewalsPage({
       orderBy: {
         dueDate: "asc",
       },
+
       include: {
         client: true,
+
         project: true,
+
         subscription: {
           include: {
             plan: true,
           },
         },
+
         notifications: {
           orderBy: {
             sentAt: "desc",
@@ -453,6 +531,7 @@ export default async function RenewalsPage({
             "renewal:",
         },
       },
+
       select: {
         reference: true,
         status: true,
@@ -471,18 +550,20 @@ export default async function RenewalsPage({
     );
 
   const filteredRenewals =
-    renewals.filter((renewal) =>
-      isRenewalVisibleByFilter(
-        renewal,
-        activeFilter,
-        today,
-      ),
+    renewals.filter(
+      (renewal) =>
+        isRenewalVisibleByFilter(
+          renewal,
+          activeFilter,
+          today,
+        ),
     );
 
   const expiredCount =
     renewals.filter(
       (renewal) =>
-        renewal.dueDate < today &&
+        renewal.dueDate <
+          today &&
         isOpenRenewalStatus(
           renewal.status,
         ),
@@ -501,7 +582,8 @@ export default async function RenewalsPage({
   const nextSevenDaysCount =
     renewals.filter(
       (renewal) =>
-        renewal.dueDate >= today &&
+        renewal.dueDate >=
+          today &&
         renewal.dueDate <=
           sevenDays &&
         isOpenRenewalStatus(
@@ -512,7 +594,8 @@ export default async function RenewalsPage({
   const nextFifteenDaysCount =
     renewals.filter(
       (renewal) =>
-        renewal.dueDate >= today &&
+        renewal.dueDate >=
+          today &&
         renewal.dueDate <=
           fifteenDays &&
         isOpenRenewalStatus(
@@ -523,7 +606,8 @@ export default async function RenewalsPage({
   const nextThirtyDaysCount =
     renewals.filter(
       (renewal) =>
-        renewal.dueDate >= today &&
+        renewal.dueDate >=
+          today &&
         renewal.dueDate <=
           thirtyDays &&
         isOpenRenewalStatus(
@@ -541,7 +625,8 @@ export default async function RenewalsPage({
   const paidCount =
     renewals.filter(
       (renewal) =>
-        renewal.status === "PAID",
+        renewal.status ===
+        "PAID",
     ).length;
 
   const renewedCount =
@@ -567,6 +652,7 @@ export default async function RenewalsPage({
           Number(
             renewal.amount ?? 0,
           ),
+
         0,
       );
 
@@ -576,65 +662,115 @@ export default async function RenewalsPage({
     count: number;
   }> = [
     {
-      label: "Todas",
-      value: "todas",
-      count: renewals.length,
+      label:
+        "Todas",
+
+      value:
+        "todas",
+
+      count:
+        renewals.length,
     },
+
     {
-      label: "Sin aviso",
-      value: "sin-aviso",
+      label:
+        "Sin aviso",
+
+      value:
+        "sin-aviso",
+
       count:
         withoutNoticeCount,
     },
+
     {
-      label: "Vencidas",
-      value: "vencidas",
-      count: expiredCount,
+      label:
+        "Vencidas",
+
+      value:
+        "vencidas",
+
+      count:
+        expiredCount,
     },
+
     {
       label:
         "Próximos 7 días",
-      value: "7",
+
+      value:
+        "7",
+
       count:
         nextSevenDaysCount,
     },
+
     {
       label:
         "Próximos 15 días",
-      value: "15",
+
+      value:
+        "15",
+
       count:
         nextFifteenDaysCount,
     },
+
     {
       label:
         "Próximos 30 días",
-      value: "30",
+
+      value:
+        "30",
+
       count:
         nextThirtyDaysCount,
     },
+
     {
-      label: "Notificadas",
-      value: "notificadas",
-      count: notifiedCount,
+      label:
+        "Notificadas",
+
+      value:
+        "notificadas",
+
+      count:
+        notifiedCount,
     },
+
     {
-      label: "Pagadas",
-      value: "pagadas",
-      count: paidCount,
+      label:
+        "Pagadas",
+
+      value:
+        "pagadas",
+
+      count:
+        paidCount,
     },
+
     {
-      label: "Renovadas",
-      value: "renovadas",
-      count: renewedCount,
+      label:
+        "Renovadas",
+
+      value:
+        "renovadas",
+
+      count:
+        renewedCount,
     },
   ];
 
   return (
     <main
-      className={styles.page}
+      className={
+        styles.page
+      }
     >
       <header
-        className={styles.header}
+        className={
+          styles.header
+        }
       >
         <div>
           <span
@@ -645,7 +781,9 @@ export default async function RenewalsPage({
             Administración de servicios
           </span>
 
-          <h1>Renovaciones</h1>
+          <h1>
+            Renovaciones
+          </h1>
 
           <p>
             Controla vencimientos,
@@ -683,15 +821,31 @@ export default async function RenewalsPage({
       </header>
 
       {resolvedSearchParams.resultado ===
-        "notificada" && (
+        "enviada" && (
         <div
           className={
             styles.successMessage
           }
         >
-          La notificación fue
-          registrada y agregada al
-          historial de la renovación.
+          El correo fue enviado
+          correctamente y quedó
+          registrado en el historial
+          de la renovación.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "error-envio" && (
+        <div
+          className={
+            styles.noticeMessage
+          }
+        >
+          No fue posible enviar el
+          correo. El aviso no fue
+          registrado como enviado.
+          Revisa la contraseña y la
+          configuración SMTP.
         </div>
       )}
 
@@ -703,13 +857,15 @@ export default async function RenewalsPage({
           }
         >
           Este tipo de recordatorio ya
-          fue registrado hoy. No se
-          creó un aviso duplicado.
+          fue enviado hoy. No se creó
+          un aviso duplicado.
         </div>
       )}
 
       <section
-        className={styles.summary}
+        className={
+          styles.summary
+        }
       >
         <article>
           <span>
@@ -786,37 +942,45 @@ export default async function RenewalsPage({
 
       <nav
         aria-label="Filtros de renovaciones"
-        className={styles.filters}
+        className={
+          styles.filters
+        }
       >
-        {filters.map((filter) => (
-          <Link
-            className={`${
-              styles.filterButton
-            } ${
-              activeFilter ===
-              filter.value
-                ? styles.activeFilter
-                : ""
-            }`}
-            href={
-              filter.value ===
-              "todas"
-                ? "/renovaciones"
-                : `/renovaciones?filtro=${filter.value}`
-            }
-            key={filter.value}
-          >
-            {filter.label}
+        {filters.map(
+          (filter) => (
+            <Link
+              className={`${
+                styles.filterButton
+              } ${
+                activeFilter ===
+                filter.value
+                  ? styles.activeFilter
+                  : ""
+              }`}
+              href={
+                filter.value ===
+                "todas"
+                  ? "/renovaciones"
+                  : `/renovaciones?filtro=${filter.value}`
+              }
+              key={
+                filter.value
+              }
+            >
+              {filter.label}
 
-            <span>
-              {filter.count}
-            </span>
-          </Link>
-        ))}
+              <span>
+                {filter.count}
+              </span>
+            </Link>
+          ),
+        )}
       </nav>
 
       <section
-        className={styles.panel}
+        className={
+          styles.panel
+        }
       >
         <div
           className={
@@ -872,23 +1036,47 @@ export default async function RenewalsPage({
             }
           >
             <table
-              className={styles.table}
+              className={
+                styles.table
+              }
             >
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Servicio</th>
+                  <th>
+                    Cliente
+                  </th>
+
+                  <th>
+                    Servicio
+                  </th>
+
                   <th>
                     Dominio / proyecto
                   </th>
-                  <th>Vencimiento</th>
-                  <th>Plazo</th>
+
+                  <th>
+                    Vencimiento
+                  </th>
+
+                  <th>
+                    Plazo
+                  </th>
+
                   <th>
                     Seguimiento
                   </th>
-                  <th>Monto</th>
-                  <th>Estado</th>
-                  <th aria-label="Acciones" />
+
+                  <th>
+                    Monto
+                  </th>
+
+                  <th>
+                    Estado
+                  </th>
+
+                  <th
+                    aria-label="Acciones"
+                  />
                 </tr>
               </thead>
 
@@ -907,7 +1095,8 @@ export default async function RenewalsPage({
                       );
 
                     const isOverdue =
-                      daysDifference < 0 &&
+                      daysDifference <
+                        0 &&
                       isOpenRenewalStatus(
                         renewal.status,
                       );
@@ -977,7 +1166,8 @@ export default async function RenewalsPage({
                       );
 
                     const latestNotification =
-                      renewal.notifications[0] ??
+                      renewal
+                        .notifications[0] ??
                       null;
 
                     const notificationHistory =
@@ -987,16 +1177,21 @@ export default async function RenewalsPage({
                         ) => ({
                           id:
                             notification.id,
+
                           type:
                             notification.type,
+
                           label:
                             getReminderTypeLabel(
                               notification.type,
                             ),
+
                           recipient:
                             notification.recipient,
+
                           subject:
                             notification.subject,
+
                           sentAt:
                             formatDateTime(
                               notification.sentAt,
@@ -1045,9 +1240,7 @@ export default async function RenewalsPage({
                               styles.serviceName
                             }
                           >
-                            {
-                              serviceName
-                            }
+                            {serviceName}
                           </strong>
 
                           <span

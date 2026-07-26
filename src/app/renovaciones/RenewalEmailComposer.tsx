@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { useFormStatus } from "react-dom";
@@ -44,25 +43,32 @@ type RenewalEmailComposerProps = {
 
 function SubmitButton({
   sentToday,
+  recipientIsValid,
 }: {
   sentToday: boolean;
+  recipientIsValid: boolean;
 }) {
   const { pending } =
     useFormStatus();
+
+  const disabled =
+    pending ||
+    sentToday ||
+    !recipientIsValid;
 
   return (
     <button
       className={
         styles.confirmSentButton
       }
-      disabled={pending || sentToday}
+      disabled={disabled}
       type="submit"
     >
       {pending
-        ? "Registrando..."
+        ? "Enviando correo..."
         : sentToday
-          ? "Aviso ya registrado hoy"
-          : "Marcar como enviado"}
+          ? "Aviso ya enviado hoy"
+          : "Enviar correo"}
     </button>
   );
 }
@@ -73,9 +79,11 @@ function isValidEmail(
   const normalizedValue =
     value.trim();
 
-  return (
-    normalizedValue.includes("@") &&
-    normalizedValue.includes(".")
+  const emailPattern =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emailPattern.test(
+    normalizedValue,
   );
 }
 
@@ -110,17 +118,23 @@ function getEmailSubject({
   > = {
     FIRST_NOTICE:
       `Aviso de renovación de ${normalizedService} · ${domain}`,
+
     SECOND_NOTICE:
       `Segundo aviso: renovación de ${normalizedService} · ${domain}`,
+
     FINAL_NOTICE:
       `Recordatorio final: renovación de ${normalizedService} · ${domain}`,
+
     OVERDUE_NOTICE:
       `Servicio vencido: renovación de ${normalizedService} · ${domain}`,
+
     MANUAL:
       `Renovación de ${normalizedService} · ${domain}`,
   };
 
-  return subjects[reminderType];
+  return subjects[
+    reminderType
+  ];
 }
 
 function getIntroduction(
@@ -132,17 +146,23 @@ function getIntroduction(
   > = {
     FIRST_NOTICE:
       "Junto con saludar, informamos la próxima renovación del siguiente servicio administrado por Vialoop:",
+
     SECOND_NOTICE:
       "Junto con saludar, nos ponemos nuevamente en contacto para recordar la próxima renovación del siguiente servicio administrado por Vialoop:",
+
     FINAL_NOTICE:
       "Junto con saludar, enviamos este recordatorio final respecto de la próxima renovación del siguiente servicio administrado por Vialoop:",
+
     OVERDUE_NOTICE:
       "Junto con saludar, informamos que el siguiente servicio administrado por Vialoop ha superado su fecha de vencimiento y requiere regularización:",
+
     MANUAL:
       "Junto con saludar, informamos la renovación del siguiente servicio administrado por Vialoop:",
   };
 
-  return introductions[reminderType];
+  return introductions[
+    reminderType
+  ];
 }
 
 function getClosingParagraph(
@@ -181,9 +201,13 @@ function getEmailBody({
   reminderType: ReminderType;
 }) {
   return [
-    getGreeting(mainContactName),
+    getGreeting(
+      mainContactName,
+    ),
     "",
-    getIntroduction(reminderType),
+    getIntroduction(
+      reminderType,
+    ),
     "",
     `Servicio: ${description}`,
     `Dominio o proyecto: ${domain}`,
@@ -194,13 +218,22 @@ function getEmailBody({
       reminderType,
     ),
     "",
+    "Datos para transferencia:",
+    "",
+    "Agencia Publicitaria Vialoop SpA",
+    "RUT: 77.103.693-7",
+    "Banco: Mercado Pago",
+    "Tipo de cuenta: Cuenta Vista",
+    "N.º de cuenta: 1074127101",
+    "Correo: contacto@vialoop.cl",
+    "",
     "Una vez realizado el pago, favor responder este correo adjuntando el comprobante correspondiente.",
     "",
     "Saludos cordiales,",
     "",
     "Equipo Vialoop",
-    "Agencia Publicitaria Vialoop SpA",
-    "contacto@vialoop.cl",
+    "Vialoop Studio SpA",
+    "hosting@vialoop.cl",
     "www.vialoop.cl",
   ].join("\n");
 }
@@ -224,11 +257,12 @@ export default function RenewalEmailComposer({
   const [isOpen, setIsOpen] =
     useState(false);
 
-  const [recipient, setRecipient] =
-    useState(initialRecipient);
-
-  const [copied, setCopied] =
-    useState(false);
+  const [
+    recipient,
+    setRecipient,
+  ] = useState(
+    initialRecipient,
+  );
 
   const defaultSubject =
     getEmailSubject({
@@ -247,11 +281,19 @@ export default function RenewalEmailComposer({
       reminderType,
     });
 
-  const [subject, setSubject] =
-    useState(defaultSubject);
+  const [
+    subject,
+    setSubject,
+  ] = useState(
+    defaultSubject,
+  );
 
-  const [body, setBody] =
-    useState(defaultBody);
+  const [
+    body,
+    setBody,
+  ] = useState(
+    defaultBody,
+  );
 
   const action =
     markRenewalAsNotified.bind(
@@ -259,37 +301,26 @@ export default function RenewalEmailComposer({
       renewalId,
     );
 
-  const mailtoLink =
-    useMemo(() => {
-      const params =
-        new URLSearchParams({
-          subject,
-          body,
-        });
-
-      return `mailto:${encodeURIComponent(
-        recipient.trim(),
-      )}?${params.toString()}`;
-    }, [
+  const recipientIsValid =
+    isValidEmail(
       recipient,
-      subject,
-      body,
-    ]);
+    );
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    const handleKeyDown = (
+    function handleKeyDown(
       event: KeyboardEvent,
-    ) => {
+    ) {
       if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
       ) {
         setIsOpen(false);
       }
-    };
+    }
 
     document.addEventListener(
       "keydown",
@@ -323,8 +354,9 @@ export default function RenewalEmailComposer({
       defaultSubject,
     );
 
-    setBody(defaultBody);
-    setCopied(false);
+    setBody(
+      defaultBody,
+    );
   }, [
     isOpen,
     initialRecipient,
@@ -332,43 +364,31 @@ export default function RenewalEmailComposer({
     defaultBody,
   ]);
 
-  async function copyEmail() {
-    const content = [
-      `Para: ${recipient.trim()}`,
-      `Asunto: ${subject.trim()}`,
-      "",
-      body.trim(),
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(
-        content,
-      );
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 2200);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  function openEmailClient() {
-    if (
-      !isValidEmail(recipient)
-    ) {
-      return;
-    }
-
-    window.location.href =
-      mailtoLink;
-  }
-
   function closeModal() {
     setIsOpen(false);
-    setCopied(false);
+  }
+
+  function confirmRealEmailSend(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    const normalizedRecipient =
+      recipient.trim();
+
+    const confirmed =
+      window.confirm(
+        [
+          "ATENCIÓN: este correo se enviará realmente.",
+          "",
+          `Destinatario: ${normalizedRecipient}`,
+          `Asunto: ${subject.trim()}`,
+          "",
+          "¿Confirmas que deseas enviarlo ahora?",
+        ].join("\n"),
+      );
+
+    if (!confirmed) {
+      event.preventDefault();
+    }
   }
 
   return (
@@ -385,8 +405,8 @@ export default function RenewalEmailComposer({
         {sentToday
           ? "Aviso enviado hoy"
           : alreadyNotified
-            ? "Preparar reenvío"
-            : "Preparar correo"}
+            ? "Enviar nuevo aviso"
+            : "Enviar correo"}
       </button>
 
       {isOpen && (
@@ -429,7 +449,7 @@ export default function RenewalEmailComposer({
                 </span>
 
                 <h2 id="renewal-email-title">
-                  Preparar correo de renovación
+                  Enviar correo de renovación
                 </h2>
               </div>
 
@@ -452,12 +472,16 @@ export default function RenewalEmailComposer({
                 styles.modalIntro
               }
             >
-              Revisa el destinatario,
-              el asunto y el contenido.
-              Después de enviar el
-              mensaje, registra el
-              aviso para conservar el
-              historial.
+              Revisa cuidadosamente el
+              destinatario, el asunto y
+              el contenido. Al
+              confirmar, el mensaje se
+              enviará realmente desde{" "}
+              <strong>
+                hosting@vialoop.cl
+              </strong>{" "}
+              y quedará registrado en
+              el historial.
             </p>
 
             <div
@@ -466,7 +490,9 @@ export default function RenewalEmailComposer({
               }
             >
               <div>
-                <span>Cliente</span>
+                <span>
+                  Cliente
+                </span>
 
                 <strong>
                   {clientName}
@@ -516,7 +542,7 @@ export default function RenewalEmailComposer({
 
               <div>
                 <span>
-                  Avisos registrados
+                  Avisos enviados
                 </span>
 
                 <strong>
@@ -548,9 +574,10 @@ export default function RenewalEmailComposer({
                 }
               >
                 Este tipo de aviso ya
-                fue registrado hoy. El
-                portal impedirá
-                registrarlo nuevamente.
+                fue enviado hoy. El
+                sistema no permitirá
+                enviarlo nuevamente
+                durante el mismo día.
               </div>
             )}
 
@@ -558,6 +585,9 @@ export default function RenewalEmailComposer({
               action={action}
               className={
                 styles.emailForm
+              }
+              onSubmit={
+                confirmRealEmailSend
               }
             >
               <input
@@ -591,8 +621,19 @@ export default function RenewalEmailComposer({
                   placeholder="contacto@empresa.cl"
                   required
                   type="email"
-                  value={recipient}
+                  value={
+                    recipient
+                  }
                 />
+
+                {recipient.length >
+                  0 &&
+                  !recipientIsValid && (
+                  <small>
+                    Ingresa un correo
+                    electrónico válido.
+                  </small>
+                )}
               </label>
 
               <label
@@ -616,7 +657,9 @@ export default function RenewalEmailComposer({
                   }}
                   required
                   type="text"
-                  value={subject}
+                  value={
+                    subject
+                  }
                 />
               </label>
 
@@ -640,47 +683,12 @@ export default function RenewalEmailComposer({
                     );
                   }}
                   required
-                  rows={17}
-                  value={body}
+                  rows={22}
+                  value={
+                    body
+                  }
                 />
               </label>
-
-              <div
-                className={
-                  styles.emailTools
-                }
-              >
-                <button
-                  className={
-                    styles.copyButton
-                  }
-                  onClick={
-                    copyEmail
-                  }
-                  type="button"
-                >
-                  {copied
-                    ? "Correo copiado"
-                    : "Copiar correo"}
-                </button>
-
-                <button
-                  className={
-                    styles.openMailButton
-                  }
-                  disabled={
-                    !isValidEmail(
-                      recipient,
-                    )
-                  }
-                  onClick={
-                    openEmailClient
-                  }
-                  type="button"
-                >
-                  Abrir en correo
-                </button>
-              </div>
 
               <div
                 className={
@@ -688,17 +696,17 @@ export default function RenewalEmailComposer({
                 }
               >
                 <strong>
-                  Confirmación manual
+                  Envío real por SMTP
                 </strong>
 
                 <p>
-                  Abrir el mensaje en
-                  Gmail u Outlook no
-                  confirma el envío.
-                  Después de enviarlo,
-                  vuelve al portal y
-                  selecciona “Marcar
-                  como enviado”.
+                  Al presionar “Enviar
+                  correo” aparecerá una
+                  confirmación final.
+                  Después de aceptarla,
+                  el mensaje se enviará
+                  inmediatamente al
+                  destinatario indicado.
                 </p>
               </div>
 
@@ -796,10 +804,13 @@ export default function RenewalEmailComposer({
                   }
                   type="button"
                 >
-                  Cerrar
+                  Cancelar
                 </button>
 
                 <SubmitButton
+                  recipientIsValid={
+                    recipientIsValid
+                  }
                   sentToday={
                     sentToday
                   }

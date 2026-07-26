@@ -2,6 +2,7 @@ import {
   NextResponse,
   type NextRequest,
 } from "next/server";
+
 import {
   SESSION_COOKIE_NAME,
   verifySessionToken,
@@ -10,14 +11,26 @@ import {
 function isPublicRoute(
   pathname: string,
 ) {
-  return pathname === "/login";
+  return (
+    pathname === "/login" ||
+    pathname ===
+      "/api/cron/renovaciones" ||
+    pathname ===
+      "/api/flow/confirmacion" ||
+    pathname ===
+      "/api/flow/retorno" ||
+    pathname ===
+      "/pagos/resultado"
+  );
 }
 
 function createNextResponse(
   request: NextRequest,
 ) {
   const requestHeaders =
-    new Headers(request.headers);
+    new Headers(
+      request.headers,
+    );
 
   requestHeaders.set(
     "x-portal-pathname",
@@ -26,7 +39,8 @@ function createNextResponse(
 
   return NextResponse.next({
     request: {
-      headers: requestHeaders,
+      headers:
+        requestHeaders,
     },
   });
 }
@@ -37,20 +51,31 @@ export function proxy(
   const pathname =
     request.nextUrl.pathname;
 
+  if (
+    isPublicRoute(
+      pathname,
+    )
+  ) {
+    return createNextResponse(
+      request,
+    );
+  }
+
   const token =
     request.cookies.get(
       SESSION_COOKIE_NAME,
     )?.value;
 
   const session =
-    verifySessionToken(token);
+    verifySessionToken(
+      token,
+    );
 
-  if (
-    !isPublicRoute(pathname) &&
-    !session
-  ) {
+  if (!session) {
     if (
-      pathname.startsWith("/api/")
+      pathname.startsWith(
+        "/api/",
+      )
     ) {
       return NextResponse.json(
         {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/mail";
 
 type ReminderType =
   | "FIRST_NOTICE"
@@ -24,13 +25,16 @@ function getRequiredString(
   field: string,
   label: string,
 ) {
-  const value = formData.get(field);
+  const value =
+    formData.get(field);
 
   if (
     typeof value !== "string" ||
     value.trim().length === 0
   ) {
-    throw new Error(`${label} es obligatorio.`);
+    throw new Error(
+      `${label} es obligatorio.`,
+    );
   }
 
   return value.trim();
@@ -39,11 +43,12 @@ function getRequiredString(
 function getReminderType(
   formData: FormData,
 ): ReminderType {
-  const value = getRequiredString(
-    formData,
-    "reminderType",
-    "El tipo de recordatorio",
-  );
+  const value =
+    getRequiredString(
+      formData,
+      "reminderType",
+      "El tipo de recordatorio",
+    );
 
   if (
     !allowedReminderTypes.includes(
@@ -62,27 +67,42 @@ function appendNote(
   currentNotes: string | null,
   newNote: string,
 ) {
-  return [currentNotes, newNote]
+  return [
+    currentNotes,
+    newNote,
+  ]
     .filter(Boolean)
     .join("\n");
 }
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "America/Santiago",
-  }).format(date);
+function formatDate(
+  date: Date,
+) {
+  return new Intl.DateTimeFormat(
+    "es-CL",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone:
+        "America/Santiago",
+    },
+  ).format(date);
 }
 
-function getChileDateKey(date = new Date()) {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "America/Santiago",
-  }).format(date);
+function getChileDateKey(
+  date = new Date(),
+) {
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone:
+        "America/Santiago",
+    },
+  ).format(date);
 }
 
 function getReminderLabel(
@@ -92,14 +112,43 @@ function getReminderLabel(
     ReminderType,
     string
   > = {
-    FIRST_NOTICE: "Primer aviso",
-    SECOND_NOTICE: "Segundo recordatorio",
-    FINAL_NOTICE: "Recordatorio final",
-    OVERDUE_NOTICE: "Seguimiento de servicio vencido",
-    MANUAL: "Aviso manual",
+    FIRST_NOTICE:
+      "Primer aviso",
+
+    SECOND_NOTICE:
+      "Segundo recordatorio",
+
+    FINAL_NOTICE:
+      "Recordatorio final",
+
+    OVERDUE_NOTICE:
+      "Seguimiento de servicio vencido",
+
+    MANUAL:
+      "Aviso manual",
   };
 
   return labels[type];
+}
+
+function validateEmailAddress(
+  email: string,
+) {
+  const pattern =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return pattern.test(email);
+}
+
+function getSentOnDate(
+  date: Date,
+) {
+  const dateKey =
+    getChileDateKey(date);
+
+  return new Date(
+    `${dateKey}T12:00:00.000Z`,
+  );
 }
 
 export async function generatePaymentFromRenewal(
@@ -110,6 +159,7 @@ export async function generatePaymentFromRenewal(
       where: {
         id: renewalId,
       },
+
       include: {
         client: true,
         project: true,
@@ -122,7 +172,9 @@ export async function generatePaymentFromRenewal(
     );
   }
 
-  if (renewal.amount === null) {
+  if (
+    renewal.amount === null
+  ) {
     throw new Error(
       "La renovación no tiene un monto registrado. Debes editarla antes de generar el cobro.",
     );
@@ -144,8 +196,11 @@ export async function generatePaymentFromRenewal(
   const existingPayment =
     await prisma.payment.findFirst({
       where: {
-        clientId: renewal.clientId,
+        clientId:
+          renewal.clientId,
+
         reference,
+
         status: {
           in: [
             "PENDING",
@@ -162,29 +217,47 @@ export async function generatePaymentFromRenewal(
     );
   }
 
-  const today = new Date();
+  const today =
+    new Date();
 
-  today.setHours(0, 0, 0, 0);
+  today.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
 
   await prisma.payment.create({
     data: {
-      clientId: renewal.clientId,
+      clientId:
+        renewal.clientId,
+
       subscriptionId:
         renewal.subscriptionId,
+
       description:
         renewal.description,
-      amount: renewal.amount,
-      dueDate: renewal.dueDate,
+
+      amount:
+        renewal.amount,
+
+      dueDate:
+        renewal.dueDate,
+
       status:
         renewal.dueDate < today
           ? "OVERDUE"
           : "PENDING",
+
       reference,
+
       notes: [
         `Cobro generado desde la renovación ${renewal.id}.`,
+
         renewal.project?.domain
           ? `Dominio: ${renewal.project.domain}.`
           : null,
+
         renewal.notes,
       ]
         .filter(Boolean)
@@ -193,8 +266,12 @@ export async function generatePaymentFromRenewal(
   });
 
   revalidatePath("/");
-  revalidatePath("/renovaciones");
-  revalidatePath("/pagos");
+  revalidatePath(
+    "/renovaciones",
+  );
+  revalidatePath(
+    "/pagos",
+  );
   revalidatePath(
     `/clientes/${renewal.clientId}`,
   );
@@ -208,28 +285,37 @@ export async function markRenewalAsNotified(
   renewalId: string,
   formData: FormData,
 ) {
-  const recipient = getRequiredString(
-    formData,
-    "recipient",
-    "El destinatario",
-  );
+  const recipient =
+    getRequiredString(
+      formData,
+      "recipient",
+      "El destinatario",
+    );
 
-  const subject = getRequiredString(
-    formData,
-    "subject",
-    "El asunto",
-  );
+  const subject =
+    getRequiredString(
+      formData,
+      "subject",
+      "El asunto",
+    );
 
-  const body = getRequiredString(
-    formData,
-    "body",
-    "El contenido del correo",
-  );
+  const body =
+    getRequiredString(
+      formData,
+      "body",
+      "El contenido del correo",
+    );
 
   const reminderType =
-    getReminderType(formData);
+    getReminderType(
+      formData,
+    );
 
-  if (!recipient.includes("@")) {
+  if (
+    !validateEmailAddress(
+      recipient,
+    )
+  ) {
     throw new Error(
       "El correo del destinatario no es válido.",
     );
@@ -239,6 +325,11 @@ export async function markRenewalAsNotified(
     await prisma.renewal.findUnique({
       where: {
         id: renewalId,
+      },
+
+      include: {
+        client: true,
+        project: true,
       },
     });
 
@@ -258,75 +349,169 @@ export async function markRenewalAsNotified(
     );
   }
 
-  const notifiedAt = new Date();
-  const sentOnKey =
-    getChileDateKey(notifiedAt);
+  const notifiedAt =
+    new Date();
 
-  const sentOn = new Date(
-    `${sentOnKey}T12:00:00.000Z`,
-  );
+  const sentOn =
+    getSentOnDate(
+      notifiedAt,
+    );
 
   const existingNotification =
     await prisma.renewalNotification.findFirst({
       where: {
-        renewalId: renewal.id,
-        type: reminderType,
+        renewalId:
+          renewal.id,
+
+        type:
+          reminderType,
+
         sentOn,
       },
     });
 
-  if (existingNotification) {
+  if (
+    existingNotification
+  ) {
     redirect(
       "/renovaciones?resultado=duplicada",
     );
   }
 
+  const mailResult =
+    await sendEmail({
+      to: recipient,
+      subject,
+      text: body,
+    }).catch((error) => {
+      console.error(
+        "Error al enviar el correo de renovación:",
+        error,
+      );
+
+      redirect(
+        "/renovaciones?resultado=error-envio",
+      );
+    });
+
   await prisma.$transaction(
     async (transaction) => {
-      await transaction.renewalNotification.create({
-        data: {
-          renewalId: renewal.id,
-          type: reminderType,
-          recipient,
-          subject,
-          body,
-          sentOn,
-          sentAt: notifiedAt,
-        },
-      });
+      await transaction
+        .renewalNotification
+        .create({
+          data: {
+            renewalId:
+              renewal.id,
 
-      await transaction.renewal.update({
-        where: {
-          id: renewal.id,
-        },
-        data: {
-          status: "NOTIFIED",
-          notifiedAt,
-          notes: appendNote(
-            renewal.notes,
-            [
+            type:
+              reminderType,
+
+            recipient,
+
+            subject,
+
+            body,
+
+            sentOn,
+
+            sentAt:
+              notifiedAt,
+          },
+        });
+
+      await transaction
+        .renewal.update({
+          where: {
+            id:
+              renewal.id,
+          },
+
+          data: {
+            status:
+              "NOTIFIED",
+
+            notifiedAt,
+
+            notes:
+              appendNote(
+                renewal.notes,
+                [
+                  `${getReminderLabel(
+                    reminderType,
+                  )} enviado el ${formatDate(
+                    notifiedAt,
+                  )}.`,
+
+                  `Destinatario: ${recipient}.`,
+
+                  `Asunto: ${subject}.`,
+
+                  `SMTP ID: ${mailResult.messageId}.`,
+                ].join("\n"),
+              ),
+          },
+        });
+
+      await transaction
+        .activityLog
+        .create({
+          data: {
+            clientId:
+              renewal.clientId,
+
+            projectId:
+              renewal.projectId,
+
+            action:
+              "RENEWAL_EMAIL_SENT",
+
+            entityType:
+              "Renewal",
+
+            entityId:
+              renewal.id,
+
+            description:
               `${getReminderLabel(
                 reminderType,
-              )} registrado el ${formatDate(
-                notifiedAt,
-              )}.`,
-              `Destinatario: ${recipient}.`,
-              `Asunto: ${subject}.`,
-            ].join("\n"),
-          ),
-        },
-      });
+              )} enviado a ${recipient}.`,
+
+            metadata: {
+              recipient,
+
+              subject,
+
+              reminderType,
+
+              smtpMessageId:
+                mailResult.messageId,
+
+              accepted:
+                mailResult.accepted,
+
+              rejected:
+                mailResult.rejected,
+
+              smtpResponse:
+                mailResult.response,
+            },
+          },
+        });
     },
   );
 
   revalidatePath("/");
-  revalidatePath("/renovaciones");
-  revalidatePath("/pagos");
+  revalidatePath(
+    "/renovaciones",
+  );
+  revalidatePath(
+    "/pagos",
+  );
   revalidatePath(
     `/clientes/${renewal.clientId}`,
   );
 
   redirect(
-    "/renovaciones?resultado=notificada",
+    "/renovaciones?resultado=enviada",
   );
 }

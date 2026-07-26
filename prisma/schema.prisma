@@ -124,6 +124,14 @@ enum PaymentMethod {
   OTHER
 }
 
+enum FlowOrderStatus {
+  PENDING
+  PAID
+  REJECTED
+  CANCELLED
+  ERROR
+}
+
 model User {
   id               String           @id @default(cuid())
   name             String
@@ -380,6 +388,7 @@ model Payment {
   method         PaymentMethod?
   reference      String?
   notes          String?
+  flowOrders     FlowOrder[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -387,6 +396,28 @@ model Payment {
   @@index([subscriptionId])
   @@index([status])
   @@index([dueDate])
+}
+
+model FlowOrder {
+  id            String          @id @default(cuid())
+  paymentId     String
+  payment       Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  commerceOrder String          @unique
+  flowOrder     Int?            @unique
+  token         String?         @unique
+  paymentUrl    String?
+  status        FlowOrderStatus @default(PENDING)
+  amount        Decimal         @db.Decimal(12, 2)
+  payerEmail    String
+  subject       String
+  rawResponse   Json?
+  paidAt        DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([paymentId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model ActivityLog {

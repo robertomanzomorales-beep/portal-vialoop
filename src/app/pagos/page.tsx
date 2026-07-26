@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import {
   cancelPayment,
 } from "./actions";
+import FlowPaymentButton from "./FlowPaymentButton";
 import PaymentForm from "./PaymentForm";
 import styles from "./pagos.module.css";
 
@@ -10,6 +11,7 @@ type PaymentsPageProps = {
   searchParams: Promise<{
     filtro?: string;
     resultado?: string;
+    cobro?: string;
   }>;
 };
 
@@ -34,61 +36,136 @@ function formatDate(
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+      timeZone:
+        "America/Santiago",
     },
   ).format(date);
 }
 
-function formatCurrency(value: unknown) {
-  const amount = Number(value);
+function formatCurrency(
+  value: unknown,
+) {
+  const amount =
+    Number(value);
 
-  if (!Number.isFinite(amount)) {
+  if (
+    !Number.isFinite(amount)
+  ) {
     return "$0";
   }
 
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat(
+    "es-CL",
+    {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    },
+  ).format(amount);
 }
 
 function getPaymentStatusLabel(
   status: string,
 ) {
-  const labels: Record<string, string> = {
-    PENDING: "Pendiente",
-    PAID: "Pagado",
-    OVERDUE: "Vencido",
-    CANCELLED: "Cancelado",
-    REFUNDED: "Reembolsado",
+  const labels: Record<
+    string,
+    string
+  > = {
+    PENDING:
+      "Pendiente",
+
+    PAID:
+      "Pagado",
+
+    OVERDUE:
+      "Vencido",
+
+    CANCELLED:
+      "Cancelado",
+
+    REFUNDED:
+      "Reembolsado",
   };
 
-  return labels[status] ?? status;
+  return labels[status] ??
+    status;
 }
 
 function getPaymentMethodLabel(
-  method: string | null | undefined,
+  method:
+    | string
+    | null
+    | undefined,
 ) {
-  const labels: Record<string, string> = {
-    BANK_TRANSFER: "Transferencia",
-    CREDIT_CARD: "Crédito",
-    DEBIT_CARD: "Débito",
-    CASH: "Efectivo",
-    OTHER: "Otro",
+  const labels: Record<
+    string,
+    string
+  > = {
+    BANK_TRANSFER:
+      "Transferencia",
+
+    CREDIT_CARD:
+      "Crédito",
+
+    DEBIT_CARD:
+      "Débito",
+
+    CASH:
+      "Efectivo",
+
+    OTHER:
+      "Otro",
   };
 
   if (!method) {
     return "Sin registrar";
   }
 
-  return labels[method] ?? method;
+  return labels[method] ??
+    method;
+}
+
+function getFlowStatusLabel(
+  status:
+    | string
+    | null
+    | undefined,
+) {
+  const labels: Record<
+    string,
+    string
+  > = {
+    PENDING:
+      "Pendiente",
+
+    PAID:
+      "Pagada",
+
+    REJECTED:
+      "Rechazada",
+
+    CANCELLED:
+      "Cancelada",
+
+    ERROR:
+      "Error",
+  };
+
+  if (!status) {
+    return "Sin orden";
+  }
+
+  return labels[status] ??
+    status;
 }
 
 function isTestPayment(
   notes: string | null,
 ) {
   return Boolean(
-    notes?.includes("[PRUEBA]"),
+    notes?.includes(
+      "[PRUEBA]",
+    ),
   );
 }
 
@@ -99,11 +176,14 @@ function isVisibleByFilter(
   },
   filter: PaymentFilter,
 ) {
-  const isTest = isTestPayment(
-    payment.notes,
-  );
+  const isTest =
+    isTestPayment(
+      payment.notes,
+    );
 
-  if (filter === "pruebas") {
+  if (
+    filter === "pruebas"
+  ) {
     return isTest;
   }
 
@@ -111,25 +191,45 @@ function isVisibleByFilter(
     return false;
   }
 
-  if (filter === "todos") {
+  if (
+    filter === "todos"
+  ) {
     return true;
   }
 
-  if (filter === "pendientes") {
-    return payment.status === "PENDING";
-  }
-
-  if (filter === "vencidos") {
-    return payment.status === "OVERDUE";
-  }
-
-  if (filter === "pagados") {
-    return payment.status === "PAID";
-  }
-
-  if (filter === "cancelados") {
+  if (
+    filter === "pendientes"
+  ) {
     return (
-      payment.status === "CANCELLED"
+      payment.status ===
+      "PENDING"
+    );
+  }
+
+  if (
+    filter === "vencidos"
+  ) {
+    return (
+      payment.status ===
+      "OVERDUE"
+    );
+  }
+
+  if (
+    filter === "pagados"
+  ) {
+    return (
+      payment.status ===
+      "PAID"
+    );
+  }
+
+  if (
+    filter === "cancelados"
+  ) {
+    return (
+      payment.status ===
+      "CANCELLED"
     );
   }
 
@@ -159,95 +259,141 @@ export default async function PaymentsPage({
     validFilters.includes(
       requestedFilter as PaymentFilter,
     )
-      ? (requestedFilter as PaymentFilter)
+      ? (
+          requestedFilter as PaymentFilter
+        )
       : "todos";
 
   const payments =
     await prisma.payment.findMany({
       orderBy: [
         {
-          dueDate: "asc",
+          dueDate:
+            "asc",
         },
         {
-          createdAt: "desc",
+          createdAt:
+            "desc",
         },
       ],
+
       include: {
-        client: true,
+        client:
+          true,
+
         subscription: {
           include: {
-            plan: true,
+            plan:
+              true,
           },
+        },
+
+        flowOrders: {
+          orderBy: {
+            createdAt:
+              "desc",
+          },
+
+          take:
+            1,
         },
       },
     });
 
-  const realPayments = payments.filter(
-    (payment) =>
-      !isTestPayment(payment.notes),
-  );
+  const realPayments =
+    payments.filter(
+      (payment) =>
+        !isTestPayment(
+          payment.notes,
+        ),
+    );
 
-  const testPayments = payments.filter(
-    (payment) =>
-      isTestPayment(payment.notes),
-  );
+  const testPayments =
+    payments.filter(
+      (payment) =>
+        isTestPayment(
+          payment.notes,
+        ),
+    );
 
   const filteredPayments =
-    payments.filter((payment) =>
-      isVisibleByFilter(
-        payment,
-        activeFilter,
-      ),
+    payments.filter(
+      (payment) =>
+        isVisibleByFilter(
+          payment,
+          activeFilter,
+        ),
     );
 
   const pendingCount =
     realPayments.filter(
       (payment) =>
-        payment.status === "PENDING",
+        payment.status ===
+        "PENDING",
     ).length;
 
   const overdueCount =
     realPayments.filter(
       (payment) =>
-        payment.status === "OVERDUE",
+        payment.status ===
+        "OVERDUE",
     ).length;
 
   const paidCount =
     realPayments.filter(
       (payment) =>
-        payment.status === "PAID",
+        payment.status ===
+        "PAID",
     ).length;
 
   const cancelledCount =
     realPayments.filter(
       (payment) =>
-        payment.status === "CANCELLED",
+        payment.status ===
+        "CANCELLED",
     ).length;
 
   const pendingAmount =
     realPayments
       .filter(
         (payment) =>
-          payment.status === "PENDING" ||
-          payment.status === "OVERDUE",
+          payment.status ===
+            "PENDING" ||
+          payment.status ===
+            "OVERDUE",
       )
       .reduce(
-        (total, payment) =>
+        (
+          total,
+          payment,
+        ) =>
           total +
-          Number(payment.amount),
+          Number(
+            payment.amount,
+          ),
+
         0,
       );
 
-  const paidAmount = realPayments
-    .filter(
-      (payment) =>
-        payment.status === "PAID",
-    )
-    .reduce(
-      (total, payment) =>
-        total + Number(payment.amount),
-      0,
-    );
+  const paidAmount =
+    realPayments
+      .filter(
+        (payment) =>
+          payment.status ===
+          "PAID",
+      )
+      .reduce(
+        (
+          total,
+          payment,
+        ) =>
+          total +
+          Number(
+            payment.amount,
+          ),
+
+        0,
+      );
 
   const filters: Array<{
     label: string;
@@ -255,51 +401,99 @@ export default async function PaymentsPage({
     count: number;
   }> = [
     {
-      label: "Todos",
-      value: "todos",
-      count: realPayments.length,
+      label:
+        "Todos",
+
+      value:
+        "todos",
+
+      count:
+        realPayments.length,
     },
+
     {
-      label: "Pendientes",
-      value: "pendientes",
-      count: pendingCount,
+      label:
+        "Pendientes",
+
+      value:
+        "pendientes",
+
+      count:
+        pendingCount,
     },
+
     {
-      label: "Vencidos",
-      value: "vencidos",
-      count: overdueCount,
+      label:
+        "Vencidos",
+
+      value:
+        "vencidos",
+
+      count:
+        overdueCount,
     },
+
     {
-      label: "Pagados",
-      value: "pagados",
-      count: paidCount,
+      label:
+        "Pagados",
+
+      value:
+        "pagados",
+
+      count:
+        paidCount,
     },
+
     {
-      label: "Cancelados",
-      value: "cancelados",
-      count: cancelledCount,
+      label:
+        "Cancelados",
+
+      value:
+        "cancelados",
+
+      count:
+        cancelledCount,
     },
+
     {
-      label: "Pruebas",
-      value: "pruebas",
-      count: testPayments.length,
+      label:
+        "Pruebas",
+
+      value:
+        "pruebas",
+
+      count:
+        testPayments.length,
     },
   ];
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
+    <main
+      className={
+        styles.page
+      }
+    >
+      <header
+        className={
+          styles.header
+        }
+      >
         <div>
           <span
-            className={styles.eyebrow}
+            className={
+              styles.eyebrow
+            }
           >
             Administración financiera
           </span>
 
-          <h1>Pagos y cobros</h1>
+          <h1>
+            Pagos y cobros
+          </h1>
 
           <p>
-            Registra pagos, controla
+            Registra pagos, genera
+            enlaces Flow, controla
             vencimientos y conserva el
             historial financiero de los
             clientes de Vialoop.
@@ -356,6 +550,74 @@ export default async function PaymentsPage({
       )}
 
       {resolvedSearchParams.resultado ===
+        "flow-creado" && (
+        <div
+          className={
+            styles.successMessage
+          }
+        >
+          La orden Flow fue creada
+          correctamente. El botón
+          “Abrir Flow” ya está
+          disponible en el cobro.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "flow-existente" && (
+        <div
+          className={
+            styles.noticeMessage
+          }
+        >
+          Este cobro ya tiene una orden
+          Flow pendiente. Utiliza el
+          botón “Abrir Flow”.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "flow-sin-correo" && (
+        <div
+          className={
+            styles.noticeMessage
+          }
+        >
+          No fue posible crear la orden
+          Flow porque el cliente no
+          tiene un correo electrónico
+          válido.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "flow-sin-monto" && (
+        <div
+          className={
+            styles.noticeMessage
+          }
+        >
+          No fue posible crear la orden
+          Flow porque el cobro no tiene
+          un monto válido.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "flow-error" && (
+        <div
+          className={
+            styles.noticeMessage
+          }
+        >
+          Flow rechazó la solicitud o
+          no fue posible conectarse.
+          Revisa las credenciales y la
+          terminal del proyecto.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
         "pagado" && (
         <div
           className={
@@ -377,7 +639,7 @@ export default async function PaymentsPage({
           El pago fue registrado, la
           renovación anterior quedó
           cerrada y se creó el próximo
-          vencimiento anual.
+          vencimiento.
         </div>
       )}
 
@@ -389,8 +651,8 @@ export default async function PaymentsPage({
           }
         >
           El pago fue registrado. La
-          próxima renovación ya existía,
-          por lo que no fue duplicada.
+          próxima renovación ya existía
+          y no fue duplicada.
         </div>
       )}
 
@@ -401,9 +663,9 @@ export default async function PaymentsPage({
             styles.noticeMessage
           }
         >
-          El pago fue registrado, pero no
-          se creó una nueva renovación
-          anual.
+          El pago fue registrado, pero
+          no se creó una nueva
+          renovación.
         </div>
       )}
 
@@ -433,13 +695,19 @@ export default async function PaymentsPage({
         </div>
       )}
 
-      <section className={styles.summary}>
+      <section
+        className={
+          styles.summary
+        }
+      >
         <article>
           <span>
             Cobros pendientes
           </span>
 
-          <strong>{pendingCount}</strong>
+          <strong>
+            {pendingCount}
+          </strong>
 
           <p>
             Pagos dentro de su plazo
@@ -457,7 +725,9 @@ export default async function PaymentsPage({
             Cobros vencidos
           </span>
 
-          <strong>{overdueCount}</strong>
+          <strong>
+            {overdueCount}
+          </strong>
 
           <p>
             Requieren seguimiento
@@ -470,7 +740,9 @@ export default async function PaymentsPage({
           </span>
 
           <strong
-            className={styles.amount}
+            className={
+              styles.amount
+            }
           >
             {formatCurrency(
               pendingAmount,
@@ -492,7 +764,9 @@ export default async function PaymentsPage({
               styles.paidAmount
             }
           >
-            {formatCurrency(paidAmount)}
+            {formatCurrency(
+              paidAmount,
+            )}
           </strong>
 
           <p>
@@ -503,44 +777,61 @@ export default async function PaymentsPage({
 
       <nav
         aria-label="Filtros de pagos"
-        className={styles.filters}
+        className={
+          styles.filters
+        }
       >
-        {filters.map((filter) => (
-          <Link
-            className={`${
-              styles.filterButton
-            } ${
-              activeFilter ===
-              filter.value
-                ? styles.activeFilter
-                : ""
-            }`}
-            href={
-              filter.value === "todos"
-                ? "/pagos"
-                : `/pagos?filtro=${filter.value}`
-            }
-            key={filter.value}
-          >
-            {filter.label}
+        {filters.map(
+          (filter) => (
+            <Link
+              className={`${
+                styles.filterButton
+              } ${
+                activeFilter ===
+                filter.value
+                  ? styles.activeFilter
+                  : ""
+              }`}
+              href={
+                filter.value ===
+                "todos"
+                  ? "/pagos"
+                  : `/pagos?filtro=${filter.value}`
+              }
+              key={
+                filter.value
+              }
+            >
+              {filter.label}
 
-            <span>{filter.count}</span>
-          </Link>
-        ))}
+              <span>
+                {filter.count}
+              </span>
+            </Link>
+          ),
+        )}
       </nav>
 
-      <section className={styles.panel}>
+      <section
+        className={
+          styles.panel
+        }
+      >
         <div
           className={
             styles.panelHeader
           }
         >
           <div>
-            <h2>Registro financiero</h2>
+            <h2>
+              Registro financiero
+            </h2>
 
             <p>
               Se muestran{" "}
-              {filteredPayments.length}{" "}
+              {
+                filteredPayments.length
+              }{" "}
               registros según el filtro
               seleccionado.
             </p>
@@ -563,14 +854,15 @@ export default async function PaymentsPage({
             </div>
 
             <h3>
-              No existen pagos para este
-              filtro
+              No existen pagos para
+              este filtro
             </h3>
 
             <p>
-              Los cobros generados desde
-              renovaciones aparecerán en
-              esta sección.
+              Los cobros generados
+              desde renovaciones
+              aparecerán en esta
+              sección.
             </p>
           </div>
         ) : (
@@ -580,19 +872,47 @@ export default async function PaymentsPage({
             }
           >
             <table
-              className={styles.table}
+              className={
+                styles.table
+              }
             >
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Descripción</th>
-                  <th>Registro</th>
-                  <th>Vencimiento</th>
-                  <th>Monto</th>
-                  <th>Estado</th>
-                  <th>Medio</th>
-                  <th>Fecha de pago</th>
-                  <th aria-label="Acciones" />
+                  <th>
+                    Cliente
+                  </th>
+
+                  <th>
+                    Descripción
+                  </th>
+
+                  <th>
+                    Registro
+                  </th>
+
+                  <th>
+                    Vencimiento
+                  </th>
+
+                  <th>
+                    Monto
+                  </th>
+
+                  <th>
+                    Estado
+                  </th>
+
+                  <th>
+                    Medio
+                  </th>
+
+                  <th>
+                    Fecha de pago
+                  </th>
+
+                  <th
+                    aria-label="Acciones"
+                  />
                 </tr>
               </thead>
 
@@ -602,6 +922,20 @@ export default async function PaymentsPage({
                     const isTest =
                       isTestPayment(
                         payment.notes,
+                      );
+
+                    const latestFlowOrder =
+                      payment
+                        .flowOrders[0] ??
+                      null;
+
+                    const hasPendingFlowLink =
+                      latestFlowOrder
+                        ?.status ===
+                        "PENDING" &&
+                      Boolean(
+                        latestFlowOrder
+                          .paymentUrl,
                       );
 
                     const cancelPaymentWithId =
@@ -617,7 +951,11 @@ export default async function PaymentsPage({
                         "OVERDUE";
 
                     return (
-                      <tr key={payment.id}>
+                      <tr
+                        key={
+                          payment.id
+                        }
+                      >
                         <td>
                           <Link
                             className={
@@ -646,7 +984,9 @@ export default async function PaymentsPage({
                               styles.description
                             }
                           >
-                            {payment.description}
+                            {
+                              payment.description
+                            }
                           </strong>
 
                           <span
@@ -659,6 +999,23 @@ export default async function PaymentsPage({
                               payment.reference ??
                               "Cobro manual"}
                           </span>
+
+                          {latestFlowOrder && (
+                            <span
+                              className={
+                                styles.secondaryText
+                              }
+                            >
+                              Flow:{" "}
+                              {getFlowStatusLabel(
+                                latestFlowOrder.status,
+                              )}
+
+                              {latestFlowOrder.flowOrder
+                                ? ` · Orden ${latestFlowOrder.flowOrder}`
+                                : ""}
+                            </span>
+                          )}
                         </td>
 
                         <td>
@@ -702,9 +1059,13 @@ export default async function PaymentsPage({
                             } ${
                               styles[
                                 `status${payment.status
-                                  .charAt(0)
+                                  .charAt(
+                                    0,
+                                  )
                                   .toUpperCase()}${payment.status
-                                  .slice(1)
+                                  .slice(
+                                    1,
+                                  )
                                   .toLowerCase()}`
                               ] ?? ""
                             }`}
@@ -716,9 +1077,15 @@ export default async function PaymentsPage({
                         </td>
 
                         <td>
-                          {getPaymentMethodLabel(
-                            payment.method,
-                          )}
+                          {payment.method
+                            ? getPaymentMethodLabel(
+                                payment.method,
+                              )
+                            : latestFlowOrder
+                              ? `Flow · ${getFlowStatusLabel(
+                                  latestFlowOrder.status,
+                                )}`
+                              : "Sin registrar"}
                         </td>
 
                         <td>
@@ -735,6 +1102,29 @@ export default async function PaymentsPage({
                           >
                             {canManage && (
                               <>
+                                {hasPendingFlowLink &&
+                                latestFlowOrder
+                                  ?.paymentUrl ? (
+                                  <a
+                                    className={
+                                      styles.primaryAction
+                                    }
+                                    href={
+                                      latestFlowOrder.paymentUrl
+                                    }
+                                    rel="noreferrer"
+                                    target="_blank"
+                                  >
+                                    Abrir Flow
+                                  </a>
+                                ) : (
+                                  <FlowPaymentButton
+                                    paymentId={
+                                      payment.id
+                                    }
+                                  />
+                                )}
+
                                 <PaymentForm
                                   amount={Number(
                                     payment.amount,
