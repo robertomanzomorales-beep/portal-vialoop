@@ -2,23 +2,24 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import styles from "./page.module.css";
 
-function formatCurrency(
-  value: unknown,
-) {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const CHILE_TIME_ZONE =
+  "America/Santiago";
+
+function formatCurrency(value: unknown) {
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
     return "$0";
   }
 
-  return new Intl.NumberFormat(
-    "es-CL",
-    {
-      style: "currency",
-      currency: "CLP",
-      maximumFractionDigits: 0,
-    },
-  ).format(amount);
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function formatDate(
@@ -34,42 +35,47 @@ function formatDate(
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      timeZone:
-        "America/Santiago",
+      timeZone: CHILE_TIME_ZONE,
     },
   ).format(date);
 }
 
-function formatLongDate(
-  date: Date,
-) {
+function formatLongDate(date: Date) {
   const formattedDate =
-    new Intl.DateTimeFormat(
-      "es-CL",
-      {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone:
-          "America/Santiago",
-      },
-    ).format(date);
+    new Intl.DateTimeFormat("es-CL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: CHILE_TIME_ZONE,
+    }).format(date);
 
   return (
-    formattedDate
-      .charAt(0)
-      .toUpperCase() +
+    formattedDate.charAt(0).toUpperCase() +
     formattedDate.slice(1)
   );
 }
 
-function getStartOfDay() {
-  const date = new Date();
+function getChileDateKey(date: Date) {
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: CHILE_TIME_ZONE,
+    },
+  ).format(date);
+}
 
-  date.setHours(0, 0, 0, 0);
-
-  return date;
+function getStartOfDay(
+  date = new Date(),
+) {
+  return new Date(
+    `${getChileDateKey(
+      date,
+    )}T00:00:00.000Z`,
+  );
 }
 
 function addDays(
@@ -78,11 +84,11 @@ function addDays(
 ) {
   const result = new Date(date);
 
-  result.setDate(
-    result.getDate() + days,
+  result.setUTCDate(
+    result.getUTCDate() + days,
   );
 
-  result.setHours(
+  result.setUTCHours(
     23,
     59,
     59,
@@ -94,14 +100,23 @@ function addDays(
 
 function getDaysDifference(
   dueDate: Date,
-  today: Date,
+  currentDate: Date,
 ) {
-  const difference =
-    dueDate.getTime() -
-    today.getTime();
+  const dueDateValue = new Date(
+    `${getChileDateKey(
+      dueDate,
+    )}T00:00:00.000Z`,
+  ).getTime();
 
-  return Math.ceil(
-    difference /
+  const currentDateValue = new Date(
+    `${getChileDateKey(
+      currentDate,
+    )}T00:00:00.000Z`,
+  ).getTime();
+
+  return Math.round(
+    (dueDateValue -
+      currentDateValue) /
       (1000 * 60 * 60 * 24),
   );
 }
@@ -166,7 +181,10 @@ function getUrgencyClass(
 }
 
 export default async function Home() {
-  const today = getStartOfDay();
+  const currentDate = new Date();
+
+  const today =
+    getStartOfDay(currentDate);
 
   const nextThirtyDays =
     addDays(today, 30);
@@ -370,8 +388,7 @@ export default async function Home() {
       detail:
         "Tickets pendientes de resolución",
       href: "/solicitudes",
-      alert:
-        openRequestCount > 0,
+      alert: openRequestCount > 0,
     },
     {
       label: "Trabajo pendiente",
@@ -379,8 +396,7 @@ export default async function Home() {
       detail:
         "Renovaciones y cobros por gestionar",
       href: "/renovaciones",
-      alert:
-        priorityTaskCount > 0,
+      alert: priorityTaskCount > 0,
     },
   ];
 
@@ -398,8 +414,9 @@ export default async function Home() {
 
           <p>
             Control diario de clientes,
-            renovaciones, cobros y actividad
-            operativa de Vialoop.
+            renovaciones, cobros y
+            actividad operativa de
+            Vialoop.
           </p>
 
           <span
@@ -407,7 +424,9 @@ export default async function Home() {
               styles.currentDate
             }
           >
-            {formatLongDate(today)}
+            {formatLongDate(
+              currentDate,
+            )}
           </span>
         </div>
 
@@ -421,7 +440,9 @@ export default async function Home() {
         </Link>
       </header>
 
-      <section className={styles.metrics}>
+      <section
+        className={styles.metrics}
+      >
         {metrics.map((metric) => (
           <Link
             className={`${
@@ -434,11 +455,17 @@ export default async function Home() {
             href={metric.href}
             key={metric.label}
           >
-            <span>{metric.label}</span>
+            <span>
+              {metric.label}
+            </span>
 
-            <strong>{metric.value}</strong>
+            <strong>
+              {metric.value}
+            </strong>
 
-            <p>{metric.detail}</p>
+            <p>
+              {metric.detail}
+            </p>
           </Link>
         ))}
       </section>
@@ -448,7 +475,9 @@ export default async function Home() {
           styles.operationsGrid
         }
       >
-        <article className={styles.panel}>
+        <article
+          className={styles.panel}
+        >
           <div
             className={
               styles.panelHeader
@@ -464,7 +493,8 @@ export default async function Home() {
               </span>
 
               <h2>
-                Renovaciones prioritarias
+                Renovaciones
+                prioritarias
               </h2>
 
               <p>
@@ -522,7 +552,7 @@ export default async function Home() {
                   const days =
                     getDaysDifference(
                       renewal.dueDate,
-                      today,
+                      currentDate,
                     );
 
                   const domain =
@@ -607,10 +637,12 @@ export default async function Home() {
 
                           <span>
                             {
-                              renewal._count
+                              renewal
+                                ._count
                                 .notifications
                             }{" "}
-                            {renewal._count
+                            {renewal
+                              ._count
                               .notifications ===
                             1
                               ? "aviso"
@@ -660,7 +692,9 @@ export default async function Home() {
           )}
         </article>
 
-        <article className={styles.panel}>
+        <article
+          className={styles.panel}
+        >
           <div
             className={
               styles.panelHeader
@@ -695,8 +729,7 @@ export default async function Home() {
               className={`${
                 styles.operationalItem
               } ${
-                overdueRenewalCount >
-                0
+                overdueRenewalCount > 0
                   ? styles.operationalAlert
                   : ""
               }`}
@@ -789,7 +822,9 @@ export default async function Home() {
       <section
         className={styles.lowerGrid}
       >
-        <article className={styles.panel}>
+        <article
+          className={styles.panel}
+        >
           <div
             className={
               styles.panelHeader
@@ -804,7 +839,9 @@ export default async function Home() {
                 Ingresos
               </span>
 
-              <h2>Pagos recientes</h2>
+              <h2>
+                Pagos recientes
+              </h2>
 
               <p>
                 Últimos pagos reales
@@ -837,7 +874,8 @@ export default async function Home() {
               </div>
 
               <h3>
-                No existen pagos recientes
+                No existen pagos
+                recientes
               </h3>
 
               <p>
@@ -900,7 +938,9 @@ export default async function Home() {
           )}
         </article>
 
-        <article className={styles.panel}>
+        <article
+          className={styles.panel}
+        >
           <div
             className={
               styles.panelHeader
@@ -920,14 +960,16 @@ export default async function Home() {
               </h2>
 
               <p>
-                Planes comerciales activos
-                en el sistema.
+                Planes comerciales
+                activos en el sistema.
               </p>
             </div>
           </div>
 
           <div
-            className={styles.planList}
+            className={
+              styles.planList
+            }
           >
             {plans.map((plan) => (
               <div
