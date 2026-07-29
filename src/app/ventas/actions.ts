@@ -3,51 +3,103 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
-export type SaleActionState = {
+type SaleActionState = {
   ok: boolean;
   message: string;
 };
 
-export const initialSaleActionState: SaleActionState = {
-  ok: false,
-  message: "",
-};
-
-function getText(formData: FormData, key: string) {
+function getText(
+  formData: FormData,
+  key: string,
+) {
   const value = formData.get(key);
 
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string"
+    ? value.trim()
+    : "";
 }
 
-function parseDateOnly(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+function parseDateOnly(
+  value: string,
+) {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      value,
+    )
+  ) {
     return null;
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
+  const date = new Date(
+    `${value}T00:00:00.000Z`,
+  );
 
-  return Number.isNaN(date.getTime()) ? null : date;
+  return Number.isNaN(
+    date.getTime(),
+  )
+    ? null
+    : date;
 }
 
-function parseAmount(value: string) {
-  const normalizedValue = value.replace(/[^\d]/g, "");
-  const amount = Number(normalizedValue);
+function parseAmount(
+  value: string,
+) {
+  const normalizedValue =
+    value.replace(/[^\d]/g, "");
 
-  return Number.isFinite(amount) ? amount : 0;
+  const amount = Number(
+    normalizedValue,
+  );
+
+  return Number.isFinite(amount)
+    ? amount
+    : 0;
 }
 
 export async function saveSale(
   _previousState: SaleActionState,
   formData: FormData,
 ): Promise<SaleActionState> {
-  const saleId = getText(formData, "saleId");
-  const clientId = getText(formData, "clientId");
-  const service = getText(formData, "service");
-  const saleDate = parseDateOnly(getText(formData, "saleDate"));
-  const netAmount = parseAmount(getText(formData, "netAmount"));
-  const notes = getText(formData, "notes");
+  const saleId = getText(
+    formData,
+    "saleId",
+  );
 
-  if (!clientId || !service || !saleDate || netAmount <= 0) {
+  const clientId = getText(
+    formData,
+    "clientId",
+  );
+
+  const service = getText(
+    formData,
+    "service",
+  );
+
+  const saleDate = parseDateOnly(
+    getText(
+      formData,
+      "saleDate",
+    ),
+  );
+
+  const netAmount = parseAmount(
+    getText(
+      formData,
+      "netAmount",
+    ),
+  );
+
+  const notes = getText(
+    formData,
+    "notes",
+  );
+
+  if (
+    !clientId ||
+    !service ||
+    !saleDate ||
+    netAmount <= 0
+  ) {
     return {
       ok: false,
       message:
@@ -55,44 +107,52 @@ export async function saveSale(
     };
   }
 
-  const clientExists = await prisma.client.findUnique({
-    where: {
-      id: clientId,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const clientExists =
+    await prisma.client.findUnique({
+      where: {
+        id: clientId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
   if (!clientExists) {
     return {
       ok: false,
-      message: "El cliente seleccionado ya no existe.",
+      message:
+        "El cliente seleccionado ya no existe.",
     };
   }
 
   if (saleId) {
-    const saleExists = await prisma.sale.findUnique({
-      where: {
-        id: saleId,
-      },
-      select: {
-        id: true,
-        status: true,
-      },
-    });
+    const saleExists =
+      await prisma.sale.findUnique({
+        where: {
+          id: saleId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
 
     if (!saleExists) {
       return {
         ok: false,
-        message: "La venta que intentas editar ya no existe.",
+        message:
+          "La venta que intentas editar ya no existe.",
       };
     }
 
-    if (saleExists.status === "CANCELLED") {
+    if (
+      saleExists.status ===
+      "CANCELLED"
+    ) {
       return {
         ok: false,
-        message: "Una venta anulada no puede modificarse.",
+        message:
+          "Una venta anulada no puede modificarse.",
       };
     }
 
@@ -131,8 +191,13 @@ export async function saveSale(
   };
 }
 
-export async function cancelSale(formData: FormData) {
-  const saleId = getText(formData, "saleId");
+export async function cancelSale(
+  formData: FormData,
+) {
+  const saleId = getText(
+    formData,
+    "saleId",
+  );
 
   if (!saleId) {
     return;

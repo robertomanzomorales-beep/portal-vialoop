@@ -1,13 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useActionState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 import {
   cancelSale,
-  initialSaleActionState,
   saveSale,
 } from "./actions";
 import styles from "./ventas.module.css";
+
+type SaleActionState = {
+  ok: boolean;
+  message: string;
+};
+
+const initialSaleActionState: SaleActionState = {
+  ok: false,
+  message: "",
+};
 
 export type SaleClientOption = {
   id: string;
@@ -25,7 +37,9 @@ export type SaleListItem = {
   netAmount: number;
   formattedAmount: string;
   notes: string;
-  status: "ACTIVE" | "CANCELLED";
+  status:
+    | "ACTIVE"
+    | "CANCELLED";
 };
 
 type SalesManagerProps = {
@@ -45,7 +59,11 @@ function SaleEditor({
   today: string;
   onClose: () => void;
 }) {
-  const [state, formAction, pending] = useActionState(
+  const [
+    state,
+    formAction,
+    pending,
+  ] = useActionState(
     saveSale,
     initialSaleActionState,
   );
@@ -54,27 +72,53 @@ function SaleEditor({
     if (state.ok) {
       onClose();
     }
-  }, [state.ok, onClose]);
+  }, [
+    state.ok,
+    onClose,
+  ]);
 
   return (
     <div
       aria-modal="true"
-      className={styles.modalBackdrop}
+      className={
+        styles.modalBackdrop
+      }
       role="dialog"
     >
       <div className={styles.modal}>
-        <div className={styles.modalHeader}>
+        <div
+          className={
+            styles.modalHeader
+          }
+        >
           <div>
-            <span className={styles.eyebrow}>
-              {sale ? `Venta N.º ${sale.number}` : "Nueva operación"}
+            <span
+              className={
+                styles.eyebrow
+              }
+            >
+              {sale
+                ? `Venta N.º ${sale.number}`
+                : "Nueva operación"}
             </span>
-            <h2>{sale ? "Editar venta" : "Registrar venta"}</h2>
-            <p>Todos los montos se registran netos, sin IVA.</p>
+
+            <h2>
+              {sale
+                ? "Editar venta"
+                : "Registrar venta"}
+            </h2>
+
+            <p>
+              Todos los montos se
+              registran netos, sin IVA.
+            </p>
           </div>
 
           <button
             aria-label="Cerrar"
-            className={styles.closeButton}
+            className={
+              styles.closeButton
+            }
             onClick={onClose}
             type="button"
           >
@@ -82,31 +126,59 @@ function SaleEditor({
           </button>
         </div>
 
-        <form action={formAction} className={styles.form}>
-          <input name="saleId" type="hidden" value={sale?.id ?? ""} />
+        <form
+          action={formAction}
+          className={styles.form}
+        >
+          <input
+            name="saleId"
+            type="hidden"
+            value={sale?.id ?? ""}
+          />
 
-          <label className={styles.field}>
+          <label
+            className={styles.field}
+          >
             <span>Cliente</span>
+
             <select
-              defaultValue={sale?.clientId ?? ""}
+              defaultValue={
+                sale?.clientId ?? ""
+              }
               name="clientId"
               required
             >
-              <option disabled value="">
+              <option
+                disabled
+                value=""
+              >
                 Selecciona un cliente
               </option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name}
-                </option>
-              ))}
+
+              {clients.map(
+                (client) => (
+                  <option
+                    key={client.id}
+                    value={client.id}
+                  >
+                    {client.name}
+                  </option>
+                ),
+              )}
             </select>
           </label>
 
-          <label className={styles.field}>
-            <span>Servicio vendido</span>
+          <label
+            className={styles.field}
+          >
+            <span>
+              Servicio vendido
+            </span>
+
             <input
-              defaultValue={sale?.service ?? ""}
+              defaultValue={
+                sale?.service ?? ""
+              }
               maxLength={160}
               name="service"
               placeholder="Ej.: Sitio web Plan Empresa"
@@ -115,21 +187,45 @@ function SaleEditor({
             />
           </label>
 
-          <div className={styles.formRow}>
-            <label className={styles.field}>
-              <span>Fecha de venta</span>
+          <div
+            className={
+              styles.formRow
+            }
+          >
+            <label
+              className={
+                styles.field
+              }
+            >
+              <span>
+                Fecha de venta
+              </span>
+
               <input
-                defaultValue={sale?.saleDate ?? today}
+                defaultValue={
+                  sale?.saleDate ??
+                  today
+                }
                 name="saleDate"
                 required
                 type="date"
               />
             </label>
 
-            <label className={styles.field}>
-              <span>Monto neto</span>
+            <label
+              className={
+                styles.field
+              }
+            >
+              <span>
+                Monto neto
+              </span>
+
               <input
-                defaultValue={sale?.netAmount ?? ""}
+                defaultValue={
+                  sale?.netAmount ??
+                  ""
+                }
                 inputMode="numeric"
                 min="1"
                 name="netAmount"
@@ -141,10 +237,17 @@ function SaleEditor({
             </label>
           </div>
 
-          <label className={styles.field}>
-            <span>Observaciones</span>
+          <label
+            className={styles.field}
+          >
+            <span>
+              Observaciones
+            </span>
+
             <textarea
-              defaultValue={sale?.notes ?? ""}
+              defaultValue={
+                sale?.notes ?? ""
+              }
               maxLength={600}
               name="notes"
               placeholder="Opcional"
@@ -152,13 +255,26 @@ function SaleEditor({
             />
           </label>
 
-          {state.message && !state.ok ? (
-            <p className={styles.formError}>{state.message}</p>
+          {state.message &&
+          !state.ok ? (
+            <p
+              className={
+                styles.formError
+              }
+            >
+              {state.message}
+            </p>
           ) : null}
 
-          <div className={styles.formActions}>
+          <div
+            className={
+              styles.formActions
+            }
+          >
             <button
-              className={styles.secondaryButton}
+              className={
+                styles.secondaryButton
+              }
               disabled={pending}
               onClick={onClose}
               type="button"
@@ -167,7 +283,9 @@ function SaleEditor({
             </button>
 
             <button
-              className={styles.primaryButton}
+              className={
+                styles.primaryButton
+              }
               disabled={pending}
               type="submit"
             >
@@ -189,9 +307,18 @@ export default function SalesManager({
   sales,
   today,
 }: SalesManagerProps) {
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [selectedSale, setSelectedSale] =
-    useState<SaleListItem | null>(null);
+  const [
+    editorOpen,
+    setEditorOpen,
+  ] = useState(false);
+
+  const [
+    selectedSale,
+    setSelectedSale,
+  ] =
+    useState<SaleListItem | null>(
+      null,
+    );
 
   const closeEditor = () => {
     setEditorOpen(false);
@@ -203,26 +330,48 @@ export default function SalesManager({
     setEditorOpen(true);
   };
 
-  const editSale = (sale: SaleListItem) => {
+  const editSale = (
+    sale: SaleListItem,
+  ) => {
     setSelectedSale(sale);
     setEditorOpen(true);
   };
 
   return (
     <>
-      <div className={styles.listHeader}>
+      <div
+        className={
+          styles.listHeader
+        }
+      >
         <div>
-          <span className={styles.eyebrow}>Registro comercial</span>
-          <h2>Ventas registradas</h2>
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Registro comercial
+          </span>
+
+          <h2>
+            Ventas registradas
+          </h2>
+
           <p>
-            Las ventas anuladas permanecen visibles, pero no suman en los
+            Las ventas anuladas
+            permanecen visibles, pero
+            no suman en los
             indicadores.
           </p>
         </div>
 
         <button
-          className={styles.primaryButton}
-          disabled={clients.length === 0}
+          className={
+            styles.primaryButton
+          }
+          disabled={
+            clients.length === 0
+          }
           onClick={createSale}
           type="button"
         >
@@ -231,18 +380,48 @@ export default function SalesManager({
       </div>
 
       {clients.length === 0 ? (
-        <div className={styles.emptyState}>
-          <strong>No existen clientes disponibles</strong>
-          <p>Primero debes registrar un cliente para asociarle una venta.</p>
+        <div
+          className={
+            styles.emptyState
+          }
+        >
+          <strong>
+            No existen clientes
+            disponibles
+          </strong>
+
+          <p>
+            Primero debes registrar un
+            cliente para asociarle una
+            venta.
+          </p>
         </div>
       ) : sales.length === 0 ? (
-        <div className={styles.emptyState}>
-          <strong>Aún no hay ventas registradas</strong>
-          <p>La primera venta que ingreses aparecerá en este listado.</p>
+        <div
+          className={
+            styles.emptyState
+          }
+        >
+          <strong>
+            Aún no hay ventas
+            registradas
+          </strong>
+
+          <p>
+            La primera venta que
+            ingreses aparecerá en este
+            listado.
+          </p>
         </div>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
+        <div
+          className={
+            styles.tableWrap
+          }
+        >
+          <table
+            className={styles.table}
+          >
             <thead>
               <tr>
                 <th>N.º</th>
@@ -254,53 +433,101 @@ export default function SalesManager({
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               {sales.map((sale) => (
                 <tr
                   className={
-                    sale.status === "CANCELLED"
+                    sale.status ===
+                    "CANCELLED"
                       ? styles.cancelledRow
                       : undefined
                   }
                   key={sale.id}
                 >
-                  <td>#{sale.number}</td>
-                  <td>{sale.displayDate}</td>
                   <td>
-                    <strong>{sale.clientName}</strong>
+                    #{sale.number}
                   </td>
+
                   <td>
-                    <strong>{sale.service}</strong>
-                    {sale.notes ? <small>{sale.notes}</small> : null}
+                    {sale.displayDate}
                   </td>
-                  <td className={styles.amountCell}>
-                    {sale.formattedAmount}
+
+                  <td>
+                    <strong>
+                      {sale.clientName}
+                    </strong>
                   </td>
+
+                  <td>
+                    <strong>
+                      {sale.service}
+                    </strong>
+
+                    {sale.notes ? (
+                      <small>
+                        {sale.notes}
+                      </small>
+                    ) : null}
+                  </td>
+
+                  <td
+                    className={
+                      styles.amountCell
+                    }
+                  >
+                    {
+                      sale.formattedAmount
+                    }
+                  </td>
+
                   <td>
                     <span
-                      className={`${styles.statusBadge} ${
-                        sale.status === "ACTIVE"
+                      className={`${
+                        styles.statusBadge
+                      } ${
+                        sale.status ===
+                        "ACTIVE"
                           ? styles.statusActive
                           : styles.statusCancelled
                       }`}
                     >
-                      {sale.status === "ACTIVE" ? "Activa" : "Anulada"}
+                      {sale.status ===
+                      "ACTIVE"
+                        ? "Activa"
+                        : "Anulada"}
                     </span>
                   </td>
+
                   <td>
-                    {sale.status === "ACTIVE" ? (
-                      <div className={styles.rowActions}>
+                    {sale.status ===
+                    "ACTIVE" ? (
+                      <div
+                        className={
+                          styles.rowActions
+                        }
+                      >
                         <button
-                          className={styles.textButton}
-                          onClick={() => editSale(sale)}
+                          className={
+                            styles.textButton
+                          }
+                          onClick={() =>
+                            editSale(
+                              sale,
+                            )
+                          }
                           type="button"
                         >
                           Editar
                         </button>
 
                         <form
-                          action={cancelSale}
-                          onSubmit={(event) => {
+                          action={
+                            cancelSale
+                          }
+                          onSubmit={(
+                            event,
+                          ) => {
                             if (
                               !window.confirm(
                                 "¿Seguro que deseas anular esta venta? Dejará de sumar en los indicadores.",
@@ -313,10 +540,15 @@ export default function SalesManager({
                           <input
                             name="saleId"
                             type="hidden"
-                            value={sale.id}
+                            value={
+                              sale.id
+                            }
                           />
+
                           <button
-                            className={styles.dangerButton}
+                            className={
+                              styles.dangerButton
+                            }
                             type="submit"
                           >
                             Anular
@@ -324,7 +556,13 @@ export default function SalesManager({
                         </form>
                       </div>
                     ) : (
-                      <span className={styles.noAction}>Sin acciones</span>
+                      <span
+                        className={
+                          styles.noAction
+                        }
+                      >
+                        Sin acciones
+                      </span>
                     )}
                   </td>
                 </tr>
