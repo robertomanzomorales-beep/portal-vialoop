@@ -1,0 +1,543 @@
+.content {
+  display: grid;
+  gap: 24px;
+  width: 100%;
+}
+
+.pageHeader,
+.listHeader,
+.chartHeader,
+.goalTopline,
+.modalHeader,
+.formActions,
+.rowActions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.pageHeader h1,
+.listHeader h2,
+.chartHeader h2,
+.modalHeader h2 {
+  color: #111827;
+  margin: 4px 0 6px;
+}
+
+.pageHeader h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.pageHeader p,
+.listHeader p,
+.chartHeader p,
+.modalHeader p,
+.emptyState p {
+  color: #667085;
+  margin: 0;
+}
+
+.eyebrow {
+  color: #175cd3;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.metrics {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metricCard,
+.goalPanel,
+.chartPanel,
+.listPanel {
+  background: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 18px;
+}
+
+.metricCard {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+}
+
+.metricCard > span {
+  color: #667085;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.metricCard > strong {
+  color: #101828;
+  font-size: clamp(1.45rem, 2.6vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.metricCard > small {
+  color: #98a2b3;
+  line-height: 1.45;
+}
+
+.goalPanel {
+  padding: 22px 24px;
+}
+
+.goalTopline {
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.goalTopline div {
+  display: flex;
+  gap: 10px;
+}
+
+.goalTopline span,
+.goalTopline p {
+  color: #667085;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.goalTopline strong {
+  color: #175cd3;
+}
+
+.progressTrack {
+  background: #eaecf0;
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.progressValue {
+  background: #175cd3;
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 0;
+  transition: width 350ms ease;
+}
+
+.chartPanel,
+.listPanel {
+  overflow: hidden;
+}
+
+.chartHeader,
+.listHeader {
+  gap: 24px;
+  padding: 24px;
+}
+
+.chartLegend {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.chartLegend span {
+  align-items: center;
+  color: #667085;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 7px;
+}
+
+.chartLegend i {
+  display: block;
+  width: 18px;
+}
+
+.legendSales {
+  background: #175cd3;
+  border-radius: 3px;
+  height: 8px;
+}
+
+.legendGoal {
+  border-top: 2px dashed #f79009;
+  height: 0;
+}
+
+.chartScroll {
+  border-top: 1px solid #eaecf0;
+  overflow-x: auto;
+  padding: 30px 24px 20px;
+}
+
+.chart {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(12, minmax(58px, 1fr));
+  height: 290px;
+  min-width: 820px;
+  position: relative;
+}
+
+.goalLine {
+  border-top: 2px dashed #f79009;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 2;
+}
+
+.goalLine span {
+  background: #fff7ed;
+  color: #b54708;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  position: absolute;
+  right: 0;
+  top: -20px;
+}
+
+.chartColumn {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+}
+
+.barArea {
+  align-items: flex-end;
+  border-bottom: 1px solid #d0d5dd;
+  display: flex;
+  height: 250px;
+  justify-content: center;
+  position: relative;
+}
+
+.bar {
+  background: #175cd3;
+  border-radius: 7px 7px 0 0;
+  display: block;
+  max-width: 42px;
+  min-height: 0;
+  transition: height 350ms ease;
+  width: 72%;
+}
+
+.barValue {
+  color: #344054;
+  font-size: 0.64rem;
+  font-weight: 700;
+  left: 50%;
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.monthLabel {
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.primaryButton,
+.secondaryButton,
+.textButton,
+.dangerButton,
+.closeButton {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.primaryButton,
+.secondaryButton {
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 12px 16px;
+}
+
+.primaryButton {
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.secondaryButton {
+  background: #f2f4f7;
+  color: #344054;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.tableWrap {
+  border-top: 1px solid #eaecf0;
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 940px;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #eaecf0;
+  padding: 15px 18px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  background: #f9fafb;
+  color: #667085;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: #475467;
+  font-size: 0.84rem;
+}
+
+.table td strong {
+  color: #101828;
+}
+
+.table td small {
+  color: #98a2b3;
+  display: block;
+  line-height: 1.4;
+  margin-top: 4px;
+  max-width: 300px;
+}
+
+.amountCell {
+  color: #101828 !important;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.statusActive {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.statusCancelled {
+  background: #f2f4f7;
+  color: #667085;
+}
+
+.cancelledRow {
+  opacity: 0.63;
+}
+
+.rowActions {
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.textButton,
+.dangerButton {
+  background: transparent;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0;
+}
+
+.textButton {
+  color: #175cd3;
+}
+
+.dangerButton {
+  color: #d92d20;
+}
+
+.noAction {
+  color: #98a2b3;
+  font-size: 0.75rem;
+}
+
+.emptyState {
+  border-top: 1px solid #eaecf0;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyState strong {
+  color: #101828;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.modalBackdrop {
+  align-items: center;
+  background: rgba(16, 24, 40, 0.64);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 1000;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 24px 72px rgba(16, 24, 40, 0.26);
+  max-height: calc(100vh - 40px);
+  max-width: 650px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.modalHeader {
+  border-bottom: 1px solid #eaecf0;
+  gap: 24px;
+  padding: 24px;
+}
+
+.closeButton {
+  align-items: center;
+  background: #f2f4f7;
+  border-radius: 999px;
+  color: #475467;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 1.4rem;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.formRow {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field > span {
+  color: #344054;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.field input,
+.field select,
+.field textarea {
+  background: #ffffff;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  color: #101828;
+  font: inherit;
+  outline: none;
+  padding: 11px 12px;
+  width: 100%;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgba(23, 92, 211, 0.12);
+}
+
+.formError {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 9px;
+  color: #b42318;
+  font-size: 0.8rem;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.formActions {
+  border-top: 1px solid #eaecf0;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 18px;
+}
+
+@media (max-width: 1100px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .content {
+    gap: 16px;
+  }
+
+  .pageHeader,
+  .listHeader,
+  .chartHeader,
+  .goalTopline,
+  .modalHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCard,
+  .goalPanel,
+  .chartHeader,
+  .listHeader {
+    padding: 18px;
+  }
+
+  .listHeader .primaryButton {
+    width: 100%;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .modalBackdrop {
+    padding: 10px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 20px);
+  }
+}

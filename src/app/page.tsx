@@ -8,6 +8,9 @@ export const revalidate = 0;
 const CHILE_TIME_ZONE =
   "America/Santiago";
 
+const MONTHLY_SALES_TARGET =
+  3_500_000;
+
 function formatCurrency(value: unknown) {
   const amount = Number(value);
 
@@ -76,6 +79,48 @@ function getStartOfDay(
       date,
     )}T00:00:00.000Z`,
   );
+}
+
+function getChileMonthRange(
+  date: Date,
+) {
+  const dateParts =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        year: "numeric",
+        month: "2-digit",
+        timeZone:
+          CHILE_TIME_ZONE,
+      },
+    ).formatToParts(date);
+
+  const year = Number(
+    dateParts.find(
+      (part) =>
+        part.type === "year",
+    )?.value,
+  );
+
+  const month = Number(
+    dateParts.find(
+      (part) =>
+        part.type === "month",
+    )?.value,
+  );
+
+  return {
+    start: new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        1,
+      ),
+    ),
+    end: new Date(
+      Date.UTC(year, month, 1),
+    ),
+  };
 }
 
 function addDays(
@@ -189,6 +234,11 @@ export default async function Home() {
   const nextThirtyDays =
     addDays(today, 30);
 
+  const currentMonth =
+    getChileMonthRange(
+      currentDate,
+    );
+
   const [
     clientCount,
     projectCount,
@@ -200,6 +250,8 @@ export default async function Home() {
     plans,
     priorityRenewals,
     recentPaidCandidates,
+    monthlySalesAmountResult,
+    monthlySalesCount,
   ] = await Promise.all([
     prisma.client.count({
       where: {
@@ -342,6 +394,29 @@ export default async function Home() {
         client: true,
       },
     }),
+
+    prisma.sale.aggregate({
+      where: {
+        status: "ACTIVE",
+        saleDate: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
+      _sum: {
+        netAmount: true,
+      },
+    }),
+
+    prisma.sale.count({
+      where: {
+        status: "ACTIVE",
+        saleDate: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
+    }),
   ]);
 
   const pendingPaymentAmount =
@@ -364,6 +439,26 @@ export default async function Home() {
     overdueRenewalCount +
     upcomingRenewalCount +
     pendingPaymentCount;
+
+  const monthlySalesAmount =
+    Number(
+      monthlySalesAmountResult
+        ._sum.netAmount ?? 0,
+    );
+
+  const monthlySalesProgress =
+    Math.round(
+      (monthlySalesAmount /
+        MONTHLY_SALES_TARGET) *
+        100,
+    );
+
+  const monthlySalesRemaining =
+    Math.max(
+      MONTHLY_SALES_TARGET -
+        monthlySalesAmount,
+      0,
+    );
 
   const metrics = [
     {
@@ -800,6 +895,45 @@ export default async function Home() {
                 )}
               </strong>
             </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/ventas"
+            >
+              <div>
+                <strong>
+                  Ventas del mes
+                </strong>
+
+                <span>
+                  {monthlySalesCount}{" "}
+                  {monthlySalesCount === 1
+                    ? "venta"
+                    : "ventas"}{" "}
+                  ·{" "}
+                  {monthlySalesProgress}%
+                  de la meta ·{" "}
+                  {monthlySalesRemaining >
+                  0
+                    ? `Faltan ${formatCurrency(
+                        monthlySalesRemaining,
+                      )}`
+                    : "Meta cumplida"}
+                </span>
+              </div>
+
+              <strong
+                className={
+                  styles.operationalAmount
+                }
+              >
+                {formatCurrency(
+                  monthlySalesAmount,
+                )}
+              </strong>
+            </Link>
           </div>
 
           <div
@@ -814,6 +948,15 @@ export default async function Home() {
               href="/pagos"
             >
               Revisar pagos
+            </Link>
+
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/ventas"
+            >
+              Revisar ventas
             </Link>
           </div>
         </article>

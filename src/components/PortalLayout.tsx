@@ -82,6 +82,10 @@ const navigationGroups: NavigationGroup[] = [
         href: "/pagos",
       },
       {
+        label: "Ventas",
+        href: "/ventas",
+      },
+      {
         label: "Documentos",
         href: "/documentos",
       },
