@@ -48,8 +48,7 @@ function SubmitButton({
   sentToday: boolean;
   recipientIsValid: boolean;
 }) {
-  const { pending } =
-    useFormStatus();
+  const { pending } = useFormStatus();
 
   const disabled =
     pending ||
@@ -58,9 +57,7 @@ function SubmitButton({
 
   return (
     <button
-      className={
-        styles.confirmSentButton
-      }
+      className={styles.confirmSentButton}
       disabled={disabled}
       type="submit"
     >
@@ -73,11 +70,8 @@ function SubmitButton({
   );
 }
 
-function isValidEmail(
-  value: string,
-) {
-  const normalizedValue =
-    value.trim();
+function isValidEmail(value: string) {
+  const normalizedValue = value.trim();
 
   const emailPattern =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -132,9 +126,7 @@ function getEmailSubject({
       `Renovación de ${normalizedService} · ${domain}`,
   };
 
-  return subjects[
-    reminderType
-  ];
+  return subjects[reminderType];
 }
 
 function getIntroduction(
@@ -160,9 +152,7 @@ function getIntroduction(
       "Junto con saludar, informamos la renovación del siguiente servicio administrado por Vialoop:",
   };
 
-  return introductions[
-    reminderType
-  ];
+  return introductions[reminderType];
 }
 
 function getClosingParagraph(
@@ -201,13 +191,9 @@ function getEmailBody({
   reminderType: ReminderType;
 }) {
   return [
-    getGreeting(
-      mainContactName,
-    ),
+    getGreeting(mainContactName),
     "",
-    getIntroduction(
-      reminderType,
-    ),
+    getIntroduction(reminderType),
     "",
     `Servicio: ${description}`,
     `Dominio o proyecto: ${domain}`,
@@ -220,12 +206,12 @@ function getEmailBody({
     "",
     "Datos para transferencia:",
     "",
-    "Agencia Publicitaria Vialoop SpA",
-    "RUT: 77.103.693-7",
+    "VIALOOP STUDIO SPA",
+    "RUT: 78.455.385-K",
     "Banco: Mercado Pago",
     "Tipo de cuenta: Cuenta Vista",
-    "N.º de cuenta: 1074127101",
-    "Correo: contacto@vialoop.cl",
+    "N.º de cuenta: 1038393364",
+    "Correo: rmanzo@vialoop.cl",
     "",
     "Una vez realizado el pago, favor responder este correo adjuntando el comprobante correspondiente.",
     "",
@@ -271,15 +257,14 @@ export default function RenewalEmailComposer({
       domain,
     });
 
-  const defaultBody =
-    getEmailBody({
-      mainContactName,
-      description,
-      domain,
-      dueDate,
-      amount,
-      reminderType,
-    });
+  const defaultBody = getEmailBody({
+    mainContactName,
+    description,
+    domain,
+    dueDate,
+    amount,
+    reminderType,
+  });
 
   const [
     subject,
@@ -288,12 +273,8 @@ export default function RenewalEmailComposer({
     defaultSubject,
   );
 
-  const [
-    body,
-    setBody,
-  ] = useState(
-    defaultBody,
-  );
+  const [body, setBody] =
+    useState(defaultBody);
 
   const action =
     markRenewalAsNotified.bind(
@@ -302,9 +283,7 @@ export default function RenewalEmailComposer({
     );
 
   const recipientIsValid =
-    isValidEmail(
-      recipient,
-    );
+    isValidEmail(recipient);
 
   useEffect(() => {
     if (!isOpen) {
@@ -314,10 +293,7 @@ export default function RenewalEmailComposer({
     function handleKeyDown(
       event: KeyboardEvent,
     ) {
-      if (
-        event.key ===
-        "Escape"
-      ) {
+      if (event.key === "Escape") {
         setIsOpen(false);
       }
     }
@@ -350,13 +326,8 @@ export default function RenewalEmailComposer({
       initialRecipient,
     );
 
-    setSubject(
-      defaultSubject,
-    );
-
-    setBody(
-      defaultBody,
-    );
+    setSubject(defaultSubject);
+    setBody(defaultBody);
   }, [
     isOpen,
     initialRecipient,
@@ -394,9 +365,7 @@ export default function RenewalEmailComposer({
   return (
     <>
       <button
-        className={
-          styles.emailAction
-        }
+        className={styles.emailAction}
         onClick={() =>
           setIsOpen(true)
         }
@@ -414,9 +383,7 @@ export default function RenewalEmailComposer({
           className={
             styles.modalBackdrop
           }
-          onMouseDown={(
-            event,
-          ) => {
+          onMouseDown={(event) => {
             if (
               event.target ===
               event.currentTarget
@@ -429,9 +396,7 @@ export default function RenewalEmailComposer({
           <section
             aria-labelledby="renewal-email-title"
             aria-modal="true"
-            className={
-              styles.modal
-            }
+            className={styles.modal}
             role="dialog"
           >
             <header
@@ -458,9 +423,7 @@ export default function RenewalEmailComposer({
                 className={
                   styles.modalClose
                 }
-                onClick={
-                  closeModal
-                }
+                onClick={closeModal}
                 type="button"
               >
                 ×
@@ -474,14 +437,14 @@ export default function RenewalEmailComposer({
             >
               Revisa cuidadosamente el
               destinatario, el asunto y
-              el contenido. Al
-              confirmar, el mensaje se
-              enviará realmente desde{" "}
+              el contenido. Al confirmar,
+              el mensaje se enviará
+              realmente desde{" "}
               <strong>
                 hosting@vialoop.cl
               </strong>{" "}
-              y quedará registrado en
-              el historial.
+              y quedará registrado en el
+              historial.
             </p>
 
             <div
@@ -490,9 +453,7 @@ export default function RenewalEmailComposer({
               }
             >
               <div>
-                <span>
-                  Cliente
-                </span>
+                <span>Cliente</span>
 
                 <strong>
                   {clientName}
@@ -500,9 +461,7 @@ export default function RenewalEmailComposer({
               </div>
 
               <div>
-                <span>
-                  Contacto
-                </span>
+                <span>Contacto</span>
 
                 <strong>
                   {mainContactName ||
@@ -511,9 +470,7 @@ export default function RenewalEmailComposer({
               </div>
 
               <div>
-                <span>
-                  Servicio
-                </span>
+                <span>Servicio</span>
 
                 <strong>
                   {description}
@@ -521,9 +478,7 @@ export default function RenewalEmailComposer({
               </div>
 
               <div>
-                <span>
-                  Vencimiento
-                </span>
+                <span>Vencimiento</span>
 
                 <strong>
                   {dueDate}
@@ -573,11 +528,11 @@ export default function RenewalEmailComposer({
                   styles.todayNotice
                 }
               >
-                Este tipo de aviso ya
-                fue enviado hoy. El
-                sistema no permitirá
-                enviarlo nuevamente
-                durante el mismo día.
+                Este tipo de aviso ya fue
+                enviado hoy. El sistema
+                no permitirá enviarlo
+                nuevamente durante el
+                mismo día.
               </div>
             )}
 
@@ -593,15 +548,11 @@ export default function RenewalEmailComposer({
               <input
                 name="reminderType"
                 type="hidden"
-                value={
-                  reminderType
-                }
+                value={reminderType}
               />
 
               <label
-                className={
-                  styles.field
-                }
+                className={styles.field}
               >
                 <span>
                   Correo del destinatario
@@ -610,63 +561,46 @@ export default function RenewalEmailComposer({
                 <input
                   autoComplete="email"
                   name="recipient"
-                  onChange={(
-                    event,
-                  ) => {
+                  onChange={(event) => {
                     setRecipient(
-                      event.target
-                        .value,
+                      event.target.value,
                     );
                   }}
                   placeholder="contacto@empresa.cl"
                   required
                   type="email"
-                  value={
-                    recipient
-                  }
+                  value={recipient}
                 />
 
-                {recipient.length >
-                  0 &&
+                {recipient.length > 0 &&
                   !recipientIsValid && (
-                  <small>
-                    Ingresa un correo
-                    electrónico válido.
-                  </small>
-                )}
+                    <small>
+                      Ingresa un correo
+                      electrónico válido.
+                    </small>
+                  )}
               </label>
 
               <label
-                className={
-                  styles.field
-                }
+                className={styles.field}
               >
-                <span>
-                  Asunto
-                </span>
+                <span>Asunto</span>
 
                 <input
                   name="subject"
-                  onChange={(
-                    event,
-                  ) => {
+                  onChange={(event) => {
                     setSubject(
-                      event.target
-                        .value,
+                      event.target.value,
                     );
                   }}
                   required
                   type="text"
-                  value={
-                    subject
-                  }
+                  value={subject}
                 />
               </label>
 
               <label
-                className={
-                  styles.field
-                }
+                className={styles.field}
               >
                 <span>
                   Contenido del correo
@@ -674,19 +608,14 @@ export default function RenewalEmailComposer({
 
                 <textarea
                   name="body"
-                  onChange={(
-                    event,
-                  ) => {
+                  onChange={(event) => {
                     setBody(
-                      event.target
-                        .value,
+                      event.target.value,
                     );
                   }}
                   required
                   rows={22}
-                  value={
-                    body
-                  }
+                  value={body}
                 />
               </label>
 
@@ -745,9 +674,7 @@ export default function RenewalEmailComposer({
                     }
                   >
                     {notificationHistory.map(
-                      (
-                        notification,
-                      ) => (
+                      (notification) => (
                         <article
                           className={
                             styles.historyItem
@@ -799,9 +726,7 @@ export default function RenewalEmailComposer({
                   className={
                     styles.cancelModalButton
                   }
-                  onClick={
-                    closeModal
-                  }
+                  onClick={closeModal}
                   type="button"
                 >
                   Cancelar
@@ -811,9 +736,7 @@ export default function RenewalEmailComposer({
                   recipientIsValid={
                     recipientIsValid
                   }
-                  sentToday={
-                    sentToday
-                  }
+                  sentToday={sentToday}
                 />
               </footer>
             </form>
