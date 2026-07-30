@@ -1,6 +1,8 @@
 .content {
+  box-sizing: border-box;
   display: grid;
   gap: 24px;
+  padding: 8px 28px 40px;
   width: 100%;
 }
 
@@ -741,6 +743,7 @@
 @media (max-width: 700px) {
   .content {
     gap: 16px;
+    padding: 16px;
   }
 
   .pageHeader,
