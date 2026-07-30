@@ -5,8 +5,11 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const CHILE_TIME_ZONE = "America/Santiago";
-const MONTHLY_SALES_TARGET = 3_500_000;
+const CHILE_TIME_ZONE =
+  "America/Santiago";
+
+const MONTHLY_SALES_TARGET =
+  3_500_000;
 
 function formatCurrency(value: unknown) {
   const amount = Number(value);
@@ -29,12 +32,15 @@ function formatDate(
     return "Sin fecha";
   }
 
-  return new Intl.DateTimeFormat("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: CHILE_TIME_ZONE,
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "es-CL",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: CHILE_TIME_ZONE,
+    },
+  ).format(date);
 }
 
 function formatLongDate(date: Date) {
@@ -53,33 +59,16 @@ function formatLongDate(date: Date) {
   );
 }
 
-function formatMonth(date: Date) {
-  const formattedMonth =
-    new Intl.DateTimeFormat("es-CL", {
-      month: "long",
-      year: "numeric",
-      timeZone: CHILE_TIME_ZONE,
-    }).format(date);
-
-  return (
-    formattedMonth.charAt(0).toUpperCase() +
-    formattedMonth.slice(1)
-  );
-}
-
-function formatPercentage(value: number) {
-  return value
-    .toFixed(1)
-    .replace(".", ",");
-}
-
 function getChileDateKey(date: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: CHILE_TIME_ZONE,
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: CHILE_TIME_ZONE,
+    },
+  ).format(date);
 }
 
 function getStartOfDay(
@@ -96,21 +85,27 @@ function getChileMonthRange(
   date: Date,
 ) {
   const dateParts =
-    new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      timeZone: CHILE_TIME_ZONE,
-    }).formatToParts(date);
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        year: "numeric",
+        month: "2-digit",
+        timeZone:
+          CHILE_TIME_ZONE,
+      },
+    ).formatToParts(date);
 
   const year = Number(
     dateParts.find(
-      (part) => part.type === "year",
+      (part) =>
+        part.type === "year",
     )?.value,
   );
 
   const month = Number(
     dateParts.find(
-      (part) => part.type === "month",
+      (part) =>
+        part.type === "month",
     )?.value,
   );
 
@@ -174,6 +169,15 @@ function getDaysDifference(
 function getDeadlineLabel(
   days: number,
 ) {
+  if (days < 0) {
+    const overdueDays =
+      Math.abs(days);
+
+    return overdueDays === 1
+      ? "Vencida hace 1 día"
+      : `Vencida hace ${overdueDays} días`;
+  }
+
   if (days === 0) {
     return "Vence hoy";
   }
@@ -182,39 +186,215 @@ function getDeadlineLabel(
     return "Vence mañana";
   }
 
-  return `En ${days} días`;
+  return `Faltan ${days} días`;
+}
+
+function getReminderLabel(
+  days: number,
+) {
+  if (days < 0) {
+    return "Seguimiento vencido";
+  }
+
+  if (days <= 7) {
+    return "Recordatorio final";
+  }
+
+  if (days <= 15) {
+    return "Segundo recordatorio";
+  }
+
+  return "Primer aviso";
 }
 
 function getUrgencyClass(
   days: number,
 ) {
-  if (days <= 3) {
-    return styles.dueUrgent;
+  if (days < 0) {
+    return styles.urgencyExpired;
   }
 
-  if (days <= 10) {
-    return styles.dueSoon;
+  if (days <= 7) {
+    return styles.urgencyFinal;
   }
 
-  return styles.dueUpcoming;
+  if (days <= 15) {
+    return styles.urgencySecond;
+  }
+
+  return styles.urgencyFirst;
 }
 
 export default async function Home() {
   const currentDate = new Date();
+
   const today =
     getStartOfDay(currentDate);
+
   const nextThirtyDays =
     addDays(today, 30);
+
   const currentMonth =
-    getChileMonthRange(currentDate);
+    getChileMonthRange(
+      currentDate,
+    );
 
   const [
+    clientCount,
+    projectCount,
+    openRequestCount,
+    upcomingRenewalCount,
+    overdueRenewalCount,
+    pendingPaymentCount,
+    pendingPaymentAmountResult,
+    plans,
+    priorityRenewals,
+    recentPaidCandidates,
     monthlySalesAmountResult,
     monthlySalesCount,
-    upcomingRenewals,
-    recentSales,
-    plans,
   ] = await Promise.all([
+    prisma.client.count({
+      where: {
+        status: "ACTIVE",
+      },
+    }),
+
+    prisma.project.count({
+      where: {
+        status: {
+          in: [
+            "DEVELOPMENT",
+            "ACTIVE",
+            "MAINTENANCE",
+          ],
+        },
+      },
+    }),
+
+    prisma.supportRequest.count({
+      where: {
+        status: {
+          notIn: [
+            "COMPLETED",
+            "REJECTED",
+            "OUT_OF_SCOPE",
+          ],
+        },
+      },
+    }),
+
+    prisma.renewal.count({
+      where: {
+        dueDate: {
+          gte: today,
+          lte: nextThirtyDays,
+        },
+        status: {
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
+        },
+      },
+    }),
+
+    prisma.renewal.count({
+      where: {
+        dueDate: {
+          lt: today,
+        },
+        status: {
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
+        },
+      },
+    }),
+
+    prisma.payment.count({
+      where: {
+        status: {
+          in: [
+            "PENDING",
+            "OVERDUE",
+          ],
+        },
+      },
+    }),
+
+    prisma.payment.aggregate({
+      where: {
+        status: {
+          in: [
+            "PENDING",
+            "OVERDUE",
+          ],
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.plan.findMany({
+      where: {
+        active: true,
+      },
+      orderBy: {
+        monthlyPrice: "asc",
+      },
+    }),
+
+    prisma.renewal.findMany({
+      where: {
+        dueDate: {
+          lte: nextThirtyDays,
+        },
+        status: {
+          in: [
+            "UPCOMING",
+            "NOTIFIED",
+            "EXPIRED",
+          ],
+        },
+      },
+      orderBy: {
+        dueDate: "asc",
+      },
+      take: 8,
+      include: {
+        client: true,
+        project: true,
+        notifications: {
+          orderBy: {
+            sentAt: "desc",
+          },
+          take: 1,
+        },
+        _count: {
+          select: {
+            notifications: true,
+          },
+        },
+      },
+    }),
+
+    prisma.payment.findMany({
+      where: {
+        status: "PAID",
+      },
+      orderBy: {
+        paidAt: "desc",
+      },
+      take: 12,
+      include: {
+        client: true,
+      },
+    }),
+
     prisma.sale.aggregate({
       where: {
         status: "ACTIVE",
@@ -237,63 +417,28 @@ export default async function Home() {
         },
       },
     }),
-
-    prisma.renewal.findMany({
-      where: {
-        dueDate: {
-          gte: today,
-          lte: nextThirtyDays,
-        },
-        status: {
-          in: [
-            "UPCOMING",
-            "NOTIFIED",
-            "EXPIRED",
-          ],
-        },
-      },
-      orderBy: {
-        dueDate: "asc",
-      },
-      take: 5,
-      include: {
-        client: true,
-        project: true,
-      },
-    }),
-
-    prisma.sale.findMany({
-      where: {
-        status: "ACTIVE",
-      },
-      orderBy: [
-        {
-          saleDate: "desc",
-        },
-        {
-          createdAt: "desc",
-        },
-      ],
-      take: 5,
-      include: {
-        client: {
-          select: {
-            businessName: true,
-            tradeName: true,
-          },
-        },
-      },
-    }),
-
-    prisma.plan.findMany({
-      where: {
-        active: true,
-      },
-      orderBy: {
-        monthlyPrice: "asc",
-      },
-    }),
   ]);
+
+  const pendingPaymentAmount =
+    Number(
+      pendingPaymentAmountResult
+        ._sum.amount ?? 0,
+    );
+
+  const recentPayments =
+    recentPaidCandidates
+      .filter(
+        (payment) =>
+          !payment.notes?.includes(
+            "[PRUEBA]",
+          ),
+      )
+      .slice(0, 5);
+
+  const priorityTaskCount =
+    overdueRenewalCount +
+    upcomingRenewalCount +
+    pendingPaymentCount;
 
   const monthlySalesAmount =
     Number(
@@ -302,16 +447,10 @@ export default async function Home() {
     );
 
   const monthlySalesProgress =
-    MONTHLY_SALES_TARGET > 0
-      ? (monthlySalesAmount /
-          MONTHLY_SALES_TARGET) *
-        100
-      : 0;
-
-  const progressBarWidth =
-    Math.min(
-      monthlySalesProgress,
-      100,
+    Math.round(
+      (monthlySalesAmount /
+        MONTHLY_SALES_TARGET) *
+        100,
     );
 
   const monthlySalesRemaining =
@@ -321,12 +460,40 @@ export default async function Home() {
       0,
     );
 
-  const monthlySalesExceeded =
-    Math.max(
-      monthlySalesAmount -
-        MONTHLY_SALES_TARGET,
-      0,
-    );
+  const metrics = [
+    {
+      label: "Clientes activos",
+      value: clientCount,
+      detail:
+        "Empresas con servicios vigentes",
+      href: "/clientes",
+      alert: false,
+    },
+    {
+      label: "Proyectos activos",
+      value: projectCount,
+      detail:
+        "Sitios en desarrollo o mantención",
+      href: "/proyectos",
+      alert: false,
+    },
+    {
+      label: "Solicitudes abiertas",
+      value: openRequestCount,
+      detail:
+        "Tickets pendientes de resolución",
+      href: "/solicitudes",
+      alert: openRequestCount > 0,
+    },
+    {
+      label: "Trabajo pendiente",
+      value: priorityTaskCount,
+      detail:
+        "Renovaciones y cobros por gestionar",
+      href: "/renovaciones",
+      alert: priorityTaskCount > 0,
+    },
+  ];
 
   return (
     <main className={styles.content}>
@@ -335,15 +502,15 @@ export default async function Home() {
           <span
             className={styles.eyebrow}
           >
-            Resumen comercial
+            Panel administrativo
           </span>
 
           <h1>Dashboard</h1>
 
           <p>
-            Una vista simple de la meta
-            mensual, las últimas ventas
-            y los próximos cobros de
+            Control diario de clientes,
+            renovaciones, cobros y
+            actividad operativa de
             Vialoop.
           </p>
 
@@ -362,198 +529,46 @@ export default async function Home() {
           className={
             styles.primaryButton
           }
-          href="/ventas"
+          href="/clientes/nuevo"
         >
-          Registrar venta
+          Nuevo cliente
         </Link>
       </header>
 
       <section
         className={styles.metrics}
       >
-        <Link
-          className={
-            styles.metricCard
-          }
-          href="/ventas"
-        >
-          <span>
-            Vendido en{" "}
-            {formatMonth(currentDate)}
-          </span>
-
-          <strong>
-            {formatCurrency(
-              monthlySalesAmount,
-            )}
-          </strong>
-
-          <p>
-            {monthlySalesCount}{" "}
-            {monthlySalesCount === 1
-              ? "venta activa"
-              : "ventas activas"}
-          </p>
-        </Link>
-
-        <article
-          className={
-            styles.metricCard
-          }
-        >
-          <span>Meta mensual</span>
-
-          <strong>
-            {formatCurrency(
-              MONTHLY_SALES_TARGET,
-            )}
-          </strong>
-
-          <p>Monto neto, sin IVA</p>
-        </article>
-
-        <article
-          className={
-            styles.metricCard
-          }
-        >
-          <span>
-            Avance alcanzado
-          </span>
-
-          <strong>
-            {formatPercentage(
-              monthlySalesProgress,
-            )}
-            %
-          </strong>
-
-          <p>
-            Progreso de la meta comercial
-          </p>
-        </article>
-
-        <article
-          className={`${
-            styles.metricCard
-          } ${
-            monthlySalesRemaining === 0
-              ? styles.metricCardSuccess
-              : ""
-          }`}
-        >
-          <span>
-            {monthlySalesRemaining > 0
-              ? "Falta para la meta"
-              : "Meta cumplida"}
-          </span>
-
-          <strong>
-            {monthlySalesRemaining > 0
-              ? formatCurrency(
-                  monthlySalesRemaining,
-                )
-              : formatCurrency(
-                  monthlySalesExceeded,
-                )}
-          </strong>
-
-          <p>
-            {monthlySalesRemaining > 0
-              ? "Monto pendiente por vender"
-              : "Monto vendido sobre la meta"}
-          </p>
-        </article>
-      </section>
-
-      <section
-        className={styles.goalPanel}
-      >
-        <div
-          className={styles.goalHeader}
-        >
-          <div>
-            <span
-              className={
-                styles.panelEyebrow
-              }
-            >
-              Meta del mes
+        {metrics.map((metric) => (
+          <Link
+            className={`${
+              styles.metricCard
+            } ${
+              metric.alert
+                ? styles.metricCardAlert
+                : ""
+            }`}
+            href={metric.href}
+            key={metric.label}
+          >
+            <span>
+              {metric.label}
             </span>
 
-            <h2>Avance comercial</h2>
-          </div>
-
-          <div
-            className={
-              styles.goalSummary
-            }
-          >
             <strong>
-              {formatPercentage(
-                monthlySalesProgress,
-              )}
-              %
+              {metric.value}
             </strong>
 
-            <span>
-              {monthlySalesRemaining > 0
-                ? `${formatCurrency(
-                    monthlySalesRemaining,
-                  )} por vender`
-                : "Meta mensual alcanzada"}
-            </span>
-          </div>
-        </div>
-
-        <div
-          aria-label="Avance de la meta mensual"
-          aria-valuemax={100}
-          aria-valuemin={0}
-          aria-valuenow={Math.min(
-            Math.round(
-              monthlySalesProgress,
-            ),
-            100,
-          )}
-          className={
-            styles.progressTrack
-          }
-          role="progressbar"
-        >
-          <span
-            className={
-              styles.progressValue
-            }
-            style={{
-              width: `${progressBarWidth}%`,
-            }}
-          />
-        </div>
-
-        <div
-          className={
-            styles.progressLabels
-          }
-        >
-          <span>
-            {formatCurrency(
-              monthlySalesAmount,
-            )}{" "}
-            vendido
-          </span>
-
-          <span>
-            {formatCurrency(
-              MONTHLY_SALES_TARGET,
-            )}{" "}
-            meta
-          </span>
-        </div>
+            <p>
+              {metric.detail}
+            </p>
+          </Link>
+        ))}
       </section>
 
       <section
-        className={styles.mainGrid}
+        className={
+          styles.operationsGrid
+        }
       >
         <article
           className={styles.panel}
@@ -569,15 +584,18 @@ export default async function Home() {
                   styles.panelEyebrow
                 }
               >
-                Próximos 30 días
+                Trabajo diario
               </span>
 
-              <h2>Próximos cobros</h2>
+              <h2>
+                Renovaciones
+                prioritarias
+              </h2>
 
               <p>
-                Los cinco vencimientos
-                más cercanos que deben
-                gestionarse.
+                Servicios vencidos o con
+                vencimiento durante los
+                próximos 30 días.
               </p>
             </div>
 
@@ -587,11 +605,11 @@ export default async function Home() {
               }
               href="/renovaciones"
             >
-              Ver todos
+              Ver todas
             </Link>
           </div>
 
-          {upcomingRenewals.length ===
+          {priorityRenewals.length ===
           0 ? (
             <div
               className={
@@ -607,20 +625,24 @@ export default async function Home() {
               </div>
 
               <h3>
-                No hay cobros próximos
+                No existen renovaciones
+                urgentes
               </h3>
 
               <p>
-                No existen renovaciones
-                con vencimiento durante
-                los siguientes 30 días.
+                No hay servicios vencidos
+                ni renovaciones próximas
+                durante los siguientes 30
+                días.
               </p>
             </div>
           ) : (
             <div
-              className={styles.list}
+              className={
+                styles.priorityList
+              }
             >
-              {upcomingRenewals.map(
+              {priorityRenewals.map(
                 (renewal) => {
                   const days =
                     getDaysDifference(
@@ -628,78 +650,136 @@ export default async function Home() {
                       currentDate,
                     );
 
-                  const service =
+                  const domain =
                     renewal.project
                       ?.domain ??
                     renewal.project
                       ?.name ??
                     renewal.description;
 
+                  const latestNotification =
+                    renewal
+                      .notifications[0] ??
+                    null;
+
                   return (
-                    <Link
+                    <article
                       className={
-                        styles.chargeItem
+                        styles.priorityItem
                       }
-                      href="/renovaciones"
                       key={renewal.id}
                     >
                       <div
                         className={
-                          styles.itemMain
+                          styles.priorityMain
                         }
                       >
                         <div
                           className={
-                            styles.itemTopline
+                            styles.priorityTopline
                           }
                         >
-                          <strong>
+                          <Link
+                            className={
+                              styles.priorityClient
+                            }
+                            href={`/clientes/${renewal.clientId}`}
+                          >
                             {
                               renewal
                                 .client
                                 .businessName
                             }
-                          </strong>
+                          </Link>
 
                           <span
                             className={`${
-                              styles.dueBadge
+                              styles.urgencyBadge
                             } ${getUrgencyClass(
                               days,
                             )}`}
                           >
-                            {getDeadlineLabel(
+                            {getReminderLabel(
                               days,
                             )}
                           </span>
                         </div>
 
-                        <span
+                        <strong
                           className={
-                            styles.itemDescription
+                            styles.priorityDomain
                           }
                         >
-                          {service}
-                        </span>
+                          {domain}
+                        </strong>
 
-                        <small>
-                          Fecha de cobro:{" "}
-                          {formatDate(
-                            renewal.dueDate,
+                        <div
+                          className={
+                            styles.priorityMeta
+                          }
+                        >
+                          <span>
+                            {formatDate(
+                              renewal.dueDate,
+                            )}
+                          </span>
+
+                          <span>
+                            {getDeadlineLabel(
+                              days,
+                            )}
+                          </span>
+
+                          <span>
+                            {
+                              renewal
+                                ._count
+                                .notifications
+                            }{" "}
+                            {renewal
+                              ._count
+                              .notifications ===
+                            1
+                              ? "aviso"
+                              : "avisos"}
+                          </span>
+
+                          {latestNotification && (
+                            <span>
+                              Último aviso:{" "}
+                              {formatDate(
+                                latestNotification.sentAt,
+                              )}
+                            </span>
                           )}
-                        </small>
+                        </div>
                       </div>
 
-                      <strong
+                      <div
                         className={
-                          styles.itemAmount
+                          styles.priorityAside
                         }
                       >
-                        {formatCurrency(
-                          renewal.amount,
-                        )}
-                      </strong>
-                    </Link>
+                        <strong
+                          className={
+                            styles.priorityAmount
+                          }
+                        >
+                          {formatCurrency(
+                            renewal.amount,
+                          )}
+                        </strong>
+
+                        <Link
+                          className={
+                            styles.inlineAction
+                          }
+                          href="/renovaciones"
+                        >
+                          Gestionar
+                        </Link>
+                      </div>
+                    </article>
                   );
                 },
               )}
@@ -721,17 +801,154 @@ export default async function Home() {
                   styles.panelEyebrow
                 }
               >
-                Registro comercial
+                Estado financiero
               </span>
 
-              <h2>Ventas recientes</h2>
+              <h2>
+                Cobros y vencimientos
+              </h2>
 
               <p>
-                Solo las ventas activas
-                registradas en el módulo
-                de Ventas.
+                Resumen de obligaciones
+                pendientes de gestión.
               </p>
             </div>
+          </div>
+
+          <div
+            className={
+              styles.operationalList
+            }
+          >
+            <Link
+              className={`${
+                styles.operationalItem
+              } ${
+                overdueRenewalCount > 0
+                  ? styles.operationalAlert
+                  : ""
+              }`}
+              href="/renovaciones?filtro=vencidas"
+            >
+              <div>
+                <strong>
+                  Renovaciones vencidas
+                </strong>
+
+                <span>
+                  Requieren seguimiento
+                  inmediato
+                </span>
+              </div>
+
+              <strong>
+                {overdueRenewalCount}
+              </strong>
+            </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/renovaciones?filtro=30"
+            >
+              <div>
+                <strong>
+                  Próximos 30 días
+                </strong>
+
+                <span>
+                  Servicios próximos a
+                  vencer
+                </span>
+              </div>
+
+              <strong>
+                {upcomingRenewalCount}
+              </strong>
+            </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/pagos?filtro=pendientes"
+            >
+              <div>
+                <strong>
+                  Cobros pendientes
+                </strong>
+
+                <span>
+                  {pendingPaymentCount}{" "}
+                  operaciones abiertas
+                </span>
+              </div>
+
+              <strong
+                className={
+                  styles.operationalAmount
+                }
+              >
+                {formatCurrency(
+                  pendingPaymentAmount,
+                )}
+              </strong>
+            </Link>
+
+            <Link
+              className={
+                styles.operationalItem
+              }
+              href="/ventas"
+            >
+              <div>
+                <strong>
+                  Ventas del mes
+                </strong>
+
+                <span>
+                  {monthlySalesCount}{" "}
+                  {monthlySalesCount === 1
+                    ? "venta"
+                    : "ventas"}{" "}
+                  ·{" "}
+                  {monthlySalesProgress}%
+                  de la meta ·{" "}
+                  {monthlySalesRemaining >
+                  0
+                    ? `Faltan ${formatCurrency(
+                        monthlySalesRemaining,
+                      )}`
+                    : "Meta cumplida"}
+                </span>
+              </div>
+
+              <strong
+                className={
+                  styles.operationalAmount
+                }
+              >
+                {formatCurrency(
+                  monthlySalesAmount,
+                )}
+              </strong>
+            </Link>
+          </div>
+
+          <div
+            className={
+              styles.panelFooter
+            }
+          >
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/pagos"
+            >
+              Revisar pagos
+            </Link>
 
             <Link
               className={
@@ -739,11 +956,62 @@ export default async function Home() {
               }
               href="/ventas"
             >
-              Ver ventas
+              Revisar ventas
+            </Link>
+
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/cobros"
+            >
+              Cobros manuales
+            </Link>
+          </div>
+        </article>
+      </section>
+
+      <section
+        className={styles.lowerGrid}
+      >
+        <article
+          className={styles.panel}
+        >
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Ingresos
+              </span>
+
+              <h2>
+                Pagos recientes
+              </h2>
+
+              <p>
+                Últimos pagos reales
+                registrados en el portal.
+              </p>
+            </div>
+
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/pagos?filtro=pagados"
+            >
+              Ver historial
             </Link>
           </div>
 
-          {recentSales.length === 0 ? (
+          {recentPayments.length === 0 ? (
             <div
               className={
                 styles.emptyState
@@ -758,75 +1026,61 @@ export default async function Home() {
               </div>
 
               <h3>
-                Aún no hay ventas
-                registradas
+                No existen pagos
+                recientes
               </h3>
 
               <p>
-                Las ventas activas
-                aparecerán aquí con su
-                fecha, servicio y monto.
+                Los pagos confirmados
+                aparecerán aquí
+                automáticamente.
               </p>
             </div>
           ) : (
             <div
-              className={styles.list}
+              className={
+                styles.recentList
+              }
             >
-              {recentSales.map(
-                (sale) => (
+              {recentPayments.map(
+                (payment) => (
                   <Link
                     className={
-                      styles.saleItem
+                      styles.recentItem
                     }
-                    href={`/clientes/${sale.clientId}`}
-                    key={sale.id}
+                    href={`/clientes/${payment.clientId}`}
+                    key={payment.id}
                   >
-                    <div
-                      className={
-                        styles.itemMain
-                      }
-                    >
-                      <div
-                        className={
-                          styles.saleHeading
+                    <div>
+                      <strong>
+                        {
+                          payment.client
+                            .businessName
                         }
-                      >
-                        <strong>
-                          {sale.client
-                            .tradeName ||
-                            sale.client
-                              .businessName}
-                        </strong>
+                      </strong>
 
-                        <span>
-                          Venta N.º{" "}
-                          {sale.number}
-                        </span>
-                      </div>
-
-                      <span
-                        className={
-                          styles.itemDescription
+                      <span>
+                        {
+                          payment.description
                         }
-                      >
-                        {sale.service}
                       </span>
 
                       <small>
-                        Registrada el{" "}
+                        Pagado el{" "}
                         {formatDate(
-                          sale.saleDate,
+                          payment.paidAt ??
+                            payment.updatedAt,
                         )}
                       </small>
                     </div>
 
                     <strong
                       className={
-                        styles.saleAmount
+                        styles.paymentAmount
                       }
                     >
                       {formatCurrency(
-                        sale.netAmount,
+                        payment.amount,
                       )}
                     </strong>
                   </Link>
@@ -835,46 +1089,42 @@ export default async function Home() {
             </div>
           )}
         </article>
-      </section>
 
-      <section
-        className={styles.plansPanel}
-      >
-        <div
-          className={styles.plansHeader}
+        <article
+          className={styles.panel}
         >
-          <div>
-            <span
-              className={
-                styles.panelEyebrow
-              }
-            >
-              Referencia comercial
-            </span>
-
-            <h2>Planes disponibles</h2>
-          </div>
-
-          <p>
-            Valores mensuales vigentes,
-            sin IVA.
-          </p>
-        </div>
-
-        {plans.length === 0 ? (
           <div
             className={
-              styles.plansEmpty
+              styles.panelHeader
             }
           >
-            No hay planes activos.
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Servicios
+              </span>
+
+              <h2>
+                Planes disponibles
+              </h2>
+
+              <p>
+                Planes comerciales
+                activos en el sistema.
+              </p>
+            </div>
           </div>
-        ) : (
+
           <div
-            className={styles.planGrid}
+            className={
+              styles.planList
+            }
           >
             {plans.map((plan) => (
-              <article
+              <div
                 className={
                   styles.planItem
                 }
@@ -889,14 +1139,7 @@ export default async function Home() {
                     {plan.includedRequests ===
                     0
                       ? "Solicitudes cotizadas por separado"
-                      : `${
-                          plan.includedRequests
-                        } ${
-                          plan.includedRequests ===
-                          1
-                            ? "solicitud incluida"
-                            : "solicitudes incluidas"
-                        }`}
+                      : `${plan.includedRequests} solicitudes incluidas`}
                   </span>
                 </div>
 
@@ -914,10 +1157,10 @@ export default async function Home() {
                     + IVA
                   </small>
                 </strong>
-              </article>
+              </div>
             ))}
           </div>
-        )}
+        </article>
       </section>
     </main>
   );

@@ -74,6 +74,23 @@ function toDateInputValue(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function getPaymentMethodLabel(method: string) {
+  const labels: Record<string, string> = {
+    BANK_TRANSFER: "Transferencia",
+    FLOW: "Flow",
+    CREDIT_CARD: "Tarjeta de crédito",
+    DEBIT_CARD: "Tarjeta de débito",
+    CASH: "Efectivo",
+    OTHER: "Otro",
+  };
+
+  return labels[method] ?? method;
+}
+
+function grossFromNet(netAmount: number) {
+  return netAmount + Math.round(netAmount * 0.19);
+}
+
 export default async function SalesPage() {
   const { year, month } = getCurrentYearAndMonth();
   const currentMonth = getMonthRange(year, month);
@@ -135,6 +152,22 @@ export default async function SalesPage() {
           select: {
             businessName: true,
             tradeName: true,
+            mainContactName: true,
+            email: true,
+          },
+        },
+        payments: {
+          orderBy: [
+            {
+              paidAt: "desc",
+            },
+            {
+              createdAt: "desc",
+            },
+          ],
+          include: {
+            receipt: true,
+            invoice: true,
           },
         },
       },
@@ -173,19 +206,87 @@ export default async function SalesPage() {
     Math.max(MONTHLY_GOAL, ...chartData.map((item) => item.total)) * 1.12;
   const goalPosition = (MONTHLY_GOAL / chartMaximum) * 100;
 
-  const saleItems: SaleListItem[] = recentSales.map((sale) => ({
-    id: sale.id,
-    number: sale.number,
-    clientId: sale.clientId,
-    clientName: sale.client.tradeName || sale.client.businessName,
-    service: sale.service,
-    saleDate: toDateInputValue(sale.saleDate),
-    displayDate: formatDateOnly(sale.saleDate),
-    netAmount: Number(sale.netAmount),
-    formattedAmount: formatCurrency(Number(sale.netAmount)),
-    notes: sale.notes ?? "",
-    status: sale.status,
-  }));
+  const saleItems: SaleListItem[] = recentSales.map((sale) => {
+    const netAmount = Number(sale.netAmount);
+    const grossAmount = grossFromNet(netAmount);
+    const paidAmount = sale.payments.reduce(
+      (sum, payment) => sum + Number(payment.amount),
+      0,
+    );
+    const balanceAmount = Math.max(grossAmount - paidAmount, 0);
+    const financialStatus =
+      paidAmount <= 0
+        ? ("UNPAID" as const)
+        : balanceAmount > 0
+          ? ("PARTIAL" as const)
+          : ("PAID" as const);
+
+    return {
+      id: sale.id,
+      number: sale.number,
+      clientId: sale.clientId,
+      clientName: sale.client.tradeName || sale.client.businessName,
+      contactName: sale.client.mainContactName ?? "",
+      clientEmail: sale.client.email ?? "",
+      service: sale.service,
+      saleDate: toDateInputValue(sale.saleDate),
+      displayDate: formatDateOnly(sale.saleDate),
+      netAmount,
+      formattedAmount: formatCurrency(netAmount),
+      grossAmount,
+      formattedGrossAmount: formatCurrency(grossAmount),
+      paidAmount,
+      formattedPaidAmount: formatCurrency(paidAmount),
+      balanceAmount,
+      formattedBalanceAmount: formatCurrency(balanceAmount),
+      financialStatus,
+      notes: sale.notes ?? "",
+      status: sale.status,
+      payments: sale.payments.map((payment) => ({
+        id: payment.id,
+        amount: Number(payment.amount),
+        formattedAmount: formatCurrency(Number(payment.amount)),
+        paidAt: toDateInputValue(payment.paidAt),
+        displayDate: formatDateOnly(payment.paidAt),
+        method: payment.method,
+        methodLabel: getPaymentMethodLabel(payment.method),
+        reference: payment.reference ?? "",
+        notes: payment.notes ?? "",
+        receipt: payment.receipt
+          ? {
+              number: payment.receipt.number,
+              recipientName: payment.receipt.recipientName,
+              recipientEmail: payment.receipt.recipientEmail,
+              serviceDescription: payment.receipt.serviceDescription,
+              projectReference: payment.receipt.projectReference ?? "",
+              paymentReference: payment.receipt.paymentReference ?? "",
+              netAmount: Number(payment.receipt.netAmount),
+              taxAmount: Number(payment.receipt.taxAmount),
+              totalAmount: Number(payment.receipt.totalAmount),
+              balanceAmount: Number(payment.receipt.balanceAmount),
+              emailStatus: payment.receipt.emailStatus,
+              lastError: payment.receipt.lastError ?? "",
+            }
+          : null,
+        invoice: payment.invoice
+          ? {
+              invoiceNumber: payment.invoice.invoiceNumber,
+              issueDate: toDateInputValue(payment.invoice.issueDate),
+              recipientName: payment.invoice.recipientName,
+              recipientEmail: payment.invoice.recipientEmail,
+              serviceDescription: payment.invoice.serviceDescription,
+              netAmount: Number(payment.invoice.netAmount),
+              taxAmount: Number(payment.invoice.taxAmount),
+              totalAmount: Number(payment.invoice.totalAmount),
+              paymentCondition: payment.invoice.paymentCondition ?? "Contado",
+              fileName: payment.invoice.fileName,
+              emailStatus: payment.invoice.emailStatus,
+              lastError: payment.invoice.lastError ?? "",
+            }
+          : null,
+      })),
+    };
+  });
 
   return (
     <main className={styles.content}>
