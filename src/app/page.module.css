@@ -1,10 +1,7 @@
 .content {
   box-sizing: border-box;
   min-height: 100vh;
-  padding:
-    40px
-    clamp(24px, 4vw, 46px)
-    48px;
+  padding: 40px clamp(24px, 4vw, 46px) 48px;
 }
 
 .header {
@@ -27,11 +24,7 @@
 .header h1 {
   margin: 8px 0;
   color: #101828;
-  font-size: clamp(
-    32px,
-    4vw,
-    44px
-  );
+  font-size: clamp(32px, 4vw, 44px);
   letter-spacing: -0.04em;
   line-height: 1.08;
 }
@@ -49,6 +42,12 @@
   color: #98a2b3;
   font-size: 12px;
   font-weight: 650;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .primaryButton,
@@ -73,9 +72,7 @@
   padding: 0 20px;
   background: #175cd3;
   color: #ffffff;
-  box-shadow:
-    0 8px 18px
-    rgb(23 92 211 / 18%);
+  box-shadow: 0 8px 18px rgb(23 92 211 / 18%);
 }
 
 .primaryButton:hover {
@@ -99,8 +96,7 @@
 
 .metrics {
   display: grid;
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -111,9 +107,7 @@
   border: 1px solid #e4e7ec;
   border-radius: 14px;
   background: #ffffff;
-  box-shadow:
-    0 8px 24px
-    rgb(16 24 40 / 4%);
+  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
 }
 
 .metricCard {
@@ -134,14 +128,21 @@ a.metricCard {
 a.metricCard:hover {
   transform: translateY(-2px);
   border-color: #b2ccff;
-  box-shadow:
-    0 14px 30px
-    rgb(16 24 40 / 8%);
+  box-shadow: 0 14px 30px rgb(16 24 40 / 8%);
 }
 
 .metricCardSuccess {
   border-color: #abefc6;
   background: #f6fef9;
+}
+
+.metricCardAlert {
+  border-color: #fedf89;
+  background: #fffcf5;
+}
+
+.metricCardAlert strong {
+  color: #b54708;
 }
 
 .metricCard span {
@@ -156,14 +157,10 @@ a.metricCard:hover {
 
 .metricCard strong {
   display: block;
-  overflow: hidden;
   margin: 12px 0 7px;
+  overflow: hidden;
   color: #101828;
-  font-size: clamp(
-    24px,
-    2.4vw,
-    31px
-  );
+  font-size: clamp(24px, 2.4vw, 31px);
   letter-spacing: -0.045em;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -248,10 +245,24 @@ a.metricCard:hover {
 
 .mainGrid {
   display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 16px;
+}
+
+.operationsGrid,
+.lowerGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.operationsGrid {
+  grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.9fr);
+}
+
+.lowerGrid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 1fr);
 }
 
 .panel {
@@ -262,10 +273,10 @@ a.metricCard:hover {
 
 .panelHeader {
   display: flex;
-  min-height: 84px;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
+  min-height: 84px;
   padding-bottom: 18px;
   border-bottom: 1px solid #eaecf0;
 }
@@ -278,6 +289,341 @@ a.metricCard:hover {
   line-height: 1.5;
 }
 
+.priorityList,
+.operationalList,
+.recentList,
+.planList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.priorityItem {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.priorityItem:last-child {
+  border-bottom: 0;
+}
+
+.priorityMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.priorityTopline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.priorityClient {
+  overflow: hidden;
+  color: #101828;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priorityClient:hover {
+  color: #175cd3;
+}
+
+.urgencyBadge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.urgencyExpired,
+.urgencyFinal {
+  background: #fff1f3;
+  color: #c01048;
+}
+
+.urgencySecond {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.urgencyFirst {
+  background: #eef4ff;
+  color: #3538cd;
+}
+
+.priorityDomain {
+  display: block;
+  overflow: hidden;
+  color: #344054;
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priorityMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 13px;
+  margin-top: 8px;
+  color: #98a2b3;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.priorityMeta span {
+  position: relative;
+}
+
+.priorityMeta span:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: -7px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #d0d5dd;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.priorityAside {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.priorityAmount {
+  color: #101828;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.inlineAction {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #175cd3;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.inlineAction:hover {
+  border-color: #84adff;
+  background: #eef4ff;
+}
+
+.operationalItem {
+  display: flex;
+  min-width: 0;
+  min-height: 84px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #eaecf0;
+  color: inherit;
+  padding: 16px 0;
+  text-decoration: none;
+}
+
+.operationalItem:last-child {
+  border-bottom: 0;
+}
+
+.operationalItem > div {
+  min-width: 0;
+}
+
+.operationalItem > div strong {
+  display: block;
+  overflow: hidden;
+  color: #101828;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operationalItem > div span {
+  display: block;
+  overflow: hidden;
+  margin-top: 6px;
+  color: #667085;
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operationalItem > strong {
+  flex: 0 0 auto;
+  color: #175cd3;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.operationalAlert > strong {
+  color: #b42318;
+}
+
+.operationalAmount {
+  font-size: 15px !important;
+}
+
+.panelFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #eaecf0;
+}
+
+.recentItem {
+  display: flex;
+  min-width: 0;
+  min-height: 88px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #eaecf0;
+  color: inherit;
+  padding: 16px 0;
+  text-decoration: none;
+}
+
+.recentItem:last-child {
+  border-bottom: 0;
+}
+
+.recentItem > div {
+  min-width: 0;
+}
+
+.recentItem > div strong {
+  display: block;
+  overflow: hidden;
+  color: #101828;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentItem > div span {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  color: #475467;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentItem > div small {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  color: #98a2b3;
+  font-size: 10px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentItem:hover > div strong {
+  color: #175cd3;
+}
+
+.paymentAmount {
+  flex: 0 0 auto;
+  color: #027a48;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.planItem {
+  display: flex;
+  min-width: 0;
+  min-height: 84px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #eaecf0;
+  padding: 16px 0;
+}
+
+.planItem:last-child {
+  border-bottom: 0;
+}
+
+.planItem > div {
+  min-width: 0;
+}
+
+.planItem > div strong {
+  display: block;
+  overflow: hidden;
+  color: #101828;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planItem > div span {
+  display: block;
+  overflow: hidden;
+  margin-top: 6px;
+  color: #667085;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planPrice {
+  flex: 0 0 auto;
+  color: #175cd3;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.planPrice small {
+  color: #667085;
+  font-size: 9px;
+  font-weight: 550;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -286,16 +632,15 @@ a.metricCard:hover {
 .chargeItem,
 .saleItem {
   display: flex;
-  min-height: 90px;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  min-height: 90px;
   padding: 16px 0;
   border-bottom: 1px solid #eaecf0;
   color: inherit;
   text-decoration: none;
-  transition:
-    background-color 160ms ease;
+  transition: background-color 160ms ease;
 }
 
 .chargeItem:last-child,
@@ -303,12 +648,8 @@ a.metricCard:hover {
   border-bottom: 0;
 }
 
-.chargeItem:hover
-  .itemTopline
-  > strong,
-.saleItem:hover
-  .saleHeading
-  > strong {
+.chargeItem:hover .itemTopline > strong,
+.saleItem:hover .saleHeading > strong {
   color: #175cd3;
 }
 
@@ -319,9 +660,9 @@ a.metricCard:hover {
 
 .itemTopline {
   display: flex;
-  min-width: 0;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   margin-bottom: 6px;
 }
 
@@ -395,9 +736,9 @@ a.metricCard:hover {
 
 .saleHeading {
   display: flex;
-  min-width: 0;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   margin-bottom: 6px;
 }
 
@@ -466,11 +807,10 @@ a.metricCard:hover {
 
 .planGrid {
   display: grid;
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.planItem {
+.planGrid .planItem {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -480,19 +820,19 @@ a.metricCard:hover {
   border-right: 1px solid #eaecf0;
 }
 
-.planItem:nth-child(3n) {
+.planGrid .planItem:nth-child(3n) {
   border-right: 0;
 }
 
-.planItem:nth-child(n + 4) {
+.planGrid .planItem:nth-child(n + 4) {
   border-top: 1px solid #eaecf0;
 }
 
-.planItem > div {
+.planGrid .planItem > div {
   min-width: 0;
 }
 
-.planItem > div strong {
+.planGrid .planItem > div strong {
   display: block;
   overflow: hidden;
   color: #101828;
@@ -501,7 +841,7 @@ a.metricCard:hover {
   white-space: nowrap;
 }
 
-.planItem > div span {
+.planGrid .planItem > div span {
   display: block;
   overflow: hidden;
   margin-top: 4px;
@@ -533,31 +873,29 @@ a.metricCard:hover {
 
 @media (max-width: 1180px) {
   .metrics {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .mainGrid {
+  .mainGrid,
+  .operationsGrid,
+  .lowerGrid {
     grid-template-columns: 1fr;
   }
 
   .planGrid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .planItem:nth-child(3n) {
-    border-right:
-      1px solid #eaecf0;
+  .planGrid .planItem:nth-child(3n) {
+    border-right: 1px solid #eaecf0;
   }
 
-  .planItem:nth-child(2n) {
+  .planGrid .planItem:nth-child(2n) {
     border-right: 0;
   }
 
-  .planItem:nth-child(n + 3) {
-    border-top:
-      1px solid #eaecf0;
+  .planGrid .planItem:nth-child(n + 3) {
+    border-top: 1px solid #eaecf0;
   }
 }
 
@@ -577,7 +915,13 @@ a.metricCard:hover {
     gap: 20px;
   }
 
-  .primaryButton {
+  .headerActions {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .headerActions .primaryButton,
+  .headerActions .secondaryButton {
     width: 100%;
   }
 
@@ -604,8 +948,21 @@ a.metricCard:hover {
   }
 
   .chargeItem,
-  .saleItem {
+  .saleItem,
+  .priorityItem,
+  .recentItem {
     align-items: flex-start;
+  }
+
+  .priorityTopline {
+    align-items: flex-start;
+  }
+
+  .operationalItem > div span,
+  .recentItem > div span,
+  .recentItem > div small {
+    overflow: visible;
+    white-space: normal;
   }
 
   .itemTopline,
@@ -624,33 +981,45 @@ a.metricCard:hover {
     grid-template-columns: 1fr;
   }
 
-  .planItem,
-  .planItem:nth-child(2n),
-  .planItem:nth-child(3n) {
+  .planGrid .planItem,
+  .planGrid .planItem:nth-child(2n),
+  .planGrid .planItem:nth-child(3n) {
     border-right: 0;
   }
 
-  .planItem:nth-child(n + 2) {
-    border-top:
-      1px solid #eaecf0;
+  .planGrid .planItem:nth-child(n + 2) {
+    border-top: 1px solid #eaecf0;
   }
 }
 
 @media (max-width: 480px) {
   .chargeItem,
-  .saleItem {
+  .saleItem,
+  .priorityItem,
+  .recentItem,
+  .planItem {
     flex-direction: column;
     gap: 10px;
   }
 
   .itemAmount,
-  .saleAmount {
+  .saleAmount,
+  .paymentAmount {
     padding-top: 0;
   }
 
-  .planItem {
+  .priorityAside {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .operationalItem {
     align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
+  }
+
+  .operationalItem > strong {
+    font-size: 17px;
   }
 }
