@@ -662,6 +662,260 @@
   opacity: 0.65;
 }
 
+.documents {
+  position: relative;
+  min-width: 128px;
+}
+
+.documentToggle {
+  display: inline-flex;
+  min-height: 35px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #b2ccff;
+  border-radius: 9px;
+  background: #eef4ff;
+  color: #175cd3;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.documentToggle::-webkit-details-marker {
+  display: none;
+}
+
+.documentToggle::after {
+  content: "+";
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: #d1e0ff;
+  color: #175cd3;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.documents[open] .documentToggle {
+  border-color: #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.documents[open] .documentToggle::after {
+  background: rgb(255 255 255 / 18%);
+  color: #ffffff;
+  transform: rotate(45deg);
+}
+
+.documentToggle:hover {
+  border-color: #175cd3;
+  background: #dbe8ff;
+}
+
+.documents[open] .documentToggle:hover {
+  background: #1849a9;
+}
+
+.documentsPanel {
+  width: 390px;
+  margin-top: 10px;
+  overflow: hidden;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgb(16 24 40 / 13%);
+}
+
+.documentSection {
+  padding: 17px;
+}
+
+.documentSection + .documentSection {
+  border-top: 1px solid #eaecf0;
+  background: #fcfcfd;
+}
+
+.documentHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.documentHeading > div {
+  min-width: 0;
+}
+
+.documentHeading strong {
+  display: block;
+  color: #101828;
+  font-size: 13px;
+}
+
+.documentHeading > div > span {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #667085;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emailStatus {
+  display: inline-flex;
+  min-height: 25px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 9px;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.emailSent {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.emailFailed {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.emailPending {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.documentMeta {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.documentButton {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #175cd3;
+  border-radius: 8px;
+  background: #175cd3;
+  color: #ffffff;
+  padding: 0 13px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.documentButton:hover {
+  border-color: #1849a9;
+  background: #1849a9;
+}
+
+.invoiceForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.invoiceForm label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.invoiceForm label:nth-of-type(3),
+.invoiceForm small,
+.invoiceForm .documentButton {
+  grid-column: 1 / -1;
+}
+
+.invoiceForm label > span {
+  color: #344054;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.documentInput,
+.documentFile {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #101828;
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.documentInput {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.documentFile {
+  padding: 7px;
+}
+
+.documentFile::file-selector-button {
+  min-height: 30px;
+  margin-right: 9px;
+  border: 0;
+  border-radius: 6px;
+  background: #eef4ff;
+  color: #175cd3;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.documentInput:focus,
+.documentFile:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+}
+
+.invoiceForm small {
+  margin-top: -4px;
+  color: #98a2b3;
+  font-size: 10px;
+}
+
 @media (max-width: 1100px) {
   .summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -720,5 +974,23 @@
   .cancelModalButton,
   .submitButton {
     width: 100%;
+  }
+
+  .documentsPanel {
+    width: min(390px, calc(100vw - 72px));
+  }
+
+  .documentHeading {
+    flex-direction: column;
+  }
+
+  .invoiceForm {
+    grid-template-columns: 1fr;
+  }
+
+  .invoiceForm label:nth-of-type(3),
+  .invoiceForm small,
+  .invoiceForm .documentButton {
+    grid-column: auto;
   }
 }

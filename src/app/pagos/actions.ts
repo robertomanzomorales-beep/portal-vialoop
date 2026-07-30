@@ -3,9 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/mail";
+import {
+  buildInvoiceEmail,
+  buildPaymentReceiptEmail,
+} from "@/lib/payment-email-templates";
 
 type PaymentMethodValue =
   | "BANK_TRANSFER"
+  | "FLOW"
   | "CREDIT_CARD"
   | "DEBIT_CARD"
   | "CASH"
@@ -26,7 +32,8 @@ function getOptionalString(
     return null;
   }
 
-  const normalizedValue = value.trim();
+  const normalizedValue =
+    value.trim();
 
   return normalizedValue.length > 0
     ? normalizedValue
@@ -37,24 +44,29 @@ function getBoolean(
   formData: FormData,
   field: string,
 ) {
-  return formData.get(field) === "on";
+  return (
+    formData.get(field) === "on"
+  );
 }
 
 function getPaymentMethod(
   formData: FormData,
 ): PaymentMethodValue {
-  const value = getOptionalString(
-    formData,
-    "paymentMethod",
-  );
+  const value =
+    getOptionalString(
+      formData,
+      "paymentMethod",
+    );
 
-  const allowedMethods: PaymentMethodValue[] = [
-    "BANK_TRANSFER",
-    "CREDIT_CARD",
-    "DEBIT_CARD",
-    "CASH",
-    "OTHER",
-  ];
+  const allowedMethods:
+    PaymentMethodValue[] = [
+      "BANK_TRANSFER",
+      "FLOW",
+      "CREDIT_CARD",
+      "DEBIT_CARD",
+      "CASH",
+      "OTHER",
+    ];
 
   if (
     value &&
@@ -75,9 +87,13 @@ function getPaymentMethodLabel(
     PaymentMethodValue,
     string
   > = {
-    BANK_TRANSFER: "Transferencia bancaria",
-    CREDIT_CARD: "Tarjeta de crédito",
-    DEBIT_CARD: "Tarjeta de débito",
+    BANK_TRANSFER:
+      "Transferencia bancaria",
+    FLOW: "Flow",
+    CREDIT_CARD:
+      "Tarjeta de crédito",
+    DEBIT_CARD:
+      "Tarjeta de débito",
     CASH: "Efectivo",
     OTHER: "Otro medio",
   };
@@ -88,10 +104,11 @@ function getPaymentMethodLabel(
 function getPaymentDate(
   formData: FormData,
 ) {
-  const value = getOptionalString(
-    formData,
-    "paidAt",
-  );
+  const value =
+    getOptionalString(
+      formData,
+      "paidAt",
+    );
 
   if (!value) {
     return new Date();
@@ -101,7 +118,11 @@ function getPaymentDate(
     `${value}T12:00:00`,
   );
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
     throw new Error(
       "La fecha de pago ingresada no es válida.",
     );
@@ -114,17 +135,20 @@ function getPaymentAmount(
   formData: FormData,
   currentAmount: unknown,
 ) {
-  const value = getOptionalString(
-    formData,
-    "paidAmount",
-  );
+  const value =
+    getOptionalString(
+      formData,
+      "paidAmount",
+    );
 
   if (!value) {
     const currentValue =
       Number(currentAmount);
 
     if (
-      !Number.isFinite(currentValue) ||
+      !Number.isFinite(
+        currentValue,
+      ) ||
       currentValue <= 0
     ) {
       throw new Error(
@@ -132,7 +156,9 @@ function getPaymentAmount(
       );
     }
 
-    return Math.round(currentValue);
+    return Math.round(
+      currentValue,
+    );
   }
 
   /*
@@ -145,7 +171,10 @@ function getPaymentAmount(
    * $69.900
    */
   const normalizedValue =
-    value.replace(/[^\d]/g, "");
+    value.replace(
+      /[^\d]/g,
+      "",
+    );
 
   const amount = Number(
     normalizedValue,
@@ -168,7 +197,8 @@ function addMonthsPreservingDay(
   months: number,
 ) {
   const result = new Date(date);
-  const originalDay = result.getDate();
+  const originalDay =
+    result.getDate();
 
   /*
    * Se posiciona temporalmente en el primer
@@ -204,9 +234,12 @@ function addMonthsPreservingDay(
 
 function getNextDueDate(
   currentDueDate: Date,
-  billingCycle?: BillingCycleValue,
+  billingCycle?:
+    BillingCycleValue,
 ) {
-  if (billingCycle === "MONTHLY") {
+  if (
+    billingCycle === "MONTHLY"
+  ) {
     return addMonthsPreservingDay(
       currentDueDate,
       1,
@@ -214,7 +247,8 @@ function getNextDueDate(
   }
 
   if (
-    billingCycle === "SEMIANNUAL"
+    billingCycle ===
+    "SEMIANNUAL"
   ) {
     return addMonthsPreservingDay(
       currentDueDate,
@@ -233,14 +267,16 @@ function getNextDueDate(
 }
 
 function getBillingCycleLabel(
-  billingCycle: BillingCycleValue,
+  billingCycle:
+    BillingCycleValue,
 ) {
   const labels: Record<
     BillingCycleValue,
     string
   > = {
     MONTHLY: "Mensual",
-    SEMIANNUAL: "Semestral",
+    SEMIANNUAL:
+      "Semestral",
     ANNUAL: "Anual",
   };
 
@@ -251,7 +287,9 @@ function calculateTotalWithVat(
   netAmount: unknown,
 ) {
   const normalizedNetAmount =
-    Math.round(Number(netAmount));
+    Math.round(
+      Number(netAmount),
+    );
 
   if (
     !Number.isFinite(
@@ -264,9 +302,11 @@ function calculateTotalWithVat(
     );
   }
 
-  const vatAmount = Math.round(
-    normalizedNetAmount * 0.19,
-  );
+  const vatAmount =
+    Math.round(
+      normalizedNetAmount *
+        0.19,
+    );
 
   return {
     netAmount:
@@ -278,11 +318,19 @@ function calculateTotalWithVat(
   };
 }
 
-function getDayBounds(date: Date) {
+function getDayBounds(
+  date: Date,
+) {
   const start = new Date(date);
   const end = new Date(date);
 
-  start.setHours(0, 0, 0, 0);
+  start.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
   end.setHours(
     23,
     59,
@@ -308,7 +356,9 @@ function appendNote(
     .join("\n");
 }
 
-function formatDate(date: Date) {
+function formatDate(
+  date: Date,
+) {
   return new Intl.DateTimeFormat(
     "es-CL",
     {
@@ -319,6 +369,828 @@ function formatDate(date: Date) {
         "America/Santiago",
     },
   ).format(date);
+}
+
+function getOptionalFormString(
+  formData:
+    | FormData
+    | undefined,
+  field: string,
+) {
+  if (!formData) {
+    return null;
+  }
+
+  return getOptionalString(
+    formData,
+    field,
+  );
+}
+
+function getRequiredFormString(
+  formData: FormData,
+  field: string,
+  label: string,
+) {
+  const value =
+    getOptionalString(
+      formData,
+      field,
+    );
+
+  if (!value) {
+    throw new Error(
+      `Debes ingresar ${label}.`,
+    );
+  }
+
+  return value;
+}
+
+function getValidEmail(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  const email =
+    value?.trim();
+
+  if (
+    !email ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      email,
+    )
+  ) {
+    throw new Error(
+      "El correo del destinatario no es válido.",
+    );
+  }
+
+  return email;
+}
+
+function getErrorMessage(
+  error: unknown,
+) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : "Ocurrió un error desconocido.";
+
+  return message.slice(
+    0,
+    4000,
+  );
+}
+
+function calculateAmountsFromTotal(
+  totalAmount: unknown,
+) {
+  const normalizedTotal =
+    Math.round(
+      Number(totalAmount),
+    );
+
+  if (
+    !Number.isFinite(
+      normalizedTotal,
+    ) ||
+    normalizedTotal <= 0
+  ) {
+    throw new Error(
+      "El pago no tiene un monto total válido.",
+    );
+  }
+
+  const netAmount =
+    Math.round(
+      normalizedTotal /
+        1.19,
+    );
+
+  return {
+    netAmount,
+    taxAmount:
+      normalizedTotal -
+      netAmount,
+    totalAmount:
+      normalizedTotal,
+  };
+}
+
+function getDocumentIssueDate(
+  formData: FormData,
+) {
+  const value =
+    getOptionalString(
+      formData,
+      "invoiceIssueDate",
+    );
+
+  if (!value) {
+    return new Date();
+  }
+
+  const date = new Date(
+    `${value}T12:00:00`,
+  );
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    throw new Error(
+      "La fecha de emisión de la factura no es válida.",
+    );
+  }
+
+  return date;
+}
+
+function getInvoiceFile(
+  formData: FormData,
+) {
+  const value =
+    formData.get(
+      "invoiceFile",
+    );
+
+  if (
+    !(value instanceof File)
+  ) {
+    throw new Error(
+      "Debes seleccionar la factura en formato PDF.",
+    );
+  }
+
+  if (value.size <= 0) {
+    throw new Error(
+      "El archivo PDF está vacío.",
+    );
+  }
+
+  const maximumFileSize =
+    5 * 1024 * 1024;
+
+  if (
+    value.size >
+    maximumFileSize
+  ) {
+    throw new Error(
+      "La factura no puede superar los 5 MB.",
+    );
+  }
+
+  const normalizedName =
+    value.name.toLowerCase();
+
+  if (
+    value.type !==
+      "application/pdf" &&
+    !normalizedName.endsWith(
+      ".pdf",
+    )
+  ) {
+    throw new Error(
+      "El archivo seleccionado debe ser un PDF.",
+    );
+  }
+
+  return value;
+}
+
+function getPaymentsFromEmail() {
+  return (
+    process.env
+      .PAYMENTS_SMTP_FROM_EMAIL
+      ?.trim() ||
+    process.env
+      .PAYMENTS_SMTP_USER
+      ?.trim() ||
+    "pagos@vialoop.cl"
+  );
+}
+
+function getInvoicesFromEmail() {
+  return (
+    process.env
+      .BILLING_SMTP_FROM_EMAIL
+      ?.trim() ||
+    process.env
+      .BILLING_SMTP_USER
+      ?.trim() ||
+    "facturacion@vialoop.cl"
+  );
+}
+
+async function createOrGetPaymentReceipt(
+  paymentId: string,
+  formData?: FormData,
+) {
+  const payment =
+    await prisma.payment.findUnique({
+      where: {
+        id: paymentId,
+      },
+      include: {
+        client: true,
+        subscription: {
+          include: {
+            project: true,
+          },
+        },
+        receipt: true,
+      },
+    });
+
+  if (!payment) {
+    throw new Error(
+      "El pago seleccionado no existe.",
+    );
+  }
+
+  if (
+    payment.status !== "PAID"
+  ) {
+    throw new Error(
+      "El comprobante solo puede emitirse para un pago confirmado.",
+    );
+  }
+
+  if (payment.receipt) {
+    return payment.receipt;
+  }
+
+  const recipientName =
+    getOptionalFormString(
+      formData,
+      "receiptRecipientName",
+    ) ??
+    payment.client
+      .mainContactName ??
+    payment.client
+      .businessName;
+
+  const recipientEmail =
+    getValidEmail(
+      getOptionalFormString(
+        formData,
+        "receiptRecipientEmail",
+      ) ??
+        payment.client.email,
+    );
+
+  const serviceDescription =
+    getOptionalFormString(
+      formData,
+      "receiptServiceDescription",
+    ) ??
+    payment.description;
+
+  const projectReference =
+    getOptionalFormString(
+      formData,
+      "receiptProjectReference",
+    ) ??
+    payment.subscription
+      ?.project?.domain ??
+    payment.subscription
+      ?.project?.name ??
+    null;
+
+  const coveragePeriod =
+    getOptionalFormString(
+      formData,
+      "receiptCoveragePeriod",
+    );
+
+  const paymentReference =
+    getOptionalFormString(
+      formData,
+      "paymentReference",
+    );
+
+  const paidAt =
+    payment.paidAt ??
+    new Date();
+
+  const paymentMethod =
+    (payment.method ??
+      "OTHER") as PaymentMethodValue;
+
+  const {
+    netAmount,
+    taxAmount,
+    totalAmount,
+  } =
+    calculateAmountsFromTotal(
+      payment.amount,
+    );
+
+  try {
+    return await prisma.$transaction(
+      async (
+        transaction,
+      ) => {
+        const existingReceipt =
+          await transaction.paymentReceipt.findUnique(
+            {
+              where: {
+                paymentId:
+                  payment.id,
+              },
+            },
+          );
+
+        if (
+          existingReceipt
+        ) {
+          return existingReceipt;
+        }
+
+        /*
+         * nextValue representa el número que
+         * acaba de reservarse. El primer upsert
+         * crea el contador directamente en 300;
+         * los siguientes envíos lo incrementan.
+         */
+        const counter =
+          await transaction.counter.upsert(
+            {
+              where: {
+                key:
+                  "payment-receipt-number",
+              },
+              create: {
+                key:
+                  "payment-receipt-number",
+                nextValue: 300,
+              },
+              update: {
+                nextValue: {
+                  increment: 1,
+                },
+              },
+            },
+          );
+
+        const email =
+          buildPaymentReceiptEmail(
+            {
+              number:
+                counter.nextValue,
+              recipientName,
+              serviceDescription,
+              projectReference,
+              coveragePeriod,
+              paidAt,
+              paymentMethod,
+              paymentReference,
+              netAmount,
+              taxAmount,
+              totalAmount,
+            },
+          );
+
+        return transaction.paymentReceipt.create(
+          {
+            data: {
+              paymentId:
+                payment.id,
+              number:
+                counter.nextValue,
+              recipientName,
+              recipientEmail,
+              serviceDescription,
+              projectReference,
+              coveragePeriod,
+              paidAt,
+              paymentMethod,
+              paymentReference,
+              netAmount,
+              taxAmount,
+              totalAmount,
+              subject:
+                email.subject,
+            },
+          },
+        );
+      },
+    );
+  } catch (error) {
+    /*
+     * Si dos solicitudes intentan emitir el
+     * mismo comprobante simultáneamente, la
+     * restricción única evita duplicados. Se
+     * recupera el comprobante ya creado y se
+     * conserva su mismo correlativo.
+     */
+    const existingReceipt =
+      await prisma.paymentReceipt.findUnique(
+        {
+          where: {
+            paymentId:
+              payment.id,
+          },
+        },
+      );
+
+    if (existingReceipt) {
+      return existingReceipt;
+    }
+
+    throw error;
+  }
+}
+
+async function deliverPaymentReceipt(
+  receiptId: string,
+) {
+  const receipt =
+    await prisma.paymentReceipt.findUnique(
+      {
+        where: {
+          id: receiptId,
+        },
+      },
+    );
+
+  if (!receipt) {
+    throw new Error(
+      "El comprobante seleccionado no existe.",
+    );
+  }
+
+  const attemptDate =
+    new Date();
+
+  await prisma.paymentReceipt.update(
+    {
+      where: {
+        id: receipt.id,
+      },
+      data: {
+        emailStatus:
+          "PENDING",
+        sendAttempts: {
+          increment: 1,
+        },
+        lastAttemptAt:
+          attemptDate,
+        lastError: null,
+      },
+    },
+  );
+
+  const email =
+    buildPaymentReceiptEmail({
+      number: receipt.number,
+      recipientName:
+        receipt.recipientName,
+      serviceDescription:
+        receipt.serviceDescription,
+      projectReference:
+        receipt.projectReference,
+      coveragePeriod:
+        receipt.coveragePeriod,
+      paidAt: receipt.paidAt,
+      paymentMethod:
+        receipt.paymentMethod as PaymentMethodValue,
+      paymentReference:
+        receipt.paymentReference,
+      netAmount: Number(
+        receipt.netAmount,
+      ),
+      taxAmount: Number(
+        receipt.taxAmount,
+      ),
+      totalAmount: Number(
+        receipt.totalAmount,
+      ),
+    });
+
+  try {
+    const result =
+      await sendEmail({
+        mailAccount:
+          "payments",
+        to:
+          receipt.recipientEmail,
+        subject:
+          receipt.subject,
+        text: email.text,
+        html: email.html,
+        fromEmail:
+          getPaymentsFromEmail(),
+        fromName:
+          "Pagos Vialoop",
+        replyTo:
+          getPaymentsFromEmail(),
+      });
+
+    await prisma.paymentReceipt.update(
+      {
+        where: {
+          id: receipt.id,
+        },
+        data: {
+          emailStatus:
+            "SENT",
+          sentAt: new Date(),
+          messageId:
+            result.messageId,
+          lastError: null,
+        },
+      },
+    );
+
+    return {
+      sent: true as const,
+    };
+  } catch (error) {
+    await prisma.paymentReceipt.update(
+      {
+        where: {
+          id: receipt.id,
+        },
+        data: {
+          emailStatus:
+            "FAILED",
+          lastError:
+            getErrorMessage(
+              error,
+            ),
+        },
+      },
+    );
+
+    throw error;
+  }
+}
+
+async function createPaymentInvoice(
+  paymentId: string,
+  formData: FormData,
+) {
+  const payment =
+    await prisma.payment.findUnique({
+      where: {
+        id: paymentId,
+      },
+      include: {
+        client: true,
+        invoice: true,
+      },
+    });
+
+  if (!payment) {
+    throw new Error(
+      "El pago seleccionado no existe.",
+    );
+  }
+
+  if (
+    payment.status !== "PAID"
+  ) {
+    throw new Error(
+      "La factura solo puede vincularse a un pago confirmado.",
+    );
+  }
+
+  if (payment.invoice) {
+    throw new Error(
+      "Este pago ya tiene una factura vinculada. Utiliza la opción Reenviar factura.",
+    );
+  }
+
+  const invoiceNumber =
+    getRequiredFormString(
+      formData,
+      "invoiceNumber",
+      "el número de la factura",
+    );
+
+  const issueDate =
+    getDocumentIssueDate(
+      formData,
+    );
+
+  const recipientName =
+    getOptionalString(
+      formData,
+      "invoiceRecipientName",
+    ) ??
+    payment.client
+      .mainContactName ??
+    payment.client
+      .businessName;
+
+  const recipientEmail =
+    getValidEmail(
+      getOptionalString(
+        formData,
+        "invoiceRecipientEmail",
+      ) ??
+        payment.client.email,
+    );
+
+  const serviceDescription =
+    getOptionalString(
+      formData,
+      "invoiceServiceDescription",
+    ) ??
+    payment.description;
+
+  const file =
+    getInvoiceFile(
+      formData,
+    );
+
+  const fileData =
+    Buffer.from(
+      await file.arrayBuffer(),
+    );
+
+  const {
+    netAmount,
+    taxAmount,
+    totalAmount,
+  } =
+    calculateAmountsFromTotal(
+      payment.amount,
+    );
+
+  const email =
+    buildInvoiceEmail({
+      invoiceNumber,
+      recipientName,
+      issueDate,
+      serviceDescription,
+      netAmount,
+      taxAmount,
+      totalAmount,
+      fileName:
+        file.name,
+    });
+
+  return prisma.paymentInvoice.create(
+    {
+      data: {
+        paymentId:
+          payment.id,
+        invoiceNumber,
+        issueDate,
+        recipientName,
+        recipientEmail,
+        serviceDescription,
+        netAmount,
+        taxAmount,
+        totalAmount,
+        fileName:
+          file.name,
+        mimeType:
+          "application/pdf",
+        fileSize:
+          file.size,
+        fileData,
+        subject:
+          email.subject,
+      },
+    },
+  );
+}
+
+async function deliverPaymentInvoice(
+  invoiceId: string,
+) {
+  const invoice =
+    await prisma.paymentInvoice.findUnique(
+      {
+        where: {
+          id: invoiceId,
+        },
+      },
+    );
+
+  if (!invoice) {
+    throw new Error(
+      "La factura seleccionada no existe.",
+    );
+  }
+
+  const attemptDate =
+    new Date();
+
+  await prisma.paymentInvoice.update(
+    {
+      where: {
+        id: invoice.id,
+      },
+      data: {
+        emailStatus:
+          "PENDING",
+        sendAttempts: {
+          increment: 1,
+        },
+        lastAttemptAt:
+          attemptDate,
+        lastError: null,
+      },
+    },
+  );
+
+  const email =
+    buildInvoiceEmail({
+      invoiceNumber:
+        invoice.invoiceNumber,
+      recipientName:
+        invoice.recipientName,
+      issueDate:
+        invoice.issueDate,
+      serviceDescription:
+        invoice.serviceDescription,
+      netAmount: Number(
+        invoice.netAmount,
+      ),
+      taxAmount: Number(
+        invoice.taxAmount,
+      ),
+      totalAmount: Number(
+        invoice.totalAmount,
+      ),
+      fileName:
+        invoice.fileName,
+    });
+
+  try {
+    const result =
+      await sendEmail({
+        mailAccount:
+          "billing",
+        to:
+          invoice.recipientEmail,
+        subject:
+          invoice.subject,
+        text: email.text,
+        html: email.html,
+        fromEmail:
+          getInvoicesFromEmail(),
+        fromName:
+          "Facturación Vialoop",
+        replyTo:
+          getInvoicesFromEmail(),
+        attachments: [
+          {
+            filename:
+              invoice.fileName,
+            content:
+              invoice.fileData,
+            contentType:
+              invoice.mimeType,
+          },
+        ],
+      });
+
+    await prisma.paymentInvoice.update(
+      {
+        where: {
+          id: invoice.id,
+        },
+        data: {
+          emailStatus:
+            "SENT",
+          sentAt: new Date(),
+          messageId:
+            result.messageId,
+          lastError: null,
+        },
+      },
+    );
+
+    return {
+      sent: true as const,
+    };
+  } catch (error) {
+    await prisma.paymentInvoice.update(
+      {
+        where: {
+          id: invoice.id,
+        },
+        data: {
+          emailStatus:
+            "FAILED",
+          lastError:
+            getErrorMessage(
+              error,
+            ),
+        },
+      },
+    );
+
+    throw error;
+  }
 }
 
 export async function markPaymentAsPaid(
@@ -338,15 +1210,19 @@ export async function markPaymentAsPaid(
     );
   }
 
-  if (payment.status === "PAID") {
+  if (
+    payment.status === "PAID"
+  ) {
     redirect(
       "/pagos?resultado=pagado",
     );
   }
 
   if (
-    payment.status === "CANCELLED" ||
-    payment.status === "REFUNDED"
+    payment.status ===
+      "CANCELLED" ||
+    payment.status ===
+      "REFUNDED"
   ) {
     throw new Error(
       "No se puede registrar como pagado un cobro cancelado o reembolsado.",
@@ -357,7 +1233,9 @@ export async function markPaymentAsPaid(
     getPaymentDate(formData);
 
   const paymentMethod =
-    getPaymentMethod(formData);
+    getPaymentMethod(
+      formData,
+    );
 
   const paidAmount =
     getPaymentAmount(
@@ -377,10 +1255,11 @@ export async function markPaymentAsPaid(
       "paymentNotes",
     );
 
-  const isTest = getBoolean(
-    formData,
-    "isTest",
-  );
+  const isTest =
+    getBoolean(
+      formData,
+      "isTest",
+    );
 
   const createNextRenewal =
     getBoolean(
@@ -388,44 +1267,52 @@ export async function markPaymentAsPaid(
       "createNextRenewal",
     );
 
-  const paymentNotes = appendNote(
-    payment.notes,
-    [
-      isTest
-        ? "[PRUEBA] Registro utilizado para verificar el funcionamiento del portal."
-        : "Pago real registrado en el portal.",
-      `Fecha de pago: ${formatDate(
-        paidAt,
-      )}.`,
-      `Medio de pago: ${getPaymentMethodLabel(
-        paymentMethod,
-      )}.`,
-      externalReference
-        ? `Referencia bancaria o número de operación: ${externalReference}.`
-        : null,
-      additionalNotes
-        ? `Observaciones: ${additionalNotes}`
-        : null,
-    ]
-      .filter(Boolean)
-      .join("\n"),
-  );
+  const paymentNotes =
+    appendNote(
+      payment.notes,
+      [
+        isTest
+          ? "[PRUEBA] Registro utilizado para verificar el funcionamiento del portal."
+          : "Pago real registrado en el portal.",
+        `Fecha de pago: ${formatDate(
+          paidAt,
+        )}.`,
+        `Medio de pago: ${getPaymentMethodLabel(
+          paymentMethod,
+        )}.`,
+        externalReference
+          ? `Referencia bancaria o número de operación: ${externalReference}.`
+          : null,
+        additionalNotes
+          ? `Observaciones: ${additionalNotes}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
 
   const outcome =
     await prisma.$transaction(
-      async (transaction) => {
-        await transaction.payment.update({
-          where: {
-            id: payment.id,
+      async (
+        transaction,
+      ) => {
+        await transaction.payment.update(
+          {
+            where: {
+              id: payment.id,
+            },
+            data: {
+              status: "PAID",
+              amount:
+                paidAmount,
+              paidAt,
+              method:
+                paymentMethod,
+              notes:
+                paymentNotes,
+            },
           },
-          data: {
-            status: "PAID",
-            amount: paidAmount,
-            paidAt,
-            method: paymentMethod,
-            notes: paymentNotes,
-          },
-        });
+        );
 
         /*
          * Un pago de prueba se registra como
@@ -435,11 +1322,16 @@ export async function markPaymentAsPaid(
         if (isTest) {
           return {
             isTest: true,
-            renewalProcessed: false,
-            nextRenewalCreated: false,
-            nextRenewalAlreadyExists: false,
-            paidWithoutRenewing: false,
-            subscriptionId: null,
+            renewalProcessed:
+              false,
+            nextRenewalCreated:
+              false,
+            nextRenewalAlreadyExists:
+              false,
+            paidWithoutRenewing:
+              false,
+            subscriptionId:
+              null,
           };
         }
 
@@ -455,10 +1347,14 @@ export async function markPaymentAsPaid(
         ) {
           return {
             isTest: false,
-            renewalProcessed: false,
-            nextRenewalCreated: false,
-            nextRenewalAlreadyExists: false,
-            paidWithoutRenewing: false,
+            renewalProcessed:
+              false,
+            nextRenewalCreated:
+              false,
+            nextRenewalAlreadyExists:
+              false,
+            paidWithoutRenewing:
+              false,
             subscriptionId:
               payment.subscriptionId ??
               null,
@@ -472,29 +1368,36 @@ export async function markPaymentAsPaid(
           );
 
         const renewal =
-          await transaction.renewal.findUnique({
-            where: {
-              id: renewalId,
-            },
-            include: {
-              subscription: {
-                include: {
-                  client: true,
-                  project: true,
-                  plan: true,
+          await transaction.renewal.findUnique(
+            {
+              where: {
+                id: renewalId,
+              },
+              include: {
+                subscription: {
+                  include: {
+                    client: true,
+                    project: true,
+                    plan: true,
+                  },
                 },
               },
             },
-          });
+          );
 
         if (!renewal) {
           return {
             isTest: false,
-            renewalProcessed: false,
-            nextRenewalCreated: false,
-            nextRenewalAlreadyExists: false,
-            paidWithoutRenewing: false,
-            subscriptionId: null,
+            renewalProcessed:
+              false,
+            nextRenewalCreated:
+              false,
+            nextRenewalAlreadyExists:
+              false,
+            paidWithoutRenewing:
+              false,
+            subscriptionId:
+              null,
           };
         }
 
@@ -505,62 +1408,73 @@ export async function markPaymentAsPaid(
          * Permite registrar el pago y cerrar la
          * renovación sin generar un nuevo ciclo.
          */
-        if (!createNextRenewal) {
-          await transaction.renewal.update({
-            where: {
-              id: renewal.id,
+        if (
+          !createNextRenewal
+        ) {
+          await transaction.renewal.update(
+            {
+              where: {
+                id: renewal.id,
+              },
+              data: {
+                status: "PAID",
+                renewedAt:
+                  paidAt,
+                notes: appendNote(
+                  renewal.notes,
+                  [
+                    `Pago registrado el ${formatDate(
+                      paidAt,
+                    )}.`,
+                    "No se creó automáticamente la siguiente renovación.",
+                  ].join("\n"),
+                ),
+              },
             },
-            data: {
-              status: "PAID",
-              renewedAt: paidAt,
-              notes: appendNote(
-                renewal.notes,
-                [
-                  `Pago registrado el ${formatDate(
-                    paidAt,
-                  )}.`,
-                  "No se creó automáticamente la siguiente renovación.",
-                ].join("\n"),
-              ),
-            },
-          });
+          );
 
           if (subscription) {
-            await transaction.activityLog.create({
-              data: {
-                clientId:
-                  subscription.clientId,
-                projectId:
-                  subscription.projectId,
-                action:
-                  "SUBSCRIPTION_PAYMENT_RECORDED",
-                entityType:
-                  "Subscription",
-                entityId:
-                  subscription.id,
-                description:
-                  "El pago fue registrado, pero no se creó el siguiente ciclo de renovación.",
-                metadata: {
-                  paymentId:
-                    payment.id,
-                  renewalId:
-                    renewal.id,
-                  paidAt:
-                    paidAt.toISOString(),
-                  paidAmount,
-                  createNextRenewal:
-                    false,
+            await transaction.activityLog.create(
+              {
+                data: {
+                  clientId:
+                    subscription.clientId,
+                  projectId:
+                    subscription.projectId,
+                  action:
+                    "SUBSCRIPTION_PAYMENT_RECORDED",
+                  entityType:
+                    "Subscription",
+                  entityId:
+                    subscription.id,
+                  description:
+                    "El pago fue registrado, pero no se creó el siguiente ciclo de renovación.",
+                  metadata: {
+                    paymentId:
+                      payment.id,
+                    renewalId:
+                      renewal.id,
+                    paidAt:
+                      paidAt.toISOString(),
+                    paidAmount,
+                    createNextRenewal:
+                      false,
+                  },
                 },
               },
-            });
+            );
           }
 
           return {
             isTest: false,
-            renewalProcessed: true,
-            nextRenewalCreated: false,
-            nextRenewalAlreadyExists: false,
-            paidWithoutRenewing: true,
+            renewalProcessed:
+              true,
+            nextRenewalCreated:
+              false,
+            nextRenewalAlreadyExists:
+              false,
+            paidWithoutRenewing:
+              true,
             subscriptionId:
               subscription?.id ??
               null,
@@ -593,60 +1507,72 @@ export async function markPaymentAsPaid(
          * La renovación anterior queda cerrada
          * como registro histórico.
          */
-        await transaction.renewal.update({
-          where: {
-            id: renewal.id,
+        await transaction.renewal.update(
+          {
+            where: {
+              id: renewal.id,
+            },
+            data: {
+              status:
+                "RENEWED",
+              renewedAt:
+                paidAt,
+              notes: appendNote(
+                renewal.notes,
+                [
+                  `Renovación pagada y cerrada el ${formatDate(
+                    paidAt,
+                  )}.`,
+                  `Próximo vencimiento calculado: ${formatDate(
+                    nextDueDate,
+                  )}.`,
+                ].join("\n"),
+              ),
+            },
           },
-          data: {
-            status: "RENEWED",
-            renewedAt: paidAt,
-            notes: appendNote(
-              renewal.notes,
-              [
-                `Renovación pagada y cerrada el ${formatDate(
-                  paidAt,
-                )}.`,
-                `Próximo vencimiento calculado: ${formatDate(
-                  nextDueDate,
-                )}.`,
-              ].join("\n"),
-            ),
-          },
-        });
+        );
 
         /*
          * Hosting y dominio continúan avanzando
          * anualmente como antes.
          */
-        if (renewal.projectId) {
+        if (
+          renewal.projectId
+        ) {
           if (
             renewal.type ===
             "HOSTING"
           ) {
-            await transaction.project.update({
-              where: {
-                id: renewal.projectId,
+            await transaction.project.update(
+              {
+                where: {
+                  id:
+                    renewal.projectId,
+                },
+                data: {
+                  hostingRenewalDate:
+                    nextDueDate,
+                },
               },
-              data: {
-                hostingRenewalDate:
-                  nextDueDate,
-              },
-            });
+            );
           }
 
           if (
             renewal.type ===
             "DOMAIN"
           ) {
-            await transaction.project.update({
-              where: {
-                id: renewal.projectId,
+            await transaction.project.update(
+              {
+                where: {
+                  id:
+                    renewal.projectId,
+                },
+                data: {
+                  domainRenewalDate:
+                    nextDueDate,
+                },
               },
-              data: {
-                domainRenewalDate:
-                  nextDueDate,
-              },
-            });
+            );
           }
         }
 
@@ -658,60 +1584,68 @@ export async function markPaymentAsPaid(
          * - conserva el resto de sus datos.
          */
         if (subscription) {
-          await transaction.subscription.update({
-            where: {
-              id: subscription.id,
-            },
-            data: {
-              renewsAt: nextDueDate,
-              requestsUsed: 0,
-            },
-          });
-
-          await transaction.activityLog.create({
-            data: {
-              clientId:
-                subscription.clientId,
-              projectId:
-                subscription.projectId,
-              action:
-                "SUBSCRIPTION_CYCLE_RENEWED",
-              entityType:
-                "Subscription",
-              entityId:
-                subscription.id,
-              description: [
-                `La suscripción ${subscription.plan.name} fue renovada.`,
-                `Nuevo vencimiento: ${formatDate(
+          await transaction.subscription.update(
+            {
+              where: {
+                id:
+                  subscription.id,
+              },
+              data: {
+                renewsAt:
                   nextDueDate,
-                )}.`,
-                "Las solicitudes utilizadas fueron reiniciadas a cero.",
-              ].join(" "),
-              metadata: {
-                paymentId:
-                  payment.id,
-                previousRenewalId:
-                  renewal.id,
-                billingCycle:
-                  subscription.billingCycle,
-                previousDueDate:
-                  renewal.dueDate.toISOString(),
-                nextDueDate:
-                  nextDueDate.toISOString(),
-                paidAt:
-                  paidAt.toISOString(),
-                paidAmount,
-                previousRequestsUsed:
-                  subscription.requestsUsed,
-                currentRequestsUsed: 0,
+                requestsUsed: 0,
               },
             },
-          });
+          );
+
+          await transaction.activityLog.create(
+            {
+              data: {
+                clientId:
+                  subscription.clientId,
+                projectId:
+                  subscription.projectId,
+                action:
+                  "SUBSCRIPTION_CYCLE_RENEWED",
+                entityType:
+                  "Subscription",
+                entityId:
+                  subscription.id,
+                description: [
+                  `La suscripción ${subscription.plan.name} fue renovada.`,
+                  `Nuevo vencimiento: ${formatDate(
+                    nextDueDate,
+                  )}.`,
+                  "Las solicitudes utilizadas fueron reiniciadas a cero.",
+                ].join(" "),
+                metadata: {
+                  paymentId:
+                    payment.id,
+                  previousRenewalId:
+                    renewal.id,
+                  billingCycle:
+                    subscription.billingCycle,
+                  previousDueDate:
+                    renewal.dueDate.toISOString(),
+                  nextDueDate:
+                    nextDueDate.toISOString(),
+                  paidAt:
+                    paidAt.toISOString(),
+                  paidAmount,
+                  previousRequestsUsed:
+                    subscription.requestsUsed,
+                  currentRequestsUsed: 0,
+                },
+              },
+            },
+          );
         }
 
         const {
-          start: nextDueDateStart,
-          end: nextDueDateEnd,
+          start:
+            nextDueDateStart,
+          end:
+            nextDueDateEnd,
         } = getDayBounds(
           nextDueDate,
         );
@@ -721,32 +1655,44 @@ export async function markPaymentAsPaid(
          * suscripción y día de vencimiento.
          */
         const existingNextRenewal =
-          await transaction.renewal.findFirst({
-            where: {
-              clientId:
-                renewal.clientId,
-              projectId:
-                renewal.projectId,
-              subscriptionId:
-                renewal.subscriptionId,
-              type: renewal.type,
-              dueDate: {
-                gte: nextDueDateStart,
-                lte: nextDueDateEnd,
-              },
-              status: {
-                not: "CANCELLED",
+          await transaction.renewal.findFirst(
+            {
+              where: {
+                clientId:
+                  renewal.clientId,
+                projectId:
+                  renewal.projectId,
+                subscriptionId:
+                  renewal.subscriptionId,
+                type:
+                  renewal.type,
+                dueDate: {
+                  gte:
+                    nextDueDateStart,
+                  lte:
+                    nextDueDateEnd,
+                },
+                status: {
+                  not:
+                    "CANCELLED",
+                },
               },
             },
-          });
+          );
 
-        if (existingNextRenewal) {
+        if (
+          existingNextRenewal
+        ) {
           return {
             isTest: false,
-            renewalProcessed: true,
-            nextRenewalCreated: false,
-            nextRenewalAlreadyExists: true,
-            paidWithoutRenewing: false,
+            renewalProcessed:
+              true,
+            nextRenewalCreated:
+              false,
+            nextRenewalAlreadyExists:
+              true,
+            paidWithoutRenewing:
+              false,
             subscriptionId:
               subscription?.id ??
               null,
@@ -760,21 +1706,26 @@ export async function markPaymentAsPaid(
         let nextRenewalDescription =
           renewal.description;
 
-        let nextRenewalNotes: string[];
+        let nextRenewalNotes:
+          string[];
 
         if (subscription) {
           const {
             netAmount,
             vatAmount,
             totalWithVat,
-          } = calculateTotalWithVat(
-            subscription.agreedPrice,
-          );
+          } =
+            calculateTotalWithVat(
+              subscription.agreedPrice,
+            );
 
           const projectReference =
-            subscription.project?.domain ??
-            subscription.project?.name ??
-            subscription.client.businessName;
+            subscription
+              .project?.domain ??
+            subscription
+              .project?.name ??
+            subscription.client
+              .businessName;
 
           nextRenewalAmount =
             totalWithVat;
@@ -810,67 +1761,81 @@ export async function markPaymentAsPaid(
         }
 
         const nextRenewal =
-          await transaction.renewal.create({
-            data: {
-              clientId:
-                renewal.clientId,
-              projectId:
-                renewal.projectId,
-              subscriptionId:
-                renewal.subscriptionId,
-              type: renewal.type,
-              description:
-                nextRenewalDescription,
-              dueDate: nextDueDate,
-              amount:
-                nextRenewalAmount,
-              status: "UPCOMING",
-              notifiedAt: null,
-              renewedAt: null,
-              notes:
-                nextRenewalNotes.join(
-                  "\n",
-                ),
-            },
-          });
-
-        if (subscription) {
-          await transaction.activityLog.create({
-            data: {
-              clientId:
-                subscription.clientId,
-              projectId:
-                subscription.projectId,
-              action:
-                "SUBSCRIPTION_NEXT_RENEWAL_CREATED",
-              entityType: "Renewal",
-              entityId:
-                nextRenewal.id,
-              description: `Se creó automáticamente la siguiente renovación de la suscripción ${subscription.plan.name}.`,
-              metadata: {
+          await transaction.renewal.create(
+            {
+              data: {
+                clientId:
+                  renewal.clientId,
+                projectId:
+                  renewal.projectId,
                 subscriptionId:
-                  subscription.id,
-                previousRenewalId:
-                  renewal.id,
-                nextRenewalId:
-                  nextRenewal.id,
-                nextDueDate:
-                  nextDueDate.toISOString(),
+                  renewal.subscriptionId,
+                type:
+                  renewal.type,
+                description:
+                  nextRenewalDescription,
+                dueDate:
+                  nextDueDate,
                 amount:
-                  Number(
-                    nextRenewalAmount,
+                  nextRenewalAmount,
+                status:
+                  "UPCOMING",
+                notifiedAt:
+                  null,
+                renewedAt:
+                  null,
+                notes:
+                  nextRenewalNotes.join(
+                    "\n",
                   ),
               },
             },
-          });
+          );
+
+        if (subscription) {
+          await transaction.activityLog.create(
+            {
+              data: {
+                clientId:
+                  subscription.clientId,
+                projectId:
+                  subscription.projectId,
+                action:
+                  "SUBSCRIPTION_NEXT_RENEWAL_CREATED",
+                entityType:
+                  "Renewal",
+                entityId:
+                  nextRenewal.id,
+                description:
+                  `Se creó automáticamente la siguiente renovación de la suscripción ${subscription.plan.name}.`,
+                metadata: {
+                  subscriptionId:
+                    subscription.id,
+                  previousRenewalId:
+                    renewal.id,
+                  nextRenewalId:
+                    nextRenewal.id,
+                  nextDueDate:
+                    nextDueDate.toISOString(),
+                  amount: Number(
+                    nextRenewalAmount,
+                  ),
+                },
+              },
+            },
+          );
         }
 
         return {
           isTest: false,
-          renewalProcessed: true,
-          nextRenewalCreated: true,
-          nextRenewalAlreadyExists: false,
-          paidWithoutRenewing: false,
+          renewalProcessed:
+            true,
+          nextRenewalCreated:
+            true,
+          nextRenewalAlreadyExists:
+            false,
+          paidWithoutRenewing:
+            false,
           subscriptionId:
             subscription?.id ??
             null,
@@ -878,10 +1843,49 @@ export async function markPaymentAsPaid(
       },
     );
 
+  let receiptResult:
+    | "enviado"
+    | "fallido"
+    | "omitido" =
+    "omitido";
+
+  /*
+   * El pago ya quedó confirmado antes de
+   * intentar el correo. Si SMTP falla, el
+   * comprobante conserva el mismo número y
+   * queda disponible para reenvío.
+   *
+   * Los registros de prueba no generan
+   * correos a clientes.
+   */
+  if (!outcome.isTest) {
+    try {
+      const receipt =
+        await createOrGetPaymentReceipt(
+          payment.id,
+          formData,
+        );
+
+      await deliverPaymentReceipt(
+        receipt.id,
+      );
+
+      receiptResult =
+        "enviado";
+    } catch {
+      receiptResult =
+        "fallido";
+    }
+  }
+
   revalidatePath("/");
   revalidatePath("/pagos");
-  revalidatePath("/renovaciones");
-  revalidatePath("/suscripciones");
+  revalidatePath(
+    "/renovaciones",
+  );
+  revalidatePath(
+    "/suscripciones",
+  );
   revalidatePath(
     `/clientes/${payment.clientId}`,
   );
@@ -889,7 +1893,9 @@ export async function markPaymentAsPaid(
     `/clientes/${payment.clientId}/editar`,
   );
 
-  if (outcome.subscriptionId) {
+  if (
+    outcome.subscriptionId
+  ) {
     revalidatePath(
       `/suscripciones/${outcome.subscriptionId}/editar`,
     );
@@ -897,7 +1903,7 @@ export async function markPaymentAsPaid(
 
   if (outcome.isTest) {
     redirect(
-      "/pagos?resultado=pagado-prueba",
+      "/pagos?resultado=pagado-prueba&comprobante=omitido",
     );
   }
 
@@ -905,7 +1911,7 @@ export async function markPaymentAsPaid(
     outcome.nextRenewalCreated
   ) {
     redirect(
-      "/pagos?resultado=pagado-renovacion-creada",
+      `/pagos?resultado=pagado-renovacion-creada&comprobante=${receiptResult}`,
     );
   }
 
@@ -913,7 +1919,7 @@ export async function markPaymentAsPaid(
     outcome.nextRenewalAlreadyExists
   ) {
     redirect(
-      "/pagos?resultado=pagado-renovacion-existente",
+      `/pagos?resultado=pagado-renovacion-existente&comprobante=${receiptResult}`,
     );
   }
 
@@ -921,12 +1927,12 @@ export async function markPaymentAsPaid(
     outcome.paidWithoutRenewing
   ) {
     redirect(
-      "/pagos?resultado=pagado-sin-renovar",
+      `/pagos?resultado=pagado-sin-renovar&comprobante=${receiptResult}`,
     );
   }
 
   redirect(
-    "/pagos?resultado=pagado",
+    `/pagos?resultado=pagado&comprobante=${receiptResult}`,
   );
 }
 
@@ -947,8 +1953,10 @@ export async function cancelPayment(
   }
 
   if (
-    payment.status !== "PENDING" &&
-    payment.status !== "OVERDUE"
+    payment.status !==
+      "PENDING" &&
+    payment.status !==
+      "OVERDUE"
   ) {
     throw new Error(
       "Solo se pueden cancelar cobros pendientes o vencidos.",
@@ -960,7 +1968,8 @@ export async function cancelPayment(
       id: payment.id,
     },
     data: {
-      status: "CANCELLED",
+      status:
+        "CANCELLED",
       notes: appendNote(
         payment.notes,
         `Cobro cancelado manualmente el ${formatDate(
@@ -972,13 +1981,19 @@ export async function cancelPayment(
 
   revalidatePath("/");
   revalidatePath("/pagos");
-  revalidatePath("/renovaciones");
-  revalidatePath("/suscripciones");
+  revalidatePath(
+    "/renovaciones",
+  );
+  revalidatePath(
+    "/suscripciones",
+  );
   revalidatePath(
     `/clientes/${payment.clientId}`,
   );
 
-  if (payment.subscriptionId) {
+  if (
+    payment.subscriptionId
+  ) {
     revalidatePath(
       `/suscripciones/${payment.subscriptionId}/editar`,
     );
@@ -986,5 +2001,165 @@ export async function cancelPayment(
 
   redirect(
     "/pagos?resultado=cancelado",
+  );
+}
+
+export async function sendPaymentReceipt(
+  paymentId: string,
+  formData: FormData,
+) {
+  let result:
+    | "comprobante-enviado"
+    | "comprobante-error";
+
+  try {
+    const receipt =
+      await createOrGetPaymentReceipt(
+        paymentId,
+        formData,
+      );
+
+    await deliverPaymentReceipt(
+      receipt.id,
+    );
+
+    result =
+      "comprobante-enviado";
+  } catch {
+    result =
+      "comprobante-error";
+  }
+
+  revalidatePath("/pagos");
+
+  redirect(
+    `/pagos?resultado=${result}`,
+  );
+}
+
+export async function resendPaymentReceipt(
+  paymentId: string,
+) {
+  let result:
+    | "comprobante-reenviado"
+    | "comprobante-error";
+
+  try {
+    const receipt =
+      await prisma.paymentReceipt.findUnique(
+        {
+          where: {
+            paymentId,
+          },
+        },
+      );
+
+    if (!receipt) {
+      throw new Error(
+        "Este pago todavía no tiene un comprobante emitido.",
+      );
+    }
+
+    await deliverPaymentReceipt(
+      receipt.id,
+    );
+
+    result =
+      "comprobante-reenviado";
+  } catch {
+    result =
+      "comprobante-error";
+  }
+
+  revalidatePath("/pagos");
+
+  redirect(
+    `/pagos?resultado=${result}`,
+  );
+}
+
+export async function uploadAndSendPaymentInvoice(
+  paymentId: string,
+  formData: FormData,
+) {
+  let result:
+    | "factura-enviada"
+    | "factura-guardada-envio-fallido"
+    | "factura-error" =
+    "factura-error";
+
+  try {
+    const invoice =
+      await createPaymentInvoice(
+        paymentId,
+        formData,
+      );
+
+    try {
+      await deliverPaymentInvoice(
+        invoice.id,
+      );
+
+      result =
+        "factura-enviada";
+    } catch {
+      /*
+       * El PDF permanece guardado y el error
+       * queda registrado para poder reenviar
+       * sin cargar otra factura.
+       */
+      result =
+        "factura-guardada-envio-fallido";
+    }
+  } catch {
+    result =
+      "factura-error";
+  }
+
+  revalidatePath("/pagos");
+
+  redirect(
+    `/pagos?resultado=${result}`,
+  );
+}
+
+export async function resendPaymentInvoice(
+  paymentId: string,
+) {
+  let result:
+    | "factura-reenviada"
+    | "factura-error";
+
+  try {
+    const invoice =
+      await prisma.paymentInvoice.findUnique(
+        {
+          where: {
+            paymentId,
+          },
+        },
+      );
+
+    if (!invoice) {
+      throw new Error(
+        "Este pago todavía no tiene una factura vinculada.",
+      );
+    }
+
+    await deliverPaymentInvoice(
+      invoice.id,
+    );
+
+    result =
+      "factura-reenviada";
+  } catch {
+    result =
+      "factura-error";
+  }
+
+  revalidatePath("/pagos");
+
+  redirect(
+    `/pagos?resultado=${result}`,
   );
 }

@@ -118,6 +118,7 @@ enum PaymentStatus {
 
 enum PaymentMethod {
   BANK_TRANSFER
+  FLOW
   CREDIT_CARD
   DEBIT_CARD
   CASH
@@ -130,6 +131,12 @@ enum FlowOrderStatus {
   REJECTED
   CANCELLED
   ERROR
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 enum SaleStatus {
@@ -381,22 +388,24 @@ model RenewalNotification {
 }
 
 model Payment {
-  id             String         @id @default(cuid())
+  id             String          @id @default(cuid())
   clientId       String
-  client         Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   subscriptionId String?
-  subscription   Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  subscription   Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   description    String
-  amount         Decimal        @db.Decimal(12, 2)
+  amount         Decimal         @db.Decimal(12, 2)
   dueDate        DateTime?
   paidAt         DateTime?
-  status         PaymentStatus  @default(PENDING)
+  status         PaymentStatus   @default(PENDING)
   method         PaymentMethod?
   reference      String?
   notes          String?
   flowOrders     FlowOrder[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  receipt        PaymentReceipt?
+  invoice        PaymentInvoice?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([clientId])
   @@index([subscriptionId])
@@ -424,6 +433,77 @@ model FlowOrder {
   @@index([paymentId])
   @@index([status])
   @@index([createdAt])
+}
+
+model Counter {
+  key       String   @id
+  nextValue Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentReceipt {
+  id                 String              @id @default(cuid())
+  paymentId          String              @unique
+  payment            Payment             @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  number             Int                 @unique
+  recipientName      String
+  recipientEmail     String
+  serviceDescription String
+  projectReference   String?
+  coveragePeriod     String?
+  paidAt             DateTime
+  paymentMethod      PaymentMethod
+  paymentReference   String?
+  netAmount          Decimal             @db.Decimal(12, 2)
+  taxAmount          Decimal             @db.Decimal(12, 2)
+  totalAmount        Decimal             @db.Decimal(12, 2)
+  subject            String
+  emailStatus        EmailDeliveryStatus @default(PENDING)
+  sendAttempts       Int                 @default(0)
+  lastAttemptAt      DateTime?
+  sentAt             DateTime?
+  messageId          String?
+  lastError          String?             @db.Text
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([number])
+  @@index([recipientEmail])
+  @@index([emailStatus])
+  @@index([sentAt])
+}
+
+model PaymentInvoice {
+  id                 String              @id @default(cuid())
+  paymentId          String              @unique
+  payment            Payment             @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoiceNumber      String              @unique
+  issueDate          DateTime            @db.Date
+  recipientName      String
+  recipientEmail     String
+  serviceDescription String
+  netAmount          Decimal             @db.Decimal(12, 2)
+  taxAmount          Decimal             @db.Decimal(12, 2)
+  totalAmount        Decimal             @db.Decimal(12, 2)
+  fileName           String
+  mimeType           String              @default("application/pdf")
+  fileSize           Int
+  fileData           Bytes               @db.ByteA
+  subject            String
+  emailStatus        EmailDeliveryStatus @default(PENDING)
+  sendAttempts       Int                 @default(0)
+  lastAttemptAt      DateTime?
+  sentAt             DateTime?
+  messageId          String?
+  lastError          String?             @db.Text
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([invoiceNumber])
+  @@index([recipientEmail])
+  @@index([emailStatus])
+  @@index([sentAt])
 }
 
 model Sale {
