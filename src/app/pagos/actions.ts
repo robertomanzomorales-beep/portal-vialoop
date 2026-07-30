@@ -479,6 +479,40 @@ function calculateAmountsFromTotal(
   };
 }
 
+function getMoneyFromForm(
+  formData: FormData | undefined,
+  field: string,
+  fallback: number,
+) {
+  const value =
+    getOptionalFormString(
+      formData,
+      field,
+    );
+
+  if (!value) {
+    return fallback;
+  }
+
+  const amount = Number(
+    value.replace(
+      /[^\d]/g,
+      "",
+    ),
+  );
+
+  if (
+    !Number.isFinite(amount) ||
+    amount < 0
+  ) {
+    throw new Error(
+      "Uno de los montos ingresados no es válido.",
+    );
+  }
+
+  return Math.round(amount);
+}
+
 function getDocumentIssueDate(
   formData: FormData,
 ) {
@@ -619,7 +653,10 @@ async function createOrGetPaymentReceipt(
     );
   }
 
-  if (payment.receipt) {
+  if (
+    payment.receipt &&
+    !formData
+  ) {
     return payment.receipt;
   }
 
@@ -628,6 +665,8 @@ async function createOrGetPaymentReceipt(
       formData,
       "receiptRecipientName",
     ) ??
+    payment.receipt
+      ?.recipientName ??
     payment.client
       .mainContactName ??
     payment.client
@@ -639,6 +678,8 @@ async function createOrGetPaymentReceipt(
         formData,
         "receiptRecipientEmail",
       ) ??
+        payment.receipt
+          ?.recipientEmail ??
         payment.client.email,
     );
 
@@ -647,6 +688,8 @@ async function createOrGetPaymentReceipt(
       formData,
       "receiptServiceDescription",
     ) ??
+    payment.receipt
+      ?.serviceDescription ??
     payment.description;
 
   const projectReference =
@@ -654,6 +697,8 @@ async function createOrGetPaymentReceipt(
       formData,
       "receiptProjectReference",
     ) ??
+    payment.receipt
+      ?.projectReference ??
     payment.subscription
       ?.project?.domain ??
     payment.subscription
@@ -664,13 +709,19 @@ async function createOrGetPaymentReceipt(
     getOptionalFormString(
       formData,
       "receiptCoveragePeriod",
-    );
+    ) ??
+    payment.receipt
+      ?.coveragePeriod ??
+    null;
 
   const paymentReference =
     getOptionalFormString(
       formData,
       "paymentReference",
-    );
+    ) ??
+    payment.receipt
+      ?.paymentReference ??
+    null;
 
   const paidAt =
     payment.paidAt ??
@@ -680,14 +731,93 @@ async function createOrGetPaymentReceipt(
     (payment.method ??
       "OTHER") as PaymentMethodValue;
 
-  const {
-    netAmount,
-    taxAmount,
-    totalAmount,
-  } =
+  const calculatedAmounts =
     calculateAmountsFromTotal(
       payment.amount,
     );
+
+  const netAmount =
+    getMoneyFromForm(
+      formData,
+      "receiptNetAmount",
+      Number(
+        payment.receipt
+          ?.netAmount ??
+          calculatedAmounts.netAmount,
+      ),
+    );
+
+  const taxAmount =
+    getMoneyFromForm(
+      formData,
+      "receiptTaxAmount",
+      Number(
+        payment.receipt
+          ?.taxAmount ??
+          calculatedAmounts.taxAmount,
+      ),
+    );
+
+  const totalAmount =
+    getMoneyFromForm(
+      formData,
+      "receiptTotalAmount",
+      Number(
+        payment.receipt
+          ?.totalAmount ??
+          calculatedAmounts.totalAmount,
+      ),
+    );
+
+  const balanceAmount =
+    getMoneyFromForm(
+      formData,
+      "receiptBalanceAmount",
+      0,
+    );
+
+  if (payment.receipt) {
+    const email =
+      buildPaymentReceiptEmail({
+        number:
+          payment.receipt.number,
+        recipientName,
+        serviceDescription,
+        projectReference,
+        coveragePeriod,
+        paidAt,
+        paymentMethod,
+        paymentReference,
+        netAmount,
+        taxAmount,
+        totalAmount,
+        balanceAmount,
+      });
+
+    return prisma.paymentReceipt.update(
+      {
+        where: {
+          id:
+            payment.receipt.id,
+        },
+        data: {
+          recipientName,
+          recipientEmail,
+          serviceDescription,
+          projectReference,
+          coveragePeriod,
+          paidAt,
+          paymentMethod,
+          paymentReference,
+          netAmount,
+          taxAmount,
+          totalAmount,
+          subject:
+            email.subject,
+        },
+      },
+    );
+  }
 
   try {
     return await prisma.$transaction(
@@ -751,6 +881,7 @@ async function createOrGetPaymentReceipt(
               netAmount,
               taxAmount,
               totalAmount,
+              balanceAmount,
             },
           );
 
@@ -807,6 +938,7 @@ async function createOrGetPaymentReceipt(
 
 async function deliverPaymentReceipt(
   receiptId: string,
+  balanceAmount = 0,
 ) {
   const receipt =
     await prisma.paymentReceipt.findUnique(
@@ -869,6 +1001,7 @@ async function deliverPaymentReceipt(
       totalAmount: Number(
         receipt.totalAmount,
       ),
+      balanceAmount,
     });
 
   try {
@@ -1003,6 +1136,13 @@ async function createPaymentInvoice(
     ) ??
     payment.description;
 
+  const paymentCondition =
+    getOptionalString(
+      formData,
+      "invoicePaymentCondition",
+    ) ??
+    "Contado";
+
   const file =
     getInvoiceFile(
       formData,
@@ -1013,13 +1153,30 @@ async function createPaymentInvoice(
       await file.arrayBuffer(),
     );
 
-  const {
-    netAmount,
-    taxAmount,
-    totalAmount,
-  } =
+  const calculatedAmounts =
     calculateAmountsFromTotal(
       payment.amount,
+    );
+
+  const netAmount =
+    getMoneyFromForm(
+      formData,
+      "invoiceNetAmount",
+      calculatedAmounts.netAmount,
+    );
+
+  const taxAmount =
+    getMoneyFromForm(
+      formData,
+      "invoiceTaxAmount",
+      calculatedAmounts.taxAmount,
+    );
+
+  const totalAmount =
+    getMoneyFromForm(
+      formData,
+      "invoiceTotalAmount",
+      calculatedAmounts.totalAmount,
     );
 
   const email =
@@ -1031,6 +1188,7 @@ async function createPaymentInvoice(
       netAmount,
       taxAmount,
       totalAmount,
+      paymentCondition,
       fileName:
         file.name,
     });
@@ -1064,6 +1222,7 @@ async function createPaymentInvoice(
 
 async function deliverPaymentInvoice(
   invoiceId: string,
+  paymentCondition = "Contado",
 ) {
   const invoice =
     await prisma.paymentInvoice.findUnique(
@@ -1120,6 +1279,7 @@ async function deliverPaymentInvoice(
       totalAmount: Number(
         invoice.totalAmount,
       ),
+      paymentCondition,
       fileName:
         invoice.fileName,
     });
@@ -1843,41 +2003,6 @@ export async function markPaymentAsPaid(
       },
     );
 
-  let receiptResult:
-    | "enviado"
-    | "fallido"
-    | "omitido" =
-    "omitido";
-
-  /*
-   * El pago ya quedó confirmado antes de
-   * intentar el correo. Si SMTP falla, el
-   * comprobante conserva el mismo número y
-   * queda disponible para reenvío.
-   *
-   * Los registros de prueba no generan
-   * correos a clientes.
-   */
-  if (!outcome.isTest) {
-    try {
-      const receipt =
-        await createOrGetPaymentReceipt(
-          payment.id,
-          formData,
-        );
-
-      await deliverPaymentReceipt(
-        receipt.id,
-      );
-
-      receiptResult =
-        "enviado";
-    } catch {
-      receiptResult =
-        "fallido";
-    }
-  }
-
   revalidatePath("/");
   revalidatePath("/pagos");
   revalidatePath(
@@ -1903,7 +2028,7 @@ export async function markPaymentAsPaid(
 
   if (outcome.isTest) {
     redirect(
-      "/pagos?resultado=pagado-prueba&comprobante=omitido",
+      "/pagos?resultado=pagado-prueba",
     );
   }
 
@@ -1911,7 +2036,7 @@ export async function markPaymentAsPaid(
     outcome.nextRenewalCreated
   ) {
     redirect(
-      `/pagos?resultado=pagado-renovacion-creada&comprobante=${receiptResult}`,
+      "/pagos?resultado=pagado-renovacion-creada",
     );
   }
 
@@ -1919,7 +2044,7 @@ export async function markPaymentAsPaid(
     outcome.nextRenewalAlreadyExists
   ) {
     redirect(
-      `/pagos?resultado=pagado-renovacion-existente&comprobante=${receiptResult}`,
+      "/pagos?resultado=pagado-renovacion-existente",
     );
   }
 
@@ -1927,12 +2052,12 @@ export async function markPaymentAsPaid(
     outcome.paidWithoutRenewing
   ) {
     redirect(
-      `/pagos?resultado=pagado-sin-renovar&comprobante=${receiptResult}`,
+      "/pagos?resultado=pagado-sin-renovar",
     );
   }
 
   redirect(
-    `/pagos?resultado=pagado&comprobante=${receiptResult}`,
+    "/pagos?resultado=pagado",
   );
 }
 
@@ -2021,6 +2146,11 @@ export async function sendPaymentReceipt(
 
     await deliverPaymentReceipt(
       receipt.id,
+      getMoneyFromForm(
+        formData,
+        "receiptBalanceAmount",
+        0,
+      ),
     );
 
     result =
@@ -2098,6 +2228,10 @@ export async function uploadAndSendPaymentInvoice(
     try {
       await deliverPaymentInvoice(
         invoice.id,
+        getOptionalString(
+          formData,
+          "invoicePaymentCondition",
+        ) ?? "Contado",
       );
 
       result =

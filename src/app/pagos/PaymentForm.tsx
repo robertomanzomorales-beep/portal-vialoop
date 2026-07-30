@@ -8,33 +8,36 @@ import { useFormStatus } from "react-dom";
 import { markPaymentAsPaid } from "./actions";
 import styles from "./pagos.module.css";
 
-type PaymentFormProps = {
+type Props = {
   paymentId: string;
   clientName: string;
   description: string;
   amount: number;
 };
 
-function getTodayForInput() {
-  const today = new Date();
-  const localDate = new Date(
-    today.getTime() -
-      today.getTimezoneOffset() *
+function today() {
+  const value = new Date();
+  const local = new Date(
+    value.getTime() -
+      value.getTimezoneOffset() *
         60 *
         1000,
   );
 
-  return localDate
+  return local
     .toISOString()
     .slice(0, 10);
 }
 
 function SubmitButton() {
-  const { pending } = useFormStatus();
+  const { pending } =
+    useFormStatus();
 
   return (
     <button
-      className={styles.submitButton}
+      className={
+        styles.submitButton
+      }
       disabled={pending}
       type="submit"
     >
@@ -50,8 +53,8 @@ export default function PaymentForm({
   clientName,
   description,
   amount,
-}: PaymentFormProps) {
-  const [isOpen, setIsOpen] =
+}: Props) {
+  const [open, setOpen] =
     useState(false);
 
   const action =
@@ -61,68 +64,76 @@ export default function PaymentForm({
     );
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!open) {
       return;
     }
 
-    const handleKeyDown = (
+    const keydown = (
       event: KeyboardEvent,
     ) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
+      if (
+        event.key === "Escape"
+      ) {
+        setOpen(false);
       }
     };
 
     document.addEventListener(
       "keydown",
-      handleKeyDown,
+      keydown,
     );
-
     document.body.style.overflow =
       "hidden";
 
     return () => {
       document.removeEventListener(
         "keydown",
-        handleKeyDown,
+        keydown,
       );
-
       document.body.style.overflow =
         "";
     };
-  }, [isOpen]);
+  }, [open]);
 
   return (
     <>
       <button
-        className={styles.primaryAction}
-        onClick={() => setIsOpen(true)}
+        className={
+          styles.primaryAction
+        }
+        onClick={() =>
+          setOpen(true)
+        }
         type="button"
       >
         Registrar pago
       </button>
 
-      {isOpen && (
+      {open && (
         <div
-          className={styles.modalBackdrop}
+          className={
+            styles.modalBackdrop
+          }
           onMouseDown={(event) => {
             if (
               event.target ===
               event.currentTarget
             ) {
-              setIsOpen(false);
+              setOpen(false);
             }
           }}
           role="presentation"
         >
           <section
-            aria-labelledby="payment-modal-title"
+            aria-labelledby="payment-title"
             aria-modal="true"
             className={styles.modal}
             role="dialog"
           >
             <header
-              className={styles.modalHeader}
+              className={
+                styles.modalHeader
+              }
             >
               <div>
                 <span
@@ -132,29 +143,24 @@ export default function PaymentForm({
                 >
                   Registro financiero
                 </span>
-
-                <h2 id="payment-modal-title">
+                <h2 id="payment-title">
                   Confirmar pago
                 </h2>
               </div>
 
               <button
-                aria-label="Cerrar formulario"
-                className={styles.modalClose}
+                aria-label="Cerrar"
+                className={
+                  styles.modalClose
+                }
                 onClick={() =>
-                  setIsOpen(false)
+                  setOpen(false)
                 }
                 type="button"
               >
                 ×
               </button>
             </header>
-
-            <p className={styles.modalIntro}>
-              Revisa los antecedentes antes de
-              cerrar el cobro y crear el próximo
-              vencimiento.
-            </p>
 
             <div
               className={
@@ -163,24 +169,26 @@ export default function PaymentForm({
             >
               <div>
                 <span>Cliente</span>
-                <strong>{clientName}</strong>
+                <strong>
+                  {clientName}
+                </strong>
               </div>
-
               <div>
                 <span>Servicio</span>
                 <strong>
                   {description}
                 </strong>
               </div>
-
               <div>
-                <span>Monto registrado</span>
+                <span>Monto</span>
                 <strong>
                   {new Intl.NumberFormat(
                     "es-CL",
                     {
-                      style: "currency",
-                      currency: "CLP",
+                      style:
+                        "currency",
+                      currency:
+                        "CLP",
                       maximumFractionDigits: 0,
                     },
                   ).format(amount)}
@@ -190,20 +198,25 @@ export default function PaymentForm({
 
             <form
               action={action}
-              className={styles.paymentForm}
+              className={
+                styles.paymentForm
+              }
             >
               <div
-                className={styles.formGrid}
+                className={
+                  styles.formGrid
+                }
               >
                 <label
-                  className={styles.field}
+                  className={
+                    styles.field
+                  }
                 >
                   <span>
                     Fecha real del pago
                   </span>
-
                   <input
-                    defaultValue={getTodayForInput()}
+                    defaultValue={today()}
                     name="paidAt"
                     required
                     type="date"
@@ -211,10 +224,13 @@ export default function PaymentForm({
                 </label>
 
                 <label
-                  className={styles.field}
+                  className={
+                    styles.field
+                  }
                 >
-                  <span>Medio de pago</span>
-
+                  <span>
+                    Medio de pago
+                  </span>
                   <select
                     defaultValue="BANK_TRANSFER"
                     name="paymentMethod"
@@ -222,19 +238,18 @@ export default function PaymentForm({
                     <option value="BANK_TRANSFER">
                       Transferencia bancaria
                     </option>
-
+                    <option value="FLOW">
+                      Flow
+                    </option>
                     <option value="DEBIT_CARD">
                       Tarjeta de débito
                     </option>
-
                     <option value="CREDIT_CARD">
                       Tarjeta de crédito
                     </option>
-
                     <option value="CASH">
                       Efectivo
                     </option>
-
                     <option value="OTHER">
                       Otro
                     </option>
@@ -242,12 +257,13 @@ export default function PaymentForm({
                 </label>
 
                 <label
-                  className={styles.field}
+                  className={
+                    styles.field
+                  }
                 >
                   <span>
                     Monto recibido
                   </span>
-
                   <input
                     defaultValue={amount}
                     min="1"
@@ -259,15 +275,15 @@ export default function PaymentForm({
                 </label>
 
                 <label
-                  className={styles.field}
+                  className={
+                    styles.field
+                  }
                 >
                   <span>
                     Número de operación
                   </span>
-
                   <input
                     name="paymentReference"
-                    placeholder="Ej. 00872145"
                     type="text"
                   />
                 </label>
@@ -275,12 +291,12 @@ export default function PaymentForm({
                 <label
                   className={`${styles.field} ${styles.fullWidth}`}
                 >
-                  <span>Observaciones</span>
-
+                  <span>
+                    Observaciones
+                  </span>
                   <textarea
                     name="paymentNotes"
-                    placeholder="Banco, diferencia de monto, acuerdo comercial u otro antecedente."
-                    rows={4}
+                    rows={3}
                   />
                 </label>
               </div>
@@ -300,18 +316,14 @@ export default function PaymentForm({
                     name="createNextRenewal"
                     type="checkbox"
                   />
-
                   <span>
                     <strong>
-                      Crear próxima
-                      renovación
+                      Crear próxima renovación
                     </strong>
-
                     <small>
-                      Cerrará la renovación
-                      actual y generará el
-                      próximo vencimiento un
-                      año después.
+                      Genera el siguiente
+                      vencimiento según su
+                      ciclo.
                     </small>
                   </span>
                 </label>
@@ -323,37 +335,35 @@ export default function PaymentForm({
                     name="isTest"
                     type="checkbox"
                   />
-
                   <span>
                     <strong>
                       Registro de prueba
                     </strong>
-
                     <small>
-                      No cerrará ni modificará
-                      la renovación del cliente
-                      y se excluirá de los
-                      totales reales.
+                      No modifica la
+                      renovación ni envía
+                      correos.
                     </small>
                   </span>
                 </label>
               </div>
 
               <footer
-                className={styles.modalFooter}
+                className={
+                  styles.modalFooter
+                }
               >
                 <button
                   className={
                     styles.cancelModalButton
                   }
                   onClick={() =>
-                    setIsOpen(false)
+                    setOpen(false)
                   }
                   type="button"
                 >
                   Volver
                 </button>
-
                 <SubmitButton />
               </footer>
             </form>

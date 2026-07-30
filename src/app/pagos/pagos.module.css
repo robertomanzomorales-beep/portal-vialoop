@@ -508,6 +508,11 @@
   gap: 22px;
 }
 
+.managementSections {
+  display: grid;
+  gap: 18px;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -916,6 +921,203 @@
   font-size: 10px;
 }
 
+.emailManager {
+  position: relative;
+}
+
+.emailManagerToggle {
+  display: inline-flex;
+  min-height: 35px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b2ccff;
+  border-radius: 9px;
+  background: #eef4ff;
+  color: #175cd3;
+  padding: 0 13px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.emailManagerToggle::-webkit-details-marker {
+  display: none;
+}
+
+.emailManager[open] .emailManagerToggle {
+  border-color: #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.emailManagerPanel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: min(780px, calc(100vw - 48px));
+  max-height: min(760px, 82vh);
+  gap: 16px;
+  overflow-y: auto;
+  border: 1px solid #d0d5dd;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: 0 22px 54px rgb(16 24 40 / 20%);
+  padding: 18px;
+}
+
+.emailCard {
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.emailCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 17px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.emailCardHeader span {
+  color: #175cd3;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.emailCardHeader h3 {
+  margin: 5px 0 0;
+  color: #101828;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.emailForm {
+  display: grid;
+  gap: 15px;
+}
+
+.emailFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.emailFormGrid label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emailFormGrid label > span {
+  color: #344054;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.emailFormGrid input,
+.emailFormGrid select {
+  width: 100%;
+  min-width: 0;
+  min-height: 39px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #101828;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+}
+
+.emailFormGrid input:focus,
+.emailFormGrid select:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+}
+
+.emailFullWidth {
+  grid-column: 1 / -1;
+}
+
+.emailFormFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.emailSubmitButton,
+.emailSecondaryButton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.emailSubmitButton {
+  border: 1px solid #175cd3;
+  background: #175cd3;
+  color: #ffffff;
+}
+
+.emailSubmitButton:hover {
+  border-color: #1849a9;
+  background: #1849a9;
+}
+
+.emailSubmitButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.emailSecondaryButton {
+  margin-top: 10px;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+  color: #344054;
+}
+
+.emailError {
+  margin: 0;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fef3f2;
+  color: #b42318;
+  padding: 10px 12px;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.invoiceExisting {
+  display: grid;
+  gap: 7px;
+}
+
+.invoiceExisting strong {
+  color: #101828;
+  font-size: 13px;
+}
+
+.invoiceExisting > span {
+  color: #667085;
+  font-size: 11px;
+}
+
 @media (max-width: 1100px) {
   .summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -978,6 +1180,27 @@
 
   .documentsPanel {
     width: min(390px, calc(100vw - 72px));
+  }
+
+  .emailManagerPanel {
+    position: fixed;
+    inset: 12px;
+    width: auto;
+    max-height: none;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .emailFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .emailFullWidth {
+    grid-column: auto;
+  }
+
+  .emailCard {
+    padding: 15px;
   }
 
   .documentHeading {

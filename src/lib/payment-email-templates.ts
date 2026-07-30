@@ -1,4 +1,4 @@
-type PaymentMethodValue =
+type PaymentMethod =
   | "BANK_TRANSFER"
   | "FLOW"
   | "CREDIT_CARD"
@@ -6,21 +6,22 @@ type PaymentMethodValue =
   | "CASH"
   | "OTHER";
 
-type ReceiptEmailInput = {
+type ReceiptInput = {
   number: number;
   recipientName: string;
   serviceDescription: string;
   projectReference?: string | null;
   coveragePeriod?: string | null;
   paidAt: Date;
-  paymentMethod: PaymentMethodValue;
+  paymentMethod: PaymentMethod;
   paymentReference?: string | null;
   netAmount: number;
   taxAmount: number;
   totalAmount: number;
+  balanceAmount: number;
 };
 
-type InvoiceEmailInput = {
+type InvoiceInput = {
   invoiceNumber: string;
   recipientName: string;
   issueDate: Date;
@@ -28,22 +29,13 @@ type InvoiceEmailInput = {
   netAmount: number;
   taxAmount: number;
   totalAmount: number;
+  paymentCondition: string;
   fileName: string;
 };
 
-const paymentMethodLabels: Record<
-  PaymentMethodValue,
-  string
-> = {
-  BANK_TRANSFER: "Transferencia bancaria",
-  FLOW: "Flow",
-  CREDIT_CARD: "Tarjeta de crédito",
-  DEBIT_CARD: "Tarjeta de débito",
-  CASH: "Efectivo",
-  OTHER: "Otro",
-};
-
-function escapeHtml(value: string) {
+function escapeHtml(
+  value: string,
+) {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -52,7 +44,7 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function formatCurrency(value: number) {
+function money(value: number) {
   return new Intl.NumberFormat(
     "es-CL",
     {
@@ -63,57 +55,65 @@ function formatCurrency(value: number) {
   ).format(value);
 }
 
-function formatDate(value: Date) {
+function date(value: Date) {
   return new Intl.DateTimeFormat(
     "es-CL",
     {
       day: "2-digit",
       month: "long",
       year: "numeric",
-      timeZone: "America/Santiago",
+      timeZone:
+        "America/Santiago",
     },
   ).format(value);
 }
 
-function getOptionalValue(
-  value?: string | null,
+function method(
+  value: PaymentMethod,
 ) {
-  const normalized =
-    value?.trim();
+  const labels: Record<
+    PaymentMethod,
+    string
+  > = {
+    BANK_TRANSFER:
+      "Transferencia bancaria",
+    FLOW: "Flow",
+    CREDIT_CARD:
+      "Tarjeta de crédito",
+    DEBIT_CARD:
+      "Tarjeta de débito",
+    CASH: "Efectivo",
+    OTHER: "Otro",
+  };
 
-  return normalized &&
-    normalized.length > 0
-    ? normalized
-    : "No informado";
+  return labels[value];
 }
 
-function buildDetailRow(
+function row(
   label: string,
   value: string,
+  strong = false,
 ) {
   return `
     <tr>
       <td
         style="
-          width:42%;
-          padding:12px 0;
-          border-bottom:1px solid #e7ebf0;
-          color:#667085;
+          padding:7px 0;
+          color:#101828;
           font-size:14px;
+          line-height:1.35;
           vertical-align:top;
         "
       >
-        ${escapeHtml(label)}
+        <strong>${escapeHtml(label)}:</strong>
       </td>
-
       <td
         style="
-          padding:12px 0;
-          border-bottom:1px solid #e7ebf0;
-          color:#18212f;
+          padding:7px 0 7px 14px;
+          color:#101828;
           font-size:14px;
-          font-weight:600;
-          text-align:right;
+          font-weight:${strong ? "700" : "400"};
+          line-height:1.35;
           vertical-align:top;
         "
       >
@@ -123,106 +123,33 @@ function buildDetailRow(
   `;
 }
 
-function buildAmountRow(
-  label: string,
-  value: number,
-  highlighted = false,
-) {
-  return `
-    <tr>
-      <td
-        style="
-          padding:
-            ${highlighted
-              ? "16px 18px"
-              : "10px 18px"};
-          color:
-            ${highlighted
-              ? "#ffffff"
-              : "#667085"};
-          background:
-            ${highlighted
-              ? "#172033"
-              : "#f7f8fa"};
-          font-size:
-            ${highlighted
-              ? "15px"
-              : "14px"};
-          font-weight:
-            ${highlighted
-              ? "700"
-              : "500"};
-        "
-      >
-        ${escapeHtml(label)}
-      </td>
-
-      <td
-        style="
-          padding:
-            ${highlighted
-              ? "16px 18px"
-              : "10px 18px"};
-          color:
-            ${highlighted
-              ? "#ffffff"
-              : "#18212f"};
-          background:
-            ${highlighted
-              ? "#172033"
-              : "#f7f8fa"};
-          font-size:
-            ${highlighted
-              ? "18px"
-              : "14px"};
-          font-weight:700;
-          text-align:right;
-        "
-      >
-        ${escapeHtml(
-          formatCurrency(value),
-        )}
-      </td>
-    </tr>
-  `;
-}
-
-function buildCorporateEmail({
-  eyebrow,
+function layout({
   title,
-  introduction,
   content,
-  footerNote,
+  area,
 }: {
-  eyebrow: string;
   title: string;
-  introduction: string;
   content: string;
-  footerNote: string;
+  area: string;
 }) {
   return `
     <!doctype html>
     <html lang="es">
       <head>
         <meta charset="utf-8" />
-
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1"
         />
-
-        <title>
-          ${escapeHtml(title)}
-        </title>
+        <title>${escapeHtml(title)}</title>
       </head>
-
       <body
         style="
           margin:0;
           padding:0;
-          background:#eef1f5;
+          background:#f2f4f7;
           font-family:Arial,Helvetica,sans-serif;
-          color:#18212f;
+          color:#101828;
         "
       >
         <table
@@ -232,8 +159,8 @@ function buildCorporateEmail({
           role="presentation"
           style="
             width:100%;
-            background:#eef1f5;
-            padding:32px 16px;
+            padding:28px 14px;
+            background:#f2f4f7;
           "
         >
           <tr>
@@ -245,131 +172,67 @@ function buildCorporateEmail({
                 role="presentation"
                 style="
                   width:100%;
-                  max-width:640px;
-                  background:#ffffff;
-                  border:1px solid #dde2e8;
-                  border-radius:14px;
+                  max-width:680px;
                   overflow:hidden;
+                  border:1px solid #e4e7ec;
+                  border-radius:14px;
+                  background:#ffffff;
                 "
               >
                 <tr>
                   <td
                     style="
-                      height:5px;
-                      background:#ef7d00;
-                      font-size:0;
-                      line-height:0;
-                    "
-                  >
-                    &nbsp;
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:28px 32px;
-                      background:#172033;
+                      padding:25px 30px;
+                      background:#111827;
                       color:#ffffff;
                     "
                   >
                     <div
                       style="
-                        font-size:24px;
-                        font-weight:800;
-                        letter-spacing:-0.6px;
-                      "
-                    >
-                      VIALOOP
-                    </div>
-
-                    <div
-                      style="
-                        margin-top:5px;
-                        font-size:12px;
-                        color:#cbd2dc;
-                        letter-spacing:0.7px;
-                        text-transform:uppercase;
-                      "
-                    >
-                      Vialoop Studio SpA
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:34px 32px 16px;
-                    "
-                  >
-                    <div
-                      style="
-                        margin-bottom:10px;
-                        color:#ef7d00;
-                        font-size:12px;
+                        color:#b2ccff;
+                        font-size:11px;
                         font-weight:700;
-                        letter-spacing:0.9px;
+                        letter-spacing:.1em;
                         text-transform:uppercase;
                       "
                     >
-                      ${escapeHtml(eyebrow)}
+                      ${escapeHtml(area)}
                     </div>
-
-                    <h1
+                    <div
                       style="
-                        margin:0;
-                        color:#172033;
-                        font-size:27px;
-                        line-height:1.2;
-                        letter-spacing:-0.6px;
+                        margin-top:7px;
+                        font-size:22px;
+                        font-weight:700;
                       "
                     >
                       ${escapeHtml(title)}
-                    </h1>
-
-                    <p
-                      style="
-                        margin:18px 0 0;
-                        color:#475467;
-                        font-size:15px;
-                        line-height:1.7;
-                      "
-                    >
-                      ${escapeHtml(
-                        introduction,
-                      )}
-                    </p>
+                    </div>
                   </td>
                 </tr>
-
                 <tr>
                   <td
                     style="
-                      padding:14px 32px 34px;
+                      padding:30px;
+                      font-size:14px;
+                      line-height:1.6;
                     "
                   >
                     ${content}
                   </td>
                 </tr>
-
                 <tr>
                   <td
                     style="
-                      padding:24px 32px;
-                      background:#f7f8fa;
-                      border-top:1px solid #e7ebf0;
+                      padding:20px 30px 26px;
+                      border-top:1px solid #eaecf0;
                       color:#667085;
                       font-size:12px;
-                      line-height:1.65;
+                      line-height:1.6;
                     "
                   >
-                    ${escapeHtml(footerNote)}
-
-                    <br />
-                    <br />
-
-                    Para consultas, responde directamente a este correo.
+                    Este correo fue generado
+                    automáticamente por el
+                    sistema de Vialoop.
                   </td>
                 </tr>
               </table>
@@ -381,67 +244,69 @@ function buildCorporateEmail({
   `;
 }
 
-export function buildPaymentReceiptEmail({
-  number,
-  recipientName,
-  serviceDescription,
-  projectReference,
-  coveragePeriod,
-  paidAt,
-  paymentMethod,
-  paymentReference,
-  netAmount,
-  taxAmount,
-  totalAmount,
-}: ReceiptEmailInput) {
-  const formattedNumber =
-    String(number).padStart(
-      3,
+export function buildPaymentReceiptEmail(
+  input: ReceiptInput,
+) {
+  const number =
+    String(input.number).padStart(
+      4,
       "0",
     );
 
   const subject =
-    `Confirmación de pago N.º ${formattedNumber} | Vialoop`;
+    `Recibo de pago N.º ${number} – ${input.serviceDescription}`;
 
-  const methodLabel =
-    paymentMethodLabels[
-      paymentMethod
-    ];
+  const project =
+    input.projectReference
+      ? row(
+          "Dominio / proyecto",
+          input.projectReference,
+        )
+      : "";
+
+  const period =
+    input.coveragePeriod
+      ? row(
+          "Período del servicio",
+          input.coveragePeriod,
+        )
+      : "";
+
+  const operation =
+    input.paymentReference
+      ? row(
+          "N.º de orden / operación",
+          input.paymentReference,
+        )
+      : "";
 
   const content = `
+    <p style="margin:0 0 18px;">
+      Estimado(a)
+      <strong>${escapeHtml(input.recipientName)}</strong>:
+    </p>
+
+    <p style="margin:0 0 22px;">
+      Confirmamos la recepción del pago correspondiente al siguiente servicio:
+    </p>
+
     <div
       style="
         margin-bottom:22px;
-        padding:18px 20px;
-        background:#fff7ed;
-        border:1px solid #fed7aa;
+        border:1px solid #eaecf0;
         border-radius:10px;
+        background:#f9fafb;
+        padding:16px 18px;
       "
     >
-      <div
+      <strong
         style="
-          color:#9a4d00;
-          font-size:12px;
-          font-weight:700;
-          letter-spacing:0.6px;
-          text-transform:uppercase;
+          display:block;
+          font-size:16px;
         "
       >
-        Comprobante interno
-      </div>
-
-      <div
-        style="
-          margin-top:5px;
-          color:#172033;
-          font-size:22px;
-          font-weight:800;
-        "
-      >
-        Pago N.º ${escapeHtml(
-          formattedNumber,
-        )}
-      </div>
+        ${escapeHtml(input.serviceDescription)}
+      </strong>
     </div>
 
     <table
@@ -449,296 +314,178 @@ export function buildPaymentReceiptEmail({
       cellpadding="0"
       cellspacing="0"
       role="presentation"
-      style="
-        width:100%;
-        margin-bottom:24px;
-      "
+      style="width:100%;"
     >
-      ${buildDetailRow(
-        "Cliente",
-        recipientName,
-      )}
-
-      ${buildDetailRow(
-        "Servicio",
-        serviceDescription,
-      )}
-
-      ${buildDetailRow(
-        "Proyecto o referencia",
-        getOptionalValue(
-          projectReference,
-        ),
-      )}
-
-      ${buildDetailRow(
-        "Periodo de cobertura",
-        getOptionalValue(
-          coveragePeriod,
-        ),
-      )}
-
-      ${buildDetailRow(
-        "Fecha de pago",
-        formatDate(paidAt),
-      )}
-
-      ${buildDetailRow(
-        "Medio de pago",
-        methodLabel,
-      )}
-
-      ${buildDetailRow(
-        "Número de operación",
-        getOptionalValue(
-          paymentReference,
-        ),
-      )}
+      ${project}
+      ${period}
+      ${row("Monto neto", money(input.netAmount))}
+      ${row("IVA 19%", money(input.taxAmount))}
+      ${row("Total pagado", money(input.totalAmount), true)}
+      ${row("Saldo pendiente", money(input.balanceAmount), true)}
+      ${row("Fecha del pago", date(input.paidAt))}
+      ${row("Medio de pago", method(input.paymentMethod))}
+      ${operation}
+      ${row("Estado", "Pagado", true)}
     </table>
 
-    <table
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      role="presentation"
+    <p
       style="
-        width:100%;
-        border-collapse:separate;
-        border-spacing:0;
-        overflow:hidden;
-        border:1px solid #e3e7ed;
-        border-radius:10px;
+        margin:24px 0 0;
+        color:#475467;
       "
     >
-      ${buildAmountRow(
-        "Monto neto",
-        netAmount,
-      )}
+      Este recibo corresponde al respaldo del pago registrado.
+      Para solicitar factura electrónica, responde este correo
+      indicando RUT, razón social, dirección y giro, o escribe a
+      <a
+        href="mailto:facturacion@vialoop.cl"
+        style="color:#175cd3;"
+      >
+        facturacion@vialoop.cl
+      </a>.
+    </p>
 
-      ${buildAmountRow(
-        "IVA 19%",
-        taxAmount,
-      )}
-
-      ${buildAmountRow(
-        "Total recibido",
-        totalAmount,
-        true,
-      )}
-    </table>
+    <p style="margin:24px 0 0;">
+      Saludos cordiales,<br />
+      <strong>Pagos Vialoop</strong>
+    </p>
   `;
 
-  const html =
-    buildCorporateEmail({
-      eyebrow:
-        "Pago confirmado",
-
-      title:
-        "Confirmación de pago recibido",
-
-      introduction:
-        `Estimado(a) ${recipientName}, confirmamos que el pago asociado al servicio indicado fue recibido y registrado correctamente.`,
-
-      content,
-
-      footerNote:
-        "Este comprobante corresponde a una confirmación de pago emitida por Vialoop Studio SpA y no reemplaza una factura u otro documento tributario.",
-    });
-
   const text = [
-    "VIALOOP STUDIO SpA",
+    `Estimado(a) ${input.recipientName}:`,
     "",
-    `CONFIRMACIÓN DE PAGO N.º ${formattedNumber}`,
+    "Confirmamos la recepción del pago.",
+    `Servicio: ${input.serviceDescription}`,
+    input.projectReference
+      ? `Dominio / proyecto: ${input.projectReference}`
+      : null,
+    input.coveragePeriod
+      ? `Período: ${input.coveragePeriod}`
+      : null,
+    `Monto neto: ${money(input.netAmount)}`,
+    `IVA 19%: ${money(input.taxAmount)}`,
+    `Total pagado: ${money(input.totalAmount)}`,
+    `Saldo pendiente: ${money(input.balanceAmount)}`,
+    `Fecha: ${date(input.paidAt)}`,
+    `Medio de pago: ${method(input.paymentMethod)}`,
+    input.paymentReference
+      ? `N.º de orden / operación: ${input.paymentReference}`
+      : null,
+    "Estado: Pagado",
     "",
-    `Estimado(a) ${recipientName}:`,
+    "Para solicitar factura electrónica, escribe a facturacion@vialoop.cl.",
     "",
-    "Confirmamos que el pago fue recibido y registrado correctamente.",
-    "",
-    `Cliente: ${recipientName}`,
-    `Servicio: ${serviceDescription}`,
-    `Proyecto o referencia: ${getOptionalValue(projectReference)}`,
-    `Periodo de cobertura: ${getOptionalValue(coveragePeriod)}`,
-    `Fecha de pago: ${formatDate(paidAt)}`,
-    `Medio de pago: ${methodLabel}`,
-    `Número de operación: ${getOptionalValue(paymentReference)}`,
-    "",
-    `Monto neto: ${formatCurrency(netAmount)}`,
-    `IVA 19%: ${formatCurrency(taxAmount)}`,
-    `Total recibido: ${formatCurrency(totalAmount)}`,
-    "",
-    "Este comprobante no reemplaza una factura u otro documento tributario.",
-  ].join("\n");
+    "Pagos Vialoop",
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return {
     subject,
     text,
-    html,
+    html: layout({
+      title:
+        `Recibo de pago N.º ${number}`,
+      content,
+      area: "Pagos Vialoop",
+    }),
   };
 }
 
-export function buildInvoiceEmail({
-  invoiceNumber,
-  recipientName,
-  issueDate,
-  serviceDescription,
-  netAmount,
-  taxAmount,
-  totalAmount,
-  fileName,
-}: InvoiceEmailInput) {
+export function buildInvoiceEmail(
+  input: InvoiceInput,
+) {
   const subject =
-    `Factura N.º ${invoiceNumber} | Vialoop Studio SpA`;
+    `Emisión de factura N.º ${input.invoiceNumber} – ${input.serviceDescription}`;
 
   const content = `
-    <div
-      style="
-        margin-bottom:24px;
-        padding:18px 20px;
-        background:#f7f8fa;
-        border:1px solid #e3e7ed;
-        border-radius:10px;
-      "
-    >
-      <div
-        style="
-          color:#667085;
-          font-size:12px;
-          font-weight:700;
-          letter-spacing:0.6px;
-          text-transform:uppercase;
-        "
-      >
-        Documento tributario
-      </div>
+    <p style="margin:0 0 18px;">
+      Estimado(a)
+      <strong>${escapeHtml(input.recipientName)}</strong>:
+    </p>
 
-      <div
-        style="
-          margin-top:5px;
-          color:#172033;
-          font-size:22px;
-          font-weight:800;
-        "
-      >
-        Factura N.º ${escapeHtml(
-          invoiceNumber,
-        )}
-      </div>
-    </div>
+    <p style="margin:0 0 22px;">
+      Informamos que se ha emitido la factura correspondiente al servicio indicado a continuación.
+    </p>
 
     <table
       width="100%"
       cellpadding="0"
       cellspacing="0"
       role="presentation"
-      style="
-        width:100%;
-        margin-bottom:24px;
-      "
+      style="width:100%;"
     >
-      ${buildDetailRow(
-        "Cliente",
-        recipientName,
-      )}
-
-      ${buildDetailRow(
-        "Fecha de emisión",
-        formatDate(issueDate),
-      )}
-
-      ${buildDetailRow(
-        "Servicio",
-        serviceDescription,
-      )}
-    </table>
-
-    <table
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      role="presentation"
-      style="
-        width:100%;
-        margin-bottom:24px;
-        border-collapse:separate;
-        border-spacing:0;
-        overflow:hidden;
-        border:1px solid #e3e7ed;
-        border-radius:10px;
-      "
-    >
-      ${buildAmountRow(
-        "Monto neto",
-        netAmount,
-      )}
-
-      ${buildAmountRow(
-        "IVA 19%",
-        taxAmount,
-      )}
-
-      ${buildAmountRow(
-        "Total factura",
-        totalAmount,
-        true,
-      )}
+      ${row("Factura electrónica N.º", input.invoiceNumber, true)}
+      ${row("Servicio", input.serviceDescription)}
+      ${row("Monto neto", money(input.netAmount))}
+      ${row("IVA 19%", money(input.taxAmount))}
+      ${row("Total", money(input.totalAmount), true)}
+      ${row("Forma de pago", input.paymentCondition)}
+      ${row("Fecha de emisión", date(input.issueDate))}
     </table>
 
     <div
       style="
-        padding:16px 18px;
-        background:#fff7ed;
-        border-left:4px solid #ef7d00;
-        color:#7c3e00;
-        font-size:14px;
-        line-height:1.6;
+        margin-top:22px;
+        border-left:3px solid #175cd3;
+        background:#f5f8ff;
+        padding:14px 16px;
+        color:#344054;
       "
     >
-      La factura se encuentra adjunta en formato PDF:
-
-      <strong>
-        ${escapeHtml(fileName)}
-      </strong>
+      La factura electrónica
+      <strong>${escapeHtml(input.fileName)}</strong>
+      se encuentra adjunta a este correo.
     </div>
+
+    <p style="margin:24px 0 0;">
+      Saludos cordiales,<br /><br />
+      <strong>Área de Facturación</strong><br />
+      Vialoop Studio SpA<br />
+      <a
+        href="mailto:facturacion@vialoop.cl"
+        style="color:#175cd3;"
+      >
+        facturacion@vialoop.cl
+      </a><br />
+      <a
+        href="https://www.vialoop.cl"
+        style="color:#175cd3;"
+      >
+        www.vialoop.cl
+      </a>
+    </p>
   `;
 
-  const html =
-    buildCorporateEmail({
-      eyebrow:
-        "Facturación",
-
-      title:
-        "Factura adjunta",
-
-      introduction:
-        `Estimado(a) ${recipientName}, junto con saludar, enviamos la factura correspondiente al servicio indicado.`,
-
-      content,
-
-      footerNote:
-        "Documento enviado por el área de Facturación de Vialoop Studio SpA.",
-    });
-
   const text = [
-    "VIALOOP STUDIO SpA",
+    `Estimado(a) ${input.recipientName}:`,
     "",
-    `FACTURA N.º ${invoiceNumber}`,
+    "Informamos que se ha emitido la factura correspondiente.",
+    `Factura electrónica N.º: ${input.invoiceNumber}`,
+    `Servicio: ${input.serviceDescription}`,
+    `Monto neto: ${money(input.netAmount)}`,
+    `IVA 19%: ${money(input.taxAmount)}`,
+    `Total: ${money(input.totalAmount)}`,
+    `Forma de pago: ${input.paymentCondition}`,
+    `Fecha de emisión: ${date(input.issueDate)}`,
     "",
-    `Estimado(a) ${recipientName}:`,
+    `La factura ${input.fileName} se encuentra adjunta.`,
     "",
-    "Junto con saludar, enviamos la factura correspondiente al servicio indicado.",
-    "",
-    `Fecha de emisión: ${formatDate(issueDate)}`,
-    `Servicio: ${serviceDescription}`,
-    `Monto neto: ${formatCurrency(netAmount)}`,
-    `IVA 19%: ${formatCurrency(taxAmount)}`,
-    `Total factura: ${formatCurrency(totalAmount)}`,
-    "",
-    `Documento adjunto: ${fileName}`,
+    "Área de Facturación",
+    "Vialoop Studio SpA",
+    "facturacion@vialoop.cl",
+    "www.vialoop.cl",
   ].join("\n");
 
   return {
     subject,
     text,
-    html,
+    html: layout({
+      title:
+        `Factura N.º ${input.invoiceNumber}`,
+      content,
+      area:
+        "Facturación Vialoop",
+    }),
   };
 }

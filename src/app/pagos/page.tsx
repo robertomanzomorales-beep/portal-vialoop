@@ -2,12 +2,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import {
   cancelPayment,
-  resendPaymentInvoice,
-  resendPaymentReceipt,
-  sendPaymentReceipt,
-  uploadAndSendPaymentInvoice,
 } from "./actions";
 import FlowPaymentButton from "./FlowPaymentButton";
+import PaymentEmailManager from "./PaymentEmailManager";
 import PaymentForm from "./PaymentForm";
 import styles from "./pagos.module.css";
 
@@ -50,9 +47,12 @@ function formatDate(
 function formatCurrency(
   value: unknown,
 ) {
-  const amount = Number(value);
+  const amount =
+    Number(value);
 
-  if (!Number.isFinite(amount)) {
+  if (
+    !Number.isFinite(amount)
+  ) {
     return "$0";
   }
 
@@ -73,14 +73,24 @@ function getPaymentStatusLabel(
     string,
     string
   > = {
-    PENDING: "Pendiente",
-    PAID: "Pagado",
-    OVERDUE: "Vencido",
-    CANCELLED: "Cancelado",
-    REFUNDED: "Reembolsado",
+    PENDING:
+      "Pendiente",
+
+    PAID:
+      "Pagado",
+
+    OVERDUE:
+      "Vencido",
+
+    CANCELLED:
+      "Cancelado",
+
+    REFUNDED:
+      "Reembolsado",
   };
 
-  return labels[status] ?? status;
+  return labels[status] ??
+    status;
 }
 
 function getPaymentMethodLabel(
@@ -95,14 +105,19 @@ function getPaymentMethodLabel(
   > = {
     BANK_TRANSFER:
       "Transferencia",
+
     FLOW:
       "Flow",
+
     CREDIT_CARD:
       "Crédito",
+
     DEBIT_CARD:
       "Débito",
+
     CASH:
       "Efectivo",
+
     OTHER:
       "Otro",
   };
@@ -111,32 +126,8 @@ function getPaymentMethodLabel(
     return "Sin registrar";
   }
 
-  return labels[method] ?? method;
-}
-
-function getEmailStatusLabel(
-  status:
-    | string
-    | null
-    | undefined,
-) {
-  const labels: Record<
-    string,
-    string
-  > = {
-    PENDING:
-      "Envío pendiente",
-    SENT:
-      "Enviado",
-    FAILED:
-      "Error de envío",
-  };
-
-  if (!status) {
-    return "Sin enviar";
-  }
-
-  return labels[status] ?? status;
+  return labels[method] ??
+    method;
 }
 
 function formatDateInput(
@@ -185,18 +176,28 @@ function getFlowStatusLabel(
     string,
     string
   > = {
-    PENDING: "Pendiente",
-    PAID: "Pagada",
-    REJECTED: "Rechazada",
-    CANCELLED: "Cancelada",
-    ERROR: "Error",
+    PENDING:
+      "Pendiente",
+
+    PAID:
+      "Pagada",
+
+    REJECTED:
+      "Rechazada",
+
+    CANCELLED:
+      "Cancelada",
+
+    ERROR:
+      "Error",
   };
 
   if (!status) {
     return "Sin orden";
   }
 
-  return labels[status] ?? status;
+  return labels[status] ??
+    status;
 }
 
 function isTestPayment(
@@ -221,7 +222,9 @@ function isVisibleByFilter(
       payment.notes,
     );
 
-  if (filter === "pruebas") {
+  if (
+    filter === "pruebas"
+  ) {
     return isTest;
   }
 
@@ -229,32 +232,42 @@ function isVisibleByFilter(
     return false;
   }
 
-  if (filter === "todos") {
+  if (
+    filter === "todos"
+  ) {
     return true;
   }
 
-  if (filter === "pendientes") {
+  if (
+    filter === "pendientes"
+  ) {
     return (
       payment.status ===
       "PENDING"
     );
   }
 
-  if (filter === "vencidos") {
+  if (
+    filter === "vencidos"
+  ) {
     return (
       payment.status ===
       "OVERDUE"
     );
   }
 
-  if (filter === "pagados") {
+  if (
+    filter === "pagados"
+  ) {
     return (
       payment.status ===
       "PAID"
     );
   }
 
-  if (filter === "cancelados") {
+  if (
+    filter === "cancelados"
+  ) {
     return (
       payment.status ===
       "CANCELLED"
@@ -270,15 +283,14 @@ export default async function PaymentsPage({
   const resolvedSearchParams =
     await searchParams;
 
-  const validFilters:
-    PaymentFilter[] = [
-      "todos",
-      "pendientes",
-      "vencidos",
-      "pagados",
-      "cancelados",
-      "pruebas",
-    ];
+  const validFilters: PaymentFilter[] = [
+    "todos",
+    "pendientes",
+    "vencidos",
+    "pagados",
+    "cancelados",
+    "pruebas",
+  ];
 
   const requestedFilter =
     resolvedSearchParams.filtro ??
@@ -297,33 +309,41 @@ export default async function PaymentsPage({
     await prisma.payment.findMany({
       orderBy: [
         {
-          dueDate: "asc",
+          dueDate:
+            "asc",
         },
         {
-          createdAt: "desc",
+          createdAt:
+            "desc",
         },
       ],
 
       include: {
-        client: true,
+        client:
+          true,
 
         subscription: {
           include: {
-            plan: true,
+            plan:
+              true,
           },
         },
 
         flowOrders: {
           orderBy: {
-            createdAt: "desc",
+            createdAt:
+              "desc",
           },
 
-          take: 1,
+          take:
+            1,
         },
 
-        receipt: true,
+        receipt:
+          true,
 
-        invoice: true,
+        invoice:
+          true,
       },
     });
 
@@ -398,6 +418,7 @@ export default async function PaymentsPage({
           Number(
             payment.amount,
           ),
+
         0,
       );
 
@@ -417,6 +438,7 @@ export default async function PaymentsPage({
           Number(
             payment.amount,
           ),
+
         0,
       );
 
@@ -426,34 +448,69 @@ export default async function PaymentsPage({
     count: number;
   }> = [
     {
-      label: "Todos",
-      value: "todos",
-      count: realPayments.length,
+      label:
+        "Todos",
+
+      value:
+        "todos",
+
+      count:
+        realPayments.length,
     },
+
     {
-      label: "Pendientes",
-      value: "pendientes",
-      count: pendingCount,
+      label:
+        "Pendientes",
+
+      value:
+        "pendientes",
+
+      count:
+        pendingCount,
     },
+
     {
-      label: "Vencidos",
-      value: "vencidos",
-      count: overdueCount,
+      label:
+        "Vencidos",
+
+      value:
+        "vencidos",
+
+      count:
+        overdueCount,
     },
+
     {
-      label: "Pagados",
-      value: "pagados",
-      count: paidCount,
+      label:
+        "Pagados",
+
+      value:
+        "pagados",
+
+      count:
+        paidCount,
     },
+
     {
-      label: "Cancelados",
-      value: "cancelados",
-      count: cancelledCount,
+      label:
+        "Cancelados",
+
+      value:
+        "cancelados",
+
+      count:
+        cancelledCount,
     },
+
     {
-      label: "Pruebas",
-      value: "pruebas",
-      count: testPayments.length,
+      label:
+        "Pruebas",
+
+      value:
+        "pruebas",
+
+      count:
+        testPayments.length,
     },
   ];
 
@@ -1055,30 +1112,6 @@ export default async function PaymentsPage({
                         payment.id,
                       );
 
-                    const sendPaymentReceiptWithId =
-                      sendPaymentReceipt.bind(
-                        null,
-                        payment.id,
-                      );
-
-                    const resendPaymentReceiptWithId =
-                      resendPaymentReceipt.bind(
-                        null,
-                        payment.id,
-                      );
-
-                    const uploadAndSendPaymentInvoiceWithId =
-                      uploadAndSendPaymentInvoice.bind(
-                        null,
-                        payment.id,
-                      );
-
-                    const resendPaymentInvoiceWithId =
-                      resendPaymentInvoice.bind(
-                        null,
-                        payment.id,
-                      );
-
                     const canManage =
                       payment.status ===
                         "PENDING" ||
@@ -1296,289 +1329,157 @@ export default async function PaymentsPage({
                             {payment.status ===
                               "PAID" &&
                               !isTest && (
-                              <details
-                                className={
-                                  styles.documents
+                              <PaymentEmailManager
+                                amount={Number(
+                                  payment.amount,
+                                )}
+                                clientEmail={
+                                  payment.client
+                                    .email
                                 }
-                              >
-                                <summary
-                                  className={
-                                    styles.documentToggle
-                                  }
-                                >
-                                  Documentos
-                                </summary>
-
-                                <div
-                                  className={
-                                    styles.documentsPanel
-                                  }
-                                >
-                                  <section
-                                    className={
-                                      styles.documentSection
-                                    }
-                                  >
-                                    <div
-                                      className={
-                                        styles.documentHeading
-                                      }
-                                    >
-                                      <div>
-                                        <strong>
-                                          Comprobante
-                                        </strong>
-
-                                        <span>
-                                          {payment.receipt
-                                            ? `Pago N.º ${String(
-                                                payment
-                                                  .receipt
-                                                  .number,
-                                              ).padStart(
-                                                4,
-                                                "0",
-                                              )}`
-                                            : "Todavía no emitido"}
-                                        </span>
-                                      </div>
-
-                                      {payment.receipt && (
-                                        <span
-                                          className={`${
-                                            styles.emailStatus
-                                          } ${
-                                            payment
-                                              .receipt
-                                              .emailStatus ===
-                                            "SENT"
-                                              ? styles.emailSent
-                                              : payment
-                                                    .receipt
-                                                    .emailStatus ===
-                                                  "FAILED"
-                                                ? styles.emailFailed
-                                                : styles.emailPending
-                                          }`}
-                                        >
-                                          {getEmailStatusLabel(
-                                            payment
-                                              .receipt
-                                              .emailStatus,
-                                          )}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {payment.receipt ? (
-                                      <>
-                                        <p
-                                          className={
-                                            styles.documentMeta
-                                          }
-                                        >
-                                          Destinatario:{" "}
-                                          {
-                                            payment
-                                              .receipt
-                                              .recipientEmail
-                                          }
-                                        </p>
-
-                                        <form
-                                          action={
-                                            resendPaymentReceiptWithId
-                                          }
-                                        >
-                                          <button
-                                            className={
-                                              styles.documentButton
-                                            }
-                                            type="submit"
-                                          >
-                                            Reenviar comprobante
-                                          </button>
-                                        </form>
-                                      </>
-                                    ) : (
-                                      <form
-                                        action={
-                                          sendPaymentReceiptWithId
-                                        }
-                                      >
-                                        <button
-                                          className={
-                                            styles.documentButton
-                                          }
-                                          type="submit"
-                                        >
-                                          Emitir y enviar
-                                        </button>
-                                      </form>
-                                    )}
-                                  </section>
-
-                                  <section
-                                    className={
-                                      styles.documentSection
-                                    }
-                                  >
-                                    <div
-                                      className={
-                                        styles.documentHeading
-                                      }
-                                    >
-                                      <div>
-                                        <strong>
-                                          Factura
-                                        </strong>
-
-                                        <span>
-                                          {payment.invoice
-                                            ? `Factura N.º ${payment.invoice.invoiceNumber}`
-                                            : "Sin factura vinculada"}
-                                        </span>
-                                      </div>
-
-                                      {payment.invoice && (
-                                        <span
-                                          className={`${
-                                            styles.emailStatus
-                                          } ${
-                                            payment
-                                              .invoice
-                                              .emailStatus ===
-                                            "SENT"
-                                              ? styles.emailSent
-                                              : payment
-                                                    .invoice
-                                                    .emailStatus ===
-                                                  "FAILED"
-                                                ? styles.emailFailed
-                                                : styles.emailPending
-                                          }`}
-                                        >
-                                          {getEmailStatusLabel(
-                                            payment
-                                              .invoice
-                                              .emailStatus,
-                                          )}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {payment.invoice ? (
-                                      <>
-                                        <p
-                                          className={
-                                            styles.documentMeta
-                                          }
-                                        >
-                                          {
-                                            payment
-                                              .invoice
-                                              .fileName
-                                          }{" "}
-                                          ·{" "}
-                                          {formatDate(
+                                clientName={
+                                  payment.client
+                                    .businessName
+                                }
+                                description={
+                                  payment.description
+                                }
+                                invoice={
+                                  payment.invoice
+                                    ? {
+                                        invoiceNumber:
+                                          payment
+                                            .invoice
+                                            .invoiceNumber,
+                                        issueDate:
+                                          formatDateInput(
                                             payment
                                               .invoice
                                               .issueDate,
-                                          )}
-                                        </p>
-
-                                        <form
-                                          action={
-                                            resendPaymentInvoiceWithId
-                                          }
-                                        >
-                                          <button
-                                            className={
-                                              styles.documentButton
-                                            }
-                                            type="submit"
-                                          >
-                                            Reenviar factura
-                                          </button>
-                                        </form>
-                                      </>
-                                    ) : (
-                                      <form
-                                        action={
-                                          uploadAndSendPaymentInvoiceWithId
-                                        }
-                                        className={
-                                          styles.invoiceForm
-                                        }
-                                        encType="multipart/form-data"
-                                      >
-                                        <label>
-                                          <span>
-                                            Número de factura
-                                          </span>
-
-                                          <input
-                                            className={
-                                              styles.documentInput
-                                            }
-                                            name="invoiceNumber"
-                                            placeholder="Ej.: 245"
-                                            required
-                                            type="text"
-                                          />
-                                        </label>
-
-                                        <label>
-                                          <span>
-                                            Fecha de emisión
-                                          </span>
-
-                                          <input
-                                            className={
-                                              styles.documentInput
-                                            }
-                                            defaultValue={formatDateInput(
-                                              new Date(),
-                                            )}
-                                            name="invoiceIssueDate"
-                                            required
-                                            type="date"
-                                          />
-                                        </label>
-
-                                        <label>
-                                          <span>
-                                            Factura PDF
-                                          </span>
-
-                                          <input
-                                            accept="application/pdf,.pdf"
-                                            className={
-                                              styles.documentFile
-                                            }
-                                            name="invoiceFile"
-                                            required
-                                            type="file"
-                                          />
-                                        </label>
-
-                                        <small>
-                                          PDF de hasta 5 MB.
-                                        </small>
-
-                                        <button
-                                          className={
-                                            styles.documentButton
-                                          }
-                                          type="submit"
-                                        >
-                                          Guardar y enviar
-                                        </button>
-                                      </form>
-                                    )}
-                                  </section>
-                                </div>
-                              </details>
+                                          ),
+                                        recipientName:
+                                          payment
+                                            .invoice
+                                            .recipientName,
+                                        recipientEmail:
+                                          payment
+                                            .invoice
+                                            .recipientEmail,
+                                        serviceDescription:
+                                          payment
+                                            .invoice
+                                            .serviceDescription,
+                                        netAmount:
+                                          Number(
+                                            payment
+                                              .invoice
+                                              .netAmount,
+                                          ),
+                                        taxAmount:
+                                          Number(
+                                            payment
+                                              .invoice
+                                              .taxAmount,
+                                          ),
+                                        totalAmount:
+                                          Number(
+                                            payment
+                                              .invoice
+                                              .totalAmount,
+                                          ),
+                                        paymentCondition:
+                                          null,
+                                        fileName:
+                                          payment
+                                            .invoice
+                                            .fileName,
+                                        emailStatus:
+                                          payment
+                                            .invoice
+                                            .emailStatus,
+                                        lastError:
+                                          payment
+                                            .invoice
+                                            .lastError,
+                                      }
+                                    : null
+                                }
+                                paidAt={
+                                  payment.paidAt
+                                    ? formatDateInput(
+                                        payment.paidAt,
+                                      )
+                                    : null
+                                }
+                                paymentId={
+                                  payment.id
+                                }
+                                paymentMethod={
+                                  payment.method
+                                }
+                                receipt={
+                                  payment.receipt
+                                    ? {
+                                        number:
+                                          payment
+                                            .receipt
+                                            .number,
+                                        recipientName:
+                                          payment
+                                            .receipt
+                                            .recipientName,
+                                        recipientEmail:
+                                          payment
+                                            .receipt
+                                            .recipientEmail,
+                                        serviceDescription:
+                                          payment
+                                            .receipt
+                                            .serviceDescription,
+                                        projectReference:
+                                          payment
+                                            .receipt
+                                            .projectReference,
+                                        coveragePeriod:
+                                          payment
+                                            .receipt
+                                            .coveragePeriod,
+                                        paymentReference:
+                                          payment
+                                            .receipt
+                                            .paymentReference,
+                                        netAmount:
+                                          Number(
+                                            payment
+                                              .receipt
+                                              .netAmount,
+                                          ),
+                                        taxAmount:
+                                          Number(
+                                            payment
+                                              .receipt
+                                              .taxAmount,
+                                          ),
+                                        totalAmount:
+                                          Number(
+                                            payment
+                                              .receipt
+                                              .totalAmount,
+                                          ),
+                                        balanceAmount:
+                                          0,
+                                        emailStatus:
+                                          payment
+                                            .receipt
+                                            .emailStatus,
+                                        lastError:
+                                          payment
+                                            .receipt
+                                            .lastError,
+                                      }
+                                    : null
+                                }
+                              />
                             )}
 
                             <Link
