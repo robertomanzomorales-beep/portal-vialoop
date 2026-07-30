@@ -85,6 +85,10 @@ const navigationGroups: NavigationGroup[] = [
         label: "Ventas",
         href: "/ventas",
       },
+{
+        label: "Cobros",
+        href: "/cobros",
+      },
       {
         label: "Documentos",
         href: "/documentos",

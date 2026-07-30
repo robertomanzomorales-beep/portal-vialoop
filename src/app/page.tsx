@@ -5,24 +5,26 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const CHILE_TIME_ZONE =
-  "America/Santiago";
-
 const MONTHLY_SALES_TARGET =
   3_500_000;
 
-function formatCurrency(value: unknown) {
+function formatCurrency(
+  value: unknown,
+) {
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
     return "$0";
   }
 
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return new Intl.NumberFormat(
+    "es-CL",
+    {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    },
+  ).format(amount);
 }
 
 function formatDate(
@@ -38,35 +40,47 @@ function formatDate(
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      timeZone: CHILE_TIME_ZONE,
+      timeZone:
+        "America/Santiago",
     },
   ).format(date);
 }
 
-function formatLongDate(date: Date) {
+function formatLongDate(
+  date: Date,
+) {
   const formattedDate =
-    new Intl.DateTimeFormat("es-CL", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: CHILE_TIME_ZONE,
-    }).format(date);
+    new Intl.DateTimeFormat(
+      "es-CL",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone:
+          "America/Santiago",
+      },
+    ).format(date);
 
   return (
-    formattedDate.charAt(0).toUpperCase() +
+    formattedDate
+      .charAt(0)
+      .toUpperCase() +
     formattedDate.slice(1)
   );
 }
 
-function getChileDateKey(date: Date) {
+function getChileDateKey(
+  date: Date,
+) {
   return new Intl.DateTimeFormat(
     "en-CA",
     {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      timeZone: CHILE_TIME_ZONE,
+      timeZone:
+        "America/Santiago",
     },
   ).format(date);
 }
@@ -91,7 +105,7 @@ function getChileMonthRange(
         year: "numeric",
         month: "2-digit",
         timeZone:
-          CHILE_TIME_ZONE,
+          "America/Santiago",
       },
     ).formatToParts(date);
 
@@ -129,11 +143,11 @@ function addDays(
 ) {
   const result = new Date(date);
 
-  result.setUTCDate(
-    result.getUTCDate() + days,
+  result.setDate(
+    result.getDate() + days,
   );
 
-  result.setUTCHours(
+  result.setHours(
     23,
     59,
     59,
@@ -145,23 +159,25 @@ function addDays(
 
 function getDaysDifference(
   dueDate: Date,
-  currentDate: Date,
+  today: Date,
 ) {
-  const dueDateValue = new Date(
-    `${getChileDateKey(
-      dueDate,
-    )}T00:00:00.000Z`,
-  ).getTime();
+  const dueDateValue =
+    new Date(
+      `${getChileDateKey(
+        dueDate,
+      )}T00:00:00.000Z`,
+    ).getTime();
 
-  const currentDateValue = new Date(
-    `${getChileDateKey(
-      currentDate,
-    )}T00:00:00.000Z`,
-  ).getTime();
+  const todayValue =
+    new Date(
+      `${getChileDateKey(
+        today,
+      )}T00:00:00.000Z`,
+    ).getTime();
 
   return Math.round(
     (dueDateValue -
-      currentDateValue) /
+      todayValue) /
       (1000 * 60 * 60 * 24),
   );
 }
@@ -227,7 +243,6 @@ function getUrgencyClass(
 
 export default async function Home() {
   const currentDate = new Date();
-
   const today =
     getStartOfDay(currentDate);
 
@@ -252,6 +267,8 @@ export default async function Home() {
     recentPaidCandidates,
     monthlySalesAmountResult,
     monthlySalesCount,
+    recentSales,
+    recentManualCharges,
   ] = await Promise.all([
     prisma.client.count({
       where: {
@@ -417,6 +434,62 @@ export default async function Home() {
         },
       },
     }),
+
+    prisma.sale.findMany({
+      where: {
+        status: "ACTIVE",
+      },
+      orderBy: [
+        {
+          saleDate: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+      take: 5,
+      include: {
+        client: {
+          select: {
+            businessName: true,
+            tradeName: true,
+          },
+        },
+        payments: {
+          select: {
+            amount: true,
+          },
+        },
+      },
+    }),
+
+    prisma.manualCharge.findMany({
+      where: {
+        status: {
+          in: [
+            "PENDING",
+            "SENT",
+            "ERROR",
+          ],
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+      include: {
+        sale: {
+          include: {
+            client: {
+              select: {
+                businessName: true,
+                tradeName: true,
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   const pendingPaymentAmount =
@@ -483,7 +556,8 @@ export default async function Home() {
       detail:
         "Tickets pendientes de resolución",
       href: "/solicitudes",
-      alert: openRequestCount > 0,
+      alert:
+        openRequestCount > 0,
     },
     {
       label: "Trabajo pendiente",
@@ -491,7 +565,8 @@ export default async function Home() {
       detail:
         "Renovaciones y cobros por gestionar",
       href: "/renovaciones",
-      alert: priorityTaskCount > 0,
+      alert:
+        priorityTaskCount > 0,
     },
   ];
 
@@ -509,9 +584,8 @@ export default async function Home() {
 
           <p>
             Control diario de clientes,
-            renovaciones, cobros y
-            actividad operativa de
-            Vialoop.
+            renovaciones, cobros y actividad
+            operativa de Vialoop.
           </p>
 
           <span
@@ -525,19 +599,44 @@ export default async function Home() {
           </span>
         </div>
 
-        <Link
-          className={
-            styles.primaryButton
-          }
-          href="/clientes/nuevo"
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            justifyContent: "flex-end",
+          }}
         >
-          Nuevo cliente
-        </Link>
+          <Link
+            className={
+              styles.secondaryButton
+            }
+            href="/cobros"
+          >
+            Cobros manuales
+          </Link>
+
+          <Link
+            className={
+              styles.secondaryButton
+            }
+            href="/ventas"
+          >
+            Registrar venta
+          </Link>
+
+          <Link
+            className={
+              styles.primaryButton
+            }
+            href="/clientes/nuevo"
+          >
+            Nuevo cliente
+          </Link>
+        </div>
       </header>
 
-      <section
-        className={styles.metrics}
-      >
+      <section className={styles.metrics}>
         {metrics.map((metric) => (
           <Link
             className={`${
@@ -550,19 +649,95 @@ export default async function Home() {
             href={metric.href}
             key={metric.label}
           >
-            <span>
-              {metric.label}
-            </span>
+            <span>{metric.label}</span>
 
-            <strong>
-              {metric.value}
-            </strong>
+            <strong>{metric.value}</strong>
 
-            <p>
-              {metric.detail}
-            </p>
+            <p>{metric.detail}</p>
           </Link>
         ))}
+      </section>
+
+      <section
+        className={styles.metrics}
+        style={{
+          marginTop: "18px",
+        }}
+      >
+        <Link
+          className={styles.metricCard}
+          href="/ventas"
+        >
+          <span>Vendido este mes</span>
+
+          <strong>
+            {formatCurrency(
+              monthlySalesAmount,
+            )}
+          </strong>
+
+          <p>
+            {monthlySalesCount}{" "}
+            {monthlySalesCount === 1
+              ? "venta activa"
+              : "ventas activas"}
+          </p>
+        </Link>
+
+        <article
+          className={styles.metricCard}
+        >
+          <span>Meta mensual</span>
+
+          <strong>
+            {formatCurrency(
+              MONTHLY_SALES_TARGET,
+            )}
+          </strong>
+
+          <p>Monto neto, sin IVA</p>
+        </article>
+
+        <article
+          className={styles.metricCard}
+        >
+          <span>Avance alcanzado</span>
+
+          <strong>
+            {monthlySalesProgress}%
+          </strong>
+
+          <p>
+            Cumplimiento de la meta
+            comercial
+          </p>
+        </article>
+
+        <article
+          className={`${styles.metricCard} ${
+            monthlySalesRemaining === 0
+              ? styles.metricCardAlert
+              : ""
+          }`}
+        >
+          <span>
+            {monthlySalesRemaining > 0
+              ? "Falta por vender"
+              : "Meta cumplida"}
+          </span>
+
+          <strong>
+            {formatCurrency(
+              monthlySalesRemaining,
+            )}
+          </strong>
+
+          <p>
+            {monthlySalesRemaining > 0
+              ? "Monto pendiente para alcanzar la meta"
+              : "Objetivo comercial alcanzado"}
+          </p>
+        </article>
       </section>
 
       <section
@@ -570,9 +745,7 @@ export default async function Home() {
           styles.operationsGrid
         }
       >
-        <article
-          className={styles.panel}
-        >
+        <article className={styles.panel}>
           <div
             className={
               styles.panelHeader
@@ -588,8 +761,7 @@ export default async function Home() {
               </span>
 
               <h2>
-                Renovaciones
-                prioritarias
+                Renovaciones prioritarias
               </h2>
 
               <p>
@@ -732,12 +904,10 @@ export default async function Home() {
 
                           <span>
                             {
-                              renewal
-                                ._count
+                              renewal._count
                                 .notifications
                             }{" "}
-                            {renewal
-                              ._count
+                            {renewal._count
                               .notifications ===
                             1
                               ? "aviso"
@@ -787,9 +957,7 @@ export default async function Home() {
           )}
         </article>
 
-        <article
-          className={styles.panel}
-        >
+        <article className={styles.panel}>
           <div
             className={
               styles.panelHeader
@@ -824,7 +992,8 @@ export default async function Home() {
               className={`${
                 styles.operationalItem
               } ${
-                overdueRenewalCount > 0
+                overdueRenewalCount >
+                0
                   ? styles.operationalAlert
                   : ""
               }`}
@@ -958,15 +1127,6 @@ export default async function Home() {
             >
               Revisar ventas
             </Link>
-
-            <Link
-              className={
-                styles.secondaryButton
-              }
-              href="/cobros"
-            >
-              Cobros manuales
-            </Link>
           </div>
         </article>
       </section>
@@ -974,9 +1134,269 @@ export default async function Home() {
       <section
         className={styles.lowerGrid}
       >
-        <article
-          className={styles.panel}
-        >
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Gestión comercial
+              </span>
+
+              <h2>Ventas recientes</h2>
+
+              <p>
+                Últimas ventas activas,
+                abonos registrados y saldo
+                pendiente.
+              </p>
+            </div>
+
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/ventas"
+            >
+              Gestionar ventas
+            </Link>
+          </div>
+
+          {recentSales.length === 0 ? (
+            <div
+              className={
+                styles.emptyState
+              }
+            >
+              <div
+                className={
+                  styles.emptyIcon
+                }
+              >
+                $
+              </div>
+
+              <h3>
+                No hay ventas registradas
+              </h3>
+
+              <p>
+                Las nuevas ventas
+                aparecerán aquí con sus
+                abonos y saldo pendiente.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={
+                styles.recentList
+              }
+            >
+              {recentSales.map(
+                (sale) => {
+                  const paidAmount =
+                    sale.payments.reduce(
+                      (
+                        total,
+                        payment,
+                      ) =>
+                        total +
+                        Number(
+                          payment.amount,
+                        ),
+                      0,
+                    );
+
+                  const pendingAmount =
+                    Math.max(
+                      Number(
+                        sale.netAmount,
+                      ) -
+                        paidAmount,
+                      0,
+                    );
+
+                  return (
+                    <Link
+                      className={
+                        styles.recentItem
+                      }
+                      href="/ventas"
+                      key={sale.id}
+                    >
+                      <div>
+                        <strong>
+                          {sale.client
+                            .tradeName ||
+                            sale.client
+                              .businessName}
+                        </strong>
+
+                        <span>
+                          Venta N.º{" "}
+                          {sale.number} ·{" "}
+                          {sale.service}
+                        </span>
+
+                        <small>
+                          Pagado:{" "}
+                          {formatCurrency(
+                            paidAmount,
+                          )}{" "}
+                          · Saldo:{" "}
+                          {formatCurrency(
+                            pendingAmount,
+                          )}
+                        </small>
+                      </div>
+
+                      <strong
+                        className={
+                          styles.paymentAmount
+                        }
+                      >
+                        {formatCurrency(
+                          sale.netAmount,
+                        )}
+                      </strong>
+                    </Link>
+                  );
+                },
+              )}
+            </div>
+          )}
+        </article>
+
+        <article className={styles.panel}>
+          <div
+            className={
+              styles.panelHeader
+            }
+          >
+            <div>
+              <span
+                className={
+                  styles.panelEyebrow
+                }
+              >
+                Solicitudes manuales
+              </span>
+
+              <h2>Próximos cobros</h2>
+
+              <p>
+                Cobros creados manualmente
+                para ventas y saldos
+                pendientes.
+              </p>
+            </div>
+
+            <Link
+              className={
+                styles.secondaryButton
+              }
+              href="/cobros"
+            >
+              Gestionar cobros
+            </Link>
+          </div>
+
+          {recentManualCharges.length ===
+          0 ? (
+            <div
+              className={
+                styles.emptyState
+              }
+            >
+              <div
+                className={
+                  styles.emptyIcon
+                }
+              >
+                ✓
+              </div>
+
+              <h3>
+                No hay cobros manuales
+                pendientes
+              </h3>
+
+              <p>
+                Los cobros por
+                transferencia o Flow
+                aparecerán aquí.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={
+                styles.recentList
+              }
+            >
+              {recentManualCharges.map(
+                (charge) => (
+                  <Link
+                    className={
+                      styles.recentItem
+                    }
+                    href="/cobros"
+                    key={charge.id}
+                  >
+                    <div>
+                      <strong>
+                        {charge.sale.client
+                          .tradeName ||
+                          charge.sale.client
+                            .businessName}
+                      </strong>
+
+                      <span>
+                        Cobro N.º{" "}
+                        {charge.number} ·{" "}
+                        {charge.concept}
+                      </span>
+
+                      <small>
+                        {charge.dueDate
+                          ? `Fecha límite: ${formatDate(
+                              charge.dueDate,
+                            )}`
+                          : "Sin fecha límite"}{" "}
+                        ·{" "}
+                        {charge.method ===
+                        "FLOW"
+                          ? "Flow"
+                          : "Transferencia"}
+                      </small>
+                    </div>
+
+                    <strong
+                      className={
+                        styles.paymentAmount
+                      }
+                    >
+                      {formatCurrency(
+                        charge.amount,
+                      )}
+                    </strong>
+                  </Link>
+                ),
+              )}
+            </div>
+          )}
+        </article>
+      </section>
+
+      <section
+        className={styles.lowerGrid}
+      >
+        <article className={styles.panel}>
           <div
             className={
               styles.panelHeader
@@ -991,9 +1411,7 @@ export default async function Home() {
                 Ingresos
               </span>
 
-              <h2>
-                Pagos recientes
-              </h2>
+              <h2>Pagos recientes</h2>
 
               <p>
                 Últimos pagos reales
@@ -1026,8 +1444,7 @@ export default async function Home() {
               </div>
 
               <h3>
-                No existen pagos
-                recientes
+                No existen pagos recientes
               </h3>
 
               <p>
@@ -1090,9 +1507,7 @@ export default async function Home() {
           )}
         </article>
 
-        <article
-          className={styles.panel}
-        >
+        <article className={styles.panel}>
           <div
             className={
               styles.panelHeader
@@ -1112,16 +1527,14 @@ export default async function Home() {
               </h2>
 
               <p>
-                Planes comerciales
-                activos en el sistema.
+                Planes comerciales activos
+                en el sistema.
               </p>
             </div>
           </div>
 
           <div
-            className={
-              styles.planList
-            }
+            className={styles.planList}
           >
             {plans.map((plan) => (
               <div
