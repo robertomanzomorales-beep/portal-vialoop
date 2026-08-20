@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useActionState } from "react";
-import { cancelSale, saveSale } from "./actions";
+import { cancelSale, deleteSale, saveSale } from "./actions";
 import SalePaymentManager, {
   type SaleFinancialItem,
   type SalePaymentItem,
@@ -60,12 +60,16 @@ function SaleEditor({
     saveSale,
     initialSaleActionState,
   );
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deleteSale,
+    initialSaleActionState,
+  );
 
   useEffect(() => {
-    if (state.ok) {
+    if (state.ok || deleteState.ok) {
       onClose();
     }
-  }, [state.ok, onClose]);
+  }, [deleteState.ok, state.ok, onClose]);
 
   return (
     <div
@@ -167,27 +171,54 @@ function SaleEditor({
             <p className={styles.formError}>{state.message}</p>
           ) : null}
 
-          <div className={styles.formActions}>
-            <button
-              className={styles.secondaryButton}
-              disabled={pending}
-              onClick={onClose}
-              type="button"
-            >
-              Cancelar
-            </button>
+          {deleteState.message && !deleteState.ok ? (
+            <p className={styles.formError}>{deleteState.message}</p>
+          ) : null}
 
-            <button
-              className={styles.primaryButton}
-              disabled={pending}
-              type="submit"
-            >
-              {pending
-                ? "Guardando..."
-                : sale
-                  ? "Guardar cambios"
-                  : "Registrar venta"}
-            </button>
+          <div className={styles.formActions}>
+            {sale ? (
+              <button
+                className={styles.deleteButton}
+                disabled={pending || deletePending}
+                formAction={deleteAction}
+                formNoValidate
+                onClick={(event) => {
+                  const confirmed = window.confirm(
+                    `¿Eliminar definitivamente la venta N.º ${sale.number}?\n\nTambién se eliminarán sus pagos, comprobantes, facturas, cobros y órdenes Flow asociadas. Esta acción no se puede deshacer.`,
+                  );
+
+                  if (!confirmed) {
+                    event.preventDefault();
+                  }
+                }}
+                type="submit"
+              >
+                {deletePending ? "Eliminando..." : "Eliminar venta"}
+              </button>
+            ) : null}
+
+            <div className={styles.formActionGroup}>
+              <button
+                className={styles.secondaryButton}
+                disabled={pending || deletePending}
+                onClick={onClose}
+                type="button"
+              >
+                Cancelar
+              </button>
+
+              <button
+                className={styles.primaryButton}
+                disabled={pending || deletePending}
+                type="submit"
+              >
+                {pending
+                  ? "Guardando..."
+                  : sale
+                    ? "Guardar cambios"
+                    : "Registrar venta"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

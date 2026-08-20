@@ -263,6 +263,7 @@
 .manageButton,
 .textButton,
 .dangerButton,
+.deleteButton,
 .closeButton {
   border: 0;
   cursor: pointer;
@@ -271,7 +272,8 @@
 
 .primaryButton,
 .secondaryButton,
-.manageButton {
+.manageButton,
+.deleteButton {
   border-radius: 10px;
   font-size: 0.86rem;
   font-weight: 800;
@@ -294,8 +296,14 @@
   white-space: nowrap;
 }
 
+.deleteButton {
+  background: #fef3f2;
+  color: #b42318;
+}
+
 .primaryButton:disabled,
-.secondaryButton:disabled {
+.secondaryButton:disabled,
+.deleteButton:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -539,8 +547,14 @@
 .formActions {
   border-top: 1px solid #eaecf0;
   gap: 12px;
-  justify-content: flex-end;
   padding-top: 18px;
+}
+
+.formActionGroup {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .financeModal {
@@ -772,6 +786,21 @@
 
   .formRow {
     grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .formActionGroup {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-left: 0;
+  }
+
+  .deleteButton {
+    width: 100%;
   }
 
   .financeSummary,

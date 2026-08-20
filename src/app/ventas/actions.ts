@@ -166,3 +166,58 @@ export async function cancelSale(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/ventas");
 }
+
+export async function deleteSale(
+  _previousState: SaleActionState,
+  formData: FormData,
+): Promise<SaleActionState> {
+  const saleId = getText(formData, "saleId");
+
+  if (!saleId) {
+    return {
+      ok: false,
+      message: "No se pudo identificar la venta que deseas eliminar.",
+    };
+  }
+
+  const sale = await prisma.sale.findUnique({
+    where: {
+      id: saleId,
+    },
+    select: {
+      id: true,
+      number: true,
+    },
+  });
+
+  if (!sale) {
+    return {
+      ok: false,
+      message: "La venta que intentas eliminar ya no existe.",
+    };
+  }
+
+  try {
+    await prisma.sale.delete({
+      where: {
+        id: sale.id,
+      },
+    });
+  } catch (error) {
+    console.error(`No se pudo eliminar la venta N.º ${sale.number}.`, error);
+
+    return {
+      ok: false,
+      message:
+        "No fue posible eliminar la venta. Actualiza la página e inténtalo nuevamente.",
+    };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/ventas");
+
+  return {
+    ok: true,
+    message: `Venta N.º ${sale.number} eliminada correctamente.`,
+  };
+}
