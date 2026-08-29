@@ -150,7 +150,12 @@ export default async function SupportRequestDetailPage({
   const resolvedSearchParams =
     await searchParams;
 
-  const [request, availableUsers] =
+  const [
+    request,
+    availableUsers,
+    availableClients,
+    availableProjects,
+  ] =
     await Promise.all([
       prisma.supportRequest.findUnique({
         where: {
@@ -200,6 +205,42 @@ export default async function SupportRequestDetailPage({
           role: true,
         },
       }),
+
+      prisma.client.findMany({
+        where: {
+          status: "ACTIVE",
+        },
+        orderBy: {
+          businessName: "asc",
+        },
+        select: {
+          id: true,
+          businessName: true,
+          tradeName: true,
+        },
+      }),
+
+      prisma.project.findMany({
+        where: {
+          status: {
+            in: ["DEVELOPMENT", "ACTIVE", "MAINTENANCE"],
+          },
+        },
+        orderBy: {
+          name: "asc",
+        },
+        select: {
+          id: true,
+          name: true,
+          domain: true,
+          clientId: true,
+          client: {
+            select: {
+              businessName: true,
+            },
+          },
+        },
+      }),
     ]);
 
   if (!request) {
@@ -234,7 +275,10 @@ export default async function SupportRequestDetailPage({
           <p>
             Registrada el{" "}
             {formatDateTime(request.createdAt)} para{" "}
-            {request.client.businessName}.
+            {request.client?.businessName ??
+              request.requesterName ??
+              request.requesterEmail ??
+              "un remitente sin asociar"}.
           </p>
         </div>
 
@@ -246,12 +290,14 @@ export default async function SupportRequestDetailPage({
             Volver a solicitudes
           </Link>
 
-          <Link
-            className={styles.secondaryButton}
-            href={`/clientes/${request.clientId}`}
-          >
-            Ver cliente
-          </Link>
+          {request.clientId && (
+            <Link
+              className={styles.secondaryButton}
+              href={`/clientes/${request.clientId}`}
+            >
+              Ver cliente
+            </Link>
+          )}
         </div>
       </header>
 
@@ -354,11 +400,14 @@ export default async function SupportRequestDetailPage({
                   <span>Cliente</span>
 
                   <strong>
-                    {request.client.businessName}
+                    {request.client?.businessName ??
+                      request.requesterName ??
+                      "Remitente sin asociar"}
                   </strong>
 
                   <small>
-                    {request.client.email ??
+                    {request.requesterEmail ??
+                      request.client?.email ??
                       "Sin correo registrado"}
                   </small>
                 </div>
@@ -417,6 +466,48 @@ export default async function SupportRequestDetailPage({
                 </div>
 
                 <div className={styles.formGrid}>
+                  <label className={styles.field}>
+                    <span>Cliente asociado</span>
+
+                    <select
+                      defaultValue={request.clientId ?? ""}
+                      name="clientId"
+                    >
+                      <option value="">
+                        Sin cliente asociado
+                      </option>
+
+                      {availableClients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.businessName}
+                          {client.tradeName
+                            ? ` · ${client.tradeName}`
+                            : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>Proyecto asociado</span>
+
+                    <select
+                      defaultValue={request.projectId ?? ""}
+                      name="projectId"
+                    >
+                      <option value="">
+                        Sin proyecto asociado
+                      </option>
+
+                      {availableProjects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.client.businessName} ·{" "}
+                          {project.domain ?? project.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
                   <label className={styles.field}>
                     <span>Estado *</span>
 

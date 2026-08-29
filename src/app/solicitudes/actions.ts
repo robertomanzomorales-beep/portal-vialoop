@@ -324,6 +324,16 @@ export async function updateSupportRequest(
   const status = getStatus(formData);
   const priority = getPriority(formData);
 
+  const clientId = getOptionalString(
+    formData,
+    "clientId",
+  );
+
+  const projectId = getOptionalString(
+    formData,
+    "projectId",
+  );
+
   const assignedToId = getOptionalString(
     formData,
     "assignedToId",
@@ -370,6 +380,47 @@ export async function updateSupportRequest(
     }
   }
 
+  if (clientId) {
+    const client = await prisma.client.findUnique({
+      where: {
+        id: clientId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!client) {
+      throw new Error(
+        "El cliente seleccionado no existe.",
+      );
+    }
+  }
+
+  if (projectId) {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      select: {
+        id: true,
+        clientId: true,
+      },
+    });
+
+    if (!project) {
+      throw new Error(
+        "El proyecto seleccionado no existe.",
+      );
+    }
+
+    if (!clientId || project.clientId !== clientId) {
+      throw new Error(
+        "El proyecto seleccionado no pertenece al cliente indicado.",
+      );
+    }
+  }
+
   const completedAt =
     status === "COMPLETED"
       ? existingRequest.completedAt ?? new Date()
@@ -383,6 +434,14 @@ export async function updateSupportRequest(
         existingRequest.status,
       )} → ${getStatusLabel(status)}`,
     );
+  }
+
+  if (existingRequest.clientId !== clientId) {
+    changes.push("Cliente asociado actualizado");
+  }
+
+  if (existingRequest.projectId !== projectId) {
+    changes.push("Proyecto asociado actualizado");
   }
 
   if (existingRequest.priority !== priority) {
@@ -433,6 +492,8 @@ export async function updateSupportRequest(
           id: requestId,
         },
         data: {
+          clientId,
+          projectId,
           status,
           priority,
           assignedToId,
@@ -444,8 +505,8 @@ export async function updateSupportRequest(
 
       await transaction.activityLog.create({
         data: {
-          clientId: existingRequest.clientId,
-          projectId: existingRequest.projectId,
+          clientId,
+          projectId,
           supportRequestId: requestId,
           action: "SUPPORT_REQUEST_UPDATED",
           entityType: "SupportRequest",
@@ -454,6 +515,10 @@ export async function updateSupportRequest(
           metadata: {
             previousStatus: existingRequest.status,
             status,
+            previousClientId: existingRequest.clientId,
+            clientId,
+            previousProjectId: existingRequest.projectId,
+            projectId,
             previousPriority:
               existingRequest.priority,
             priority,
@@ -472,9 +537,20 @@ export async function updateSupportRequest(
   revalidatePath("/");
   revalidatePath("/solicitudes");
   revalidatePath(`/solicitudes/${requestId}`);
-  revalidatePath(
-    `/clientes/${existingRequest.clientId}`,
-  );
+
+  if (existingRequest.clientId) {
+    revalidatePath(
+      `/clientes/${existingRequest.clientId}`,
+    );
+  }
+
+
+  if (
+    clientId &&
+    clientId !== existingRequest.clientId
+  ) {
+    revalidatePath(`/clientes/${clientId}`);
+  }
 
   redirect(
     `/solicitudes/${requestId}?resultado=actualizada`,
@@ -550,7 +626,10 @@ export async function addSupportComment(
   revalidatePath("/");
   revalidatePath("/solicitudes");
   revalidatePath(`/solicitudes/${requestId}`);
-  revalidatePath(`/clientes/${request.clientId}`);
+
+  if (request.clientId) {
+    revalidatePath(`/clientes/${request.clientId}`);
+  }
 
   redirect(
     `/solicitudes/${requestId}?resultado=comentario`,

@@ -67,6 +67,16 @@ enum SupportStatus {
   OUT_OF_SCOPE
 }
 
+enum SupportRequestSource {
+  MANUAL
+  EMAIL
+}
+
+enum SupportEmailDirection {
+  INBOUND
+  OUTBOUND
+}
+
 enum DocumentType {
   CONTRACT
   QUOTATION
@@ -274,28 +284,32 @@ model Subscription {
 }
 
 model SupportRequest {
-  id                String              @id @default(cuid())
-  number            Int                 @unique @default(autoincrement())
-  clientId          String
-  client            Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id                String                @id @default(cuid())
+  number            Int                   @unique @default(autoincrement())
+  clientId          String?
+  client            Client?               @relation(fields: [clientId], references: [id], onDelete: SetNull)
   projectId         String?
-  project           Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  project           Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdById       String?
-  createdBy         User?               @relation("CreatedSupportRequests", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy         User?                 @relation("CreatedSupportRequests", fields: [createdById], references: [id], onDelete: SetNull)
   assignedToId      String?
-  assignedTo        User?               @relation("AssignedSupportRequests", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedTo        User?                 @relation("AssignedSupportRequests", fields: [assignedToId], references: [id], onDelete: SetNull)
   subject           String
   description       String
-  priority          SupportPriority     @default(NORMAL)
-  status            SupportStatus       @default(RECEIVED)
+  priority          SupportPriority       @default(NORMAL)
+  status            SupportStatus         @default(RECEIVED)
   estimatedDelivery DateTime?
   completedAt       DateTime?
   internalNotes     String?
+  source            SupportRequestSource  @default(MANUAL)
+  requesterName     String?
+  requesterEmail    String?
   attachments       SupportAttachment[]
   comments          SupportComment[]
+  emailMessages     SupportEmailMessage[]
   activityLogs      ActivityLog[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
 
   @@index([clientId])
   @@index([projectId])
@@ -303,6 +317,28 @@ model SupportRequest {
   @@index([status])
   @@index([priority])
   @@index([createdAt])
+  @@index([requesterEmail])
+}
+
+model SupportEmailMessage {
+  id                     String                @id @default(cuid())
+  supportRequestId       String
+  supportRequest         SupportRequest        @relation(fields: [supportRequestId], references: [id], onDelete: Cascade)
+  providerMessageId      String                @unique
+  internetMessageId      String?
+  direction              SupportEmailDirection @default(INBOUND)
+  fromEmail              String
+  toEmail                String?
+  subject                String
+  automaticReplyRequired Boolean               @default(false)
+  automaticReplySentAt   DateTime?
+  automaticReplyError    String?               @db.Text
+  receivedAt             DateTime              @default(now())
+  createdAt              DateTime              @default(now())
+
+  @@index([supportRequestId])
+  @@index([internetMessageId])
+  @@index([receivedAt])
 }
 
 model SupportAttachment {

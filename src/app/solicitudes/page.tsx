@@ -172,11 +172,13 @@ function matchesSearch(
     number: number;
     subject: string;
     description: string;
+    requesterName: string | null;
+    requesterEmail: string | null;
     client: {
       businessName: string;
       tradeName: string | null;
       email: string | null;
-    };
+    } | null;
     project: {
       name: string;
       domain: string | null;
@@ -192,9 +194,11 @@ function matchesSearch(
     request.number.toString(),
     request.subject,
     request.description,
-    request.client.businessName,
-    request.client.tradeName,
-    request.client.email,
+    request.requesterName,
+    request.requesterEmail,
+    request.client?.businessName,
+    request.client?.tradeName,
+    request.client?.email,
     request.project?.name,
     request.project?.domain,
   ];
@@ -687,20 +691,35 @@ export default async function SupportRequestsPage({
                     </td>
 
                     <td>
-                      <Link
-                        className={styles.clientLink}
-                        href={`/clientes/${request.clientId}`}
-                      >
-                        <strong>
-                          {request.client.businessName}
-                        </strong>
+                      {request.client && request.clientId ? (
+                        <Link
+                          className={styles.clientLink}
+                          href={`/clientes/${request.clientId}`}
+                        >
+                          <strong>
+                            {request.client.businessName}
+                          </strong>
 
-                        <span>
-                          {request.project?.domain ??
-                            request.project?.name ??
-                            "Sin proyecto asociado"}
-                        </span>
-                      </Link>
+                          <span>
+                            {request.project?.domain ??
+                              request.project?.name ??
+                              request.requesterEmail ??
+                              "Sin proyecto asociado"}
+                          </span>
+                        </Link>
+                      ) : (
+                        <div className={styles.clientLink}>
+                          <strong>
+                            {request.requesterName ??
+                              "Remitente sin asociar"}
+                          </strong>
+
+                          <span>
+                            {request.requesterEmail ??
+                              "Correo no identificado"}
+                          </span>
+                        </div>
+                      )}
                     </td>
 
                     <td>
@@ -777,12 +796,14 @@ export default async function SupportRequestsPage({
                           Ver solicitud
                         </Link>
 
-                        <Link
-                          className={styles.viewButton}
-                          href={`/clientes/${request.clientId}`}
-                        >
-                          Ver cliente
-                        </Link>
+                        {request.clientId && (
+                          <Link
+                            className={styles.viewButton}
+                            href={`/clientes/${request.clientId}`}
+                          >
+                            Ver cliente
+                          </Link>
+                        )}
                       </div>
                     </td>
                   </tr>
