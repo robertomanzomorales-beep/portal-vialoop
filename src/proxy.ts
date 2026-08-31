@@ -20,6 +20,8 @@ function isPublicRoute(
     pathname ===
       "/api/flow/retorno" ||
     pathname ===
+      "/api/soporte/inbound" ||
+    pathname ===
       "/pagos/resultado"
   );
 }
