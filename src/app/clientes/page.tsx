@@ -2,6 +2,14 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import styles from "./clientes.module.css";
 
+type ClientsPageProps = {
+  searchParams: Promise<{
+    q?: string;
+    resultado?: string;
+    cliente?: string;
+  }>;
+};
+
 function getStatusLabel(status: string) {
   switch (status) {
     case "ACTIVE":
@@ -15,8 +23,52 @@ function getStatusLabel(status: string) {
   }
 }
 
-export default async function ClientsPage() {
+export default async function ClientsPage({
+  searchParams,
+}: ClientsPageProps) {
+  const resolvedSearchParams =
+    await searchParams;
+
+  const query =
+    resolvedSearchParams.q?.trim() ?? "";
+
   const clients = await prisma.client.findMany({
+    where: query
+      ? {
+          OR: [
+            {
+              businessName: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              tradeName: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              rut: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              mainContactName: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+            {
+              email: {
+                contains: query,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }
+      : undefined,
     orderBy: {
       createdAt: "desc",
     },
@@ -42,6 +94,15 @@ export default async function ClientsPage() {
 
   return (
     <main className={styles.page}>
+      {resolvedSearchParams.resultado ===
+        "eliminado" && (
+        <div className={styles.successMessage}>
+          {resolvedSearchParams.cliente
+            ? `${resolvedSearchParams.cliente} fue eliminado correctamente.`
+            : "El cliente fue eliminado correctamente."}
+        </div>
+      )}
+
       <header className={styles.header}>
         <div>
           <span className={styles.eyebrow}>Gestión comercial</span>
@@ -86,22 +147,65 @@ export default async function ClientsPage() {
               hosting y renovaciones.
             </p>
           </div>
+
+          <form
+            className={styles.searchForm}
+            method="get"
+          >
+            <label>
+              <span className={styles.srOnly}>
+                Buscar cliente
+              </span>
+
+              <input
+                defaultValue={query}
+                name="q"
+                placeholder="Empresa, RUT, contacto o correo"
+                type="search"
+              />
+            </label>
+
+            <button type="submit">Buscar</button>
+
+            {query && (
+              <Link
+                className={styles.clearSearch}
+                href="/clientes"
+              >
+                Limpiar
+              </Link>
+            )}
+          </form>
         </div>
 
         {clients.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>+</div>
 
-            <h3>Todavía no existen clientes registrados</h3>
+            <h3>
+              {query
+                ? "No encontramos clientes con ese criterio"
+                : "Todavía no existen clientes registrados"}
+            </h3>
 
             <p>
-              Crea el primer cliente para comenzar a asociar proyectos, planes,
-              renovaciones y solicitudes.
+              {query
+                ? "Prueba con otro nombre, RUT, contacto o correo electrónico."
+                : "Crea el primer cliente para comenzar a asociar proyectos, planes, renovaciones y solicitudes."}
             </p>
 
-            <Link className={styles.primaryButton} href="/clientes/nuevo">
-              Crear primer cliente
-            </Link>
+            {query ? (
+              <Link
+                className={styles.secondaryButton}
+                href="/clientes"
+              >
+                Ver todos
+              </Link>
+            ) : (
+              <Link className={styles.primaryButton} href="/clientes/nuevo">
+                Crear primer cliente
+              </Link>
+            )}
           </div>
         ) : (
           <div className={styles.tableWrapper}>

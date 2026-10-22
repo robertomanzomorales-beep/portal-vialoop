@@ -209,9 +209,165 @@
   color: #b42318;
 }
 
+.themeButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #344054;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.themeButton:hover {
+  border-color: #98a2b3;
+  background: #f2f4f7;
+  color: #101828;
+}
+
 .main {
   min-height: 100vh;
   margin-left: 272px;
+}
+
+.routeLoader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgb(244 246 250 / 78%);
+  backdrop-filter: blur(8px);
+}
+
+.routeLoaderCard {
+  display: grid;
+  min-width: 190px;
+  place-items: center;
+  gap: 12px;
+  border: 1px solid rgb(208 213 221 / 82%);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 24px 70px rgb(16 24 40 / 16%);
+  padding: 24px 30px;
+}
+
+.routeLoaderCard strong {
+  color: #344054;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.routeLoaderMark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: #101828;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.routeLoaderSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #d0d5dd;
+  border-top-color: #175cd3;
+  border-radius: 50%;
+  animation: routeLoaderSpin 680ms linear infinite;
+}
+
+@keyframes routeLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+:global(html[data-theme="dark"]) .shell {
+  background: #0b0d12;
+  color: #f2f4f7;
+}
+
+:global(html[data-theme="dark"]) .sidebar,
+:global(html[data-theme="dark"]) .mobileHeader {
+  border-color: #252a34;
+  background: rgb(17 20 27 / 97%);
+}
+
+:global(html[data-theme="dark"]) .brandText strong,
+:global(html[data-theme="dark"]) .mobileBrandText strong,
+:global(html[data-theme="dark"]) .userDetails strong {
+  color: #f2f4f7;
+}
+
+:global(html[data-theme="dark"]) .brandLogo,
+:global(html[data-theme="dark"]) .mobileBrandLogo {
+  filter: invert(1);
+}
+
+:global(html[data-theme="dark"]) .brandText small,
+:global(html[data-theme="dark"]) .mobileBrandText small,
+:global(html[data-theme="dark"]) .userDetails span,
+:global(html[data-theme="dark"]) .userDetails small,
+:global(html[data-theme="dark"]) .navigationLabel {
+  color: #98a2b3;
+}
+
+:global(html[data-theme="dark"]) .navigation a {
+  color: #cbd5e1;
+}
+
+:global(html[data-theme="dark"]) .navigation a:hover {
+  background: #202531;
+  color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .navigation a.activeLink {
+  background: #1d2b49;
+  color: #9fc2ff;
+}
+
+:global(html[data-theme="dark"]) .sidebarFooter {
+  border-color: #2b303a;
+}
+
+:global(html[data-theme="dark"]) .avatar {
+  background: #243353;
+  color: #b4ceff;
+}
+
+:global(html[data-theme="dark"]) .themeButton,
+:global(html[data-theme="dark"]) .logoutButton,
+:global(html[data-theme="dark"]) .menuButton,
+:global(html[data-theme="dark"]) .sidebarClose {
+  border-color: #343a46;
+  background: #191d25;
+  color: #e4e7ec;
+}
+
+:global(html[data-theme="dark"]) .menuButton span {
+  background: #e4e7ec;
+}
+
+:global(html[data-theme="dark"]) .routeLoader {
+  background: rgb(5 7 10 / 78%);
+}
+
+:global(html[data-theme="dark"]) .routeLoaderCard {
+  border-color: #343a46;
+  background: rgb(22 26 34 / 96%);
+}
+
+:global(html[data-theme="dark"]) .routeLoaderCard strong {
+  color: #e4e7ec;
 }
 
 .mobileHeader,
@@ -345,7 +501,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .sidebar,
+  .routeLoaderSpinner {
     transition: none;
+    animation: none;
   }
 }

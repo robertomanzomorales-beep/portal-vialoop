@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 import {
   addSupportComment,
+  sendSupportReply,
   updateSupportRequest,
 } from "../actions";
+import DeleteSupportRequestButton from "../DeleteSupportRequestButton";
 import styles from "../solicitudes.module.css";
 
 type SupportRequestDetailPageProps = {
@@ -136,6 +139,8 @@ function getActivityLabel(action: string) {
       "Solicitud actualizada",
     SUPPORT_COMMENT_CREATED:
       "Comentario agregado",
+    SUPPORT_REPLY_SENT:
+      "Respuesta enviada al cliente",
   };
 
   return labels[action] ?? "Actividad registrada";
@@ -146,6 +151,9 @@ export default async function SupportRequestDetailPage({
   searchParams,
 }: SupportRequestDetailPageProps) {
   const { id } = await params;
+
+  const currentUser =
+    await getCurrentUser();
 
   const resolvedSearchParams =
     await searchParams;
@@ -259,6 +267,12 @@ export default async function SupportRequestDetailPage({
       request.id,
     );
 
+  const replyAction =
+    sendSupportReply.bind(
+      null,
+      request.id,
+    );
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -298,6 +312,13 @@ export default async function SupportRequestDetailPage({
               Ver cliente
             </Link>
           )}
+
+          {currentUser?.role === "ADMIN" && (
+            <DeleteSupportRequestButton
+              requestId={request.id}
+              requestNumber={request.number}
+            />
+          )}
         </div>
       </header>
 
@@ -320,6 +341,13 @@ export default async function SupportRequestDetailPage({
         "comentario" && (
         <div className={styles.successMessage}>
           El comentario fue agregado correctamente.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "respuesta-enviada" && (
+        <div className={styles.successMessage}>
+          La respuesta fue enviada desde Soporte Hosting Vialoop y el estado quedó actualizado.
         </div>
       )}
 
@@ -656,6 +684,76 @@ export default async function SupportRequestDetailPage({
         </div>
 
         <aside className={styles.sideColumn}>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Responder al cliente</h2>
+
+                <p>
+                  Envía una actualización con el formato de Soporte Hosting Vialoop.
+                </p>
+              </div>
+            </div>
+
+            <form
+              action={replyAction}
+              className={styles.commentForm}
+            >
+              <label className={styles.field}>
+                <span>Destinatario *</span>
+
+                <input
+                  defaultValue={
+                    request.requesterEmail ??
+                    request.client?.email ??
+                    ""
+                  }
+                  name="recipientEmail"
+                  required
+                  type="email"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Nuevo estado *</span>
+
+                <select
+                  defaultValue={request.status}
+                  name="status"
+                  required
+                >
+                  <option value="RECEIVED">Recibida</option>
+                  <option value="UNDER_REVIEW">En revisión</option>
+                  <option value="WAITING_FOR_CLIENT">Esperando cliente</option>
+                  <option value="APPROVED">Aprobada</option>
+                  <option value="IN_PROGRESS">En proceso</option>
+                  <option value="READY_FOR_REVIEW">Lista para revisión</option>
+                  <option value="COMPLETED">Completada</option>
+                  <option value="REJECTED">Rechazada</option>
+                  <option value="OUT_OF_SCOPE">Fuera de alcance</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>Respuesta *</span>
+
+                <textarea
+                  name="message"
+                  placeholder="Escribe la actualización que recibirá el cliente."
+                  required
+                  rows={7}
+                />
+              </label>
+
+              <button
+                className={styles.primaryButton}
+                type="submit"
+              >
+                Enviar actualización
+              </button>
+            </form>
+          </section>
+
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <div>

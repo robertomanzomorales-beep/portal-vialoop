@@ -1,0 +1,574 @@
+.page {
+  display: grid;
+  min-height: 100vh;
+  gap: 22px;
+  padding: 36px 38px 48px;
+  background: var(--portal-bg);
+  color: var(--portal-text);
+}
+
+.hero,
+.panelHeader,
+.pipelineHeader,
+.cardHeading,
+.cardFooter,
+.formActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hero h1 {
+  margin: 7px 0 8px;
+}
+
+.hero p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--portal-muted);
+  line-height: 1.55;
+}
+
+.eyebrow {
+  color: #175cd3;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metrics article,
+.insightsGrid > article,
+.editorPanel,
+.pipelinePanel {
+  border: 1px solid var(--portal-border);
+  border-radius: 18px;
+  background: var(--portal-surface);
+  box-shadow: 0 16px 42px rgb(16 24 40 / 5%);
+}
+
+.metrics article {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 20px;
+}
+
+.metrics span,
+.metrics small {
+  color: var(--portal-muted);
+  font-size: 0.78rem;
+}
+
+.metrics strong {
+  font-size: 2rem;
+  letter-spacing: -0.05em;
+}
+
+.metrics .metricAlert {
+  border-color: #fecdca;
+  background: #fff8f7;
+}
+
+.metricAlert strong {
+  color: #b42318;
+}
+
+.insightsGrid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+
+.insightsGrid > article {
+  padding: 22px;
+}
+
+.panelHeader h2,
+.pipelineHeader h2 {
+  margin: 5px 0 0;
+}
+
+.barList {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.barList > div {
+  display: grid;
+  grid-template-columns: 135px minmax(120px, 1fr) 30px;
+  align-items: center;
+  gap: 12px;
+  color: var(--portal-muted);
+  font-size: 0.78rem;
+}
+
+.barList > div > div {
+  overflow: hidden;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--portal-surface-soft);
+}
+
+.barList i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #175cd3, #84adff);
+}
+
+.industryList {
+  display: grid;
+  gap: 0;
+  margin-top: 14px;
+}
+
+.industryList > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--portal-border);
+  color: var(--portal-muted);
+  font-size: 0.84rem;
+}
+
+.industryList > div:last-child {
+  border-bottom: 0;
+}
+
+.industryList strong {
+  color: var(--portal-text);
+}
+
+.editorPanel,
+.pipelinePanel {
+  padding: 24px;
+}
+
+.prospectForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.prospectForm label {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.prospectForm label > span {
+  color: #344054;
+  font-size: 0.77rem;
+  font-weight: 750;
+}
+
+.prospectForm input,
+.prospectForm select,
+.prospectForm textarea,
+.filters input,
+.filters select {
+  width: 100%;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  outline: 0;
+  background: var(--portal-surface);
+  color: var(--portal-text);
+}
+
+.prospectForm input,
+.prospectForm select,
+.filters input,
+.filters select {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.prospectForm textarea {
+  min-height: 98px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.prospectForm input:focus,
+.prospectForm select:focus,
+.prospectForm textarea:focus,
+.filters input:focus,
+.filters select:focus {
+  border-color: #84adff;
+  box-shadow: 0 0 0 3px rgb(47 107 234 / 10%);
+}
+
+.wideField,
+.formActions {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  align-items: center;
+  border-top: 1px solid var(--portal-border);
+  padding-top: 18px;
+}
+
+.primaryButton,
+.secondaryButton,
+.exportButton,
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton,
+.exportButton {
+  min-height: 40px;
+  border: 1px solid #101828;
+  padding: 0 16px;
+  background: #101828;
+  color: #fff;
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.secondaryButton,
+.editButton {
+  min-height: 34px;
+  border: 1px solid var(--portal-border);
+  padding: 0 13px;
+  background: var(--portal-surface);
+  color: var(--portal-text);
+}
+
+.successMessage,
+.errorMessage {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.successMessage {
+  color: #027a48;
+}
+
+.errorMessage {
+  color: #b42318;
+}
+
+.pipelinePanel {
+  display: grid;
+  gap: 20px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 230px;
+  gap: 12px;
+}
+
+.prospectGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.prospectCard {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  content-visibility: auto;
+  contain-intrinsic-size: 420px;
+  padding: 20px;
+  border: 1px solid var(--portal-border);
+  border-radius: 15px;
+  background: var(--portal-surface-soft);
+}
+
+.cardHeading h3 {
+  margin: 9px 0 4px;
+  font-size: 1.05rem;
+}
+
+.cardHeading p,
+.cardNotes {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.statusBadge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statusNEW {
+  background: #eff8ff;
+  color: #175cd3;
+}
+
+.statusCONTACTED {
+  background: #f4f3ff;
+  color: #5925dc;
+}
+
+.statusFOLLOW_UP {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.statusLATER {
+  background: #f2f4f7;
+  color: #475467;
+}
+
+.statusWON {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.statusLOST {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.cardDetails {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.cardDetails div {
+  min-width: 0;
+}
+
+.cardDetails dt {
+  color: var(--portal-muted);
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.cardDetails dd {
+  overflow: hidden;
+  margin: 5px 0 0;
+  color: var(--portal-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.followUpDate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--portal-surface);
+  font-size: 0.76rem;
+}
+
+.followUpDate span {
+  color: var(--portal-muted);
+}
+
+.dateOverdue {
+  border-color: #fecdca;
+  background: #fff8f7;
+  color: #b42318;
+}
+
+.dateToday {
+  border-color: #fedf89;
+  background: #fffcf5;
+  color: #b54708;
+}
+
+.dateUpcoming {
+  border-color: #abefc6;
+  background: #f6fef9;
+  color: #027a48;
+}
+
+.dateNeutral {
+  color: var(--portal-muted);
+}
+
+.cardNotes {
+  border-left: 2px solid #84adff;
+  padding-left: 11px;
+}
+
+.messageSuggestion {
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  background: var(--portal-surface);
+}
+
+.messageSuggestion summary {
+  padding: 11px 12px;
+  color: #175cd3;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.messageSuggestion p {
+  margin: 0;
+  padding: 0 12px 12px;
+  color: var(--portal-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.messageSuggestion > div {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.messageSuggestion button,
+.messageSuggestion a,
+.cardFooter button {
+  border: 0;
+  background: transparent;
+  color: #175cd3;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cardFooter {
+  align-items: center;
+  padding-top: 2px;
+  color: var(--portal-muted);
+  font-size: 0.72rem;
+}
+
+.cardFooter span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardFooter button {
+  color: #b42318;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  gap: 7px;
+  border: 1px dashed var(--portal-border);
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+}
+
+.srOnly {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prospectForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .page {
+    padding: 28px 22px 40px;
+  }
+
+  .insightsGrid,
+  .prospectGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .page {
+    gap: 16px;
+    padding: 22px 16px 36px;
+  }
+
+  .hero,
+  .pipelineHeader,
+  .formActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metrics,
+  .prospectForm,
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .editorPanel,
+  .pipelinePanel,
+  .insightsGrid > article {
+    padding: 18px;
+  }
+
+  .wideField,
+  .formActions {
+    grid-column: auto;
+  }
+
+  .barList > div {
+    grid-template-columns: 105px minmax(70px, 1fr) 25px;
+  }
+
+  .cardDetails {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .primaryButton,
+  .exportButton {
+    width: 100%;
+  }
+}

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin, requireUser } from "@/lib/auth";
+import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 
 type SupportPriority =
@@ -162,6 +164,8 @@ function getPriorityLabel(priority: string) {
 export async function createSupportRequest(
   formData: FormData,
 ) {
+  await requireUser();
+
   const clientId = getRequiredString(
     formData,
     "clientId",
@@ -291,6 +295,8 @@ export async function updateSupportRequest(
   requestId: string,
   formData: FormData,
 ) {
+  await requireUser();
+
   const existingRequest =
     await prisma.supportRequest.findUnique({
       where: {
@@ -561,6 +567,8 @@ export async function addSupportComment(
   requestId: string,
   formData: FormData,
 ) {
+  const user = await requireUser();
+
   const message = getRequiredString(
     formData,
     "message",
@@ -569,7 +577,7 @@ export async function addSupportComment(
 
   const authorName =
     getOptionalString(formData, "authorName") ??
-    "Roberto Manzo";
+    user.name;
 
   const internal =
     formData.get("internal") === "on";
@@ -598,7 +606,7 @@ export async function addSupportComment(
         data: {
           supportRequestId: requestId,
           authorName,
-          authorType: "ADMIN",
+          authorType: user.role,
           message,
           internal,
         },
@@ -633,5 +641,225 @@ export async function addSupportComment(
 
   redirect(
     `/solicitudes/${requestId}?resultado=comentario`,
+  );
+}
+
+export async function sendSupportReply(
+  requestId: string,
+  formData: FormData,
+) {
+  const user = await requireUser();
+
+  const recipientEmail = getRequiredString(
+    formData,
+    "recipientEmail",
+    "El correo del destinatario",
+  ).toLowerCase();
+
+  if (!recipientEmail.includes("@")) {
+    throw new Error(
+      "El correo del destinatario no es válido.",
+    );
+  }
+
+  const message = getRequiredString(
+    formData,
+    "message",
+    "La respuesta",
+  );
+
+  const status = getStatus(formData);
+
+  const request =
+    await prisma.supportRequest.findUnique({
+      where: {
+        id: requestId,
+      },
+      include: {
+        client: {
+          select: {
+            businessName: true,
+          },
+        },
+      },
+    });
+
+  if (!request) {
+    throw new Error(
+      "La solicitud seleccionada no existe.",
+    );
+  }
+
+  const requestCode = `#${request.number
+    .toString()
+    .padStart(4, "0")}`;
+
+  const statusLabel =
+    getStatusLabel(status);
+
+  const subject =
+    `[Atención ${requestCode}] ${request.subject}`;
+
+  const text = [
+    `Estimado/a ${
+      request.requesterName ??
+      request.client?.businessName ??
+      "cliente"
+    }:`,
+    "",
+    message,
+    "",
+    `Estado de la solicitud: ${statusLabel}`,
+    `Número de atención: ${requestCode}`,
+    "",
+    "Soporte Hosting Vialoop",
+    "hosting@vialoop.cl",
+  ].join("\n");
+
+  const result = await sendEmail({
+    to: recipientEmail,
+    subject,
+    text,
+    fromEmail: "hosting@vialoop.cl",
+    fromName: "Soporte Hosting Vialoop",
+    replyTo: "hosting@vialoop.cl",
+    mailAccount: "default",
+  });
+
+  const completedAt =
+    status === "COMPLETED"
+      ? request.completedAt ?? new Date()
+      : null;
+
+  await prisma.$transaction(
+    async (transaction) => {
+      await transaction.supportRequest.update({
+        where: {
+          id: request.id,
+        },
+        data: {
+          status,
+          completedAt,
+        },
+      });
+
+      await transaction.supportComment.create({
+        data: {
+          supportRequestId: request.id,
+          authorName: user.name,
+          authorType: user.role,
+          message,
+          internal: false,
+        },
+      });
+
+      await transaction.supportEmailMessage.create({
+        data: {
+          supportRequestId: request.id,
+          providerMessageId: result.messageId,
+          internetMessageId: result.messageId,
+          direction: "OUTBOUND",
+          fromEmail: "hosting@vialoop.cl",
+          toEmail: recipientEmail,
+          subject,
+          automaticReplyRequired: false,
+          receivedAt: new Date(),
+        },
+      });
+
+      await transaction.activityLog.create({
+        data: {
+          userId: user.id,
+          clientId: request.clientId,
+          projectId: request.projectId,
+          supportRequestId: request.id,
+          action: "SUPPORT_REPLY_SENT",
+          entityType: "SupportRequest",
+          entityId: request.id,
+          description: `${user.name} respondió al cliente y actualizó el estado a ${statusLabel}.`,
+          metadata: {
+            recipientEmail,
+            status,
+            messageId: result.messageId,
+          },
+        },
+      });
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/solicitudes");
+  revalidatePath(`/solicitudes/${request.id}`);
+
+  if (request.clientId) {
+    revalidatePath(
+      `/clientes/${request.clientId}`,
+    );
+  }
+
+  redirect(
+    `/solicitudes/${request.id}?resultado=respuesta-enviada`,
+  );
+}
+
+export async function deleteSupportRequest(
+  requestId: string,
+) {
+  const user = await requireAdmin();
+
+  const request =
+    await prisma.supportRequest.findUnique({
+      where: {
+        id: requestId,
+      },
+      select: {
+        id: true,
+        number: true,
+        clientId: true,
+        projectId: true,
+      },
+    });
+
+  if (!request) {
+    redirect(
+      "/solicitudes?resultado=no-encontrada",
+    );
+  }
+
+  await prisma.$transaction(
+    async (transaction) => {
+      await transaction.activityLog.create({
+        data: {
+          userId: user.id,
+          clientId: request.clientId,
+          projectId: request.projectId,
+          action: "SUPPORT_REQUEST_DELETED",
+          entityType: "SupportRequest",
+          entityId: request.id,
+          description: `La solicitud #${request.number
+            .toString()
+            .padStart(4, "0")} fue eliminada como spam o registro no válido.`,
+        },
+      });
+
+      await transaction.supportRequest.delete({
+        where: {
+          id: request.id,
+        },
+      });
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/solicitudes");
+
+  if (request.clientId) {
+    revalidatePath(
+      `/clientes/${request.clientId}`,
+    );
+  }
+
+  redirect(
+    `/solicitudes?resultado=eliminada&numero=${request.number}`,
   );
 }

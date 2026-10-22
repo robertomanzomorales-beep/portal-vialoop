@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { parseQuotationMetadata } from "@/lib/quotation";
+import DeleteClientButton from "../DeleteClientButton";
 import styles from "../clientes.module.css";
 
 type ClientDetailPageProps = {
@@ -121,10 +124,28 @@ function getPaymentStatusLabel(status: string) {
   return labels[status] ?? status;
 }
 
+function getSupportStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    RECEIVED: "Recibida",
+    UNDER_REVIEW: "En revisión",
+    WAITING_FOR_CLIENT: "Esperando al cliente",
+    APPROVED: "Aprobada",
+    IN_PROGRESS: "En proceso",
+    READY_FOR_REVIEW: "Lista para revisión",
+    COMPLETED: "Completada",
+    REJECTED: "Rechazada",
+    OUT_OF_SCOPE: "Fuera de alcance",
+  };
+
+  return labels[status] ?? status;
+}
+
 export default async function ClientDetailPage({
   params,
 }: ClientDetailPageProps) {
   const { id } = await params;
+
+  const user = await getCurrentUser();
 
   const client = await prisma.client.findUnique({
     where: {
@@ -178,6 +199,16 @@ export default async function ClientDetailPage({
         },
       },
 
+      activityLogs: {
+        where: {
+          entityType: "Quotation",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 20,
+      },
+
       _count: {
         select: {
           projects: true,
@@ -220,6 +251,24 @@ export default async function ClientDetailPage({
       payment.status === "OVERDUE",
   );
 
+  const quotations = client.activityLogs
+    .map((log) => ({
+      log,
+      metadata: parseQuotationMetadata(
+        log.metadata,
+      ),
+    }))
+    .filter(
+      (item): item is {
+        log: (typeof client.activityLogs)[number];
+        metadata: NonNullable<
+          ReturnType<
+            typeof parseQuotationMetadata
+          >
+        >;
+      } => Boolean(item.metadata),
+    );
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -245,6 +294,13 @@ export default async function ClientDetailPage({
           >
             Editar cliente
           </Link>
+
+          {user?.role === "ADMIN" && (
+            <DeleteClientButton
+              clientId={client.id}
+              clientName={client.businessName}
+            />
+          )}
         </div>
       </header>
 
@@ -262,6 +318,11 @@ export default async function ClientDetailPage({
         <article>
           <span>Cobros pendientes</span>
           <strong>{pendingPayments.length}</strong>
+        </article>
+
+        <article>
+          <span>Cotizaciones</span>
+          <strong>{quotations.length}</strong>
         </article>
       </section>
 
@@ -332,6 +393,75 @@ export default async function ClientDetailPage({
               <dd>{client.phone ?? "Sin teléfono registrado"}</dd>
             </div>
           </dl>
+        </article>
+      </section>
+
+      <section className={styles.detailGrid}>
+        <article className={styles.detailPanel}>
+          <div className={styles.sectionHeader}>
+            <h2>Solicitudes de soporte</h2>
+            <p>Últimos requerimientos ordenados desde el más reciente.</p>
+          </div>
+
+          {client.supportRequests.length > 0 ? (
+            <dl className={styles.detailList}>
+              {client.supportRequests.slice(0, 6).map((request) => (
+                <div key={request.id}>
+                  <dt>
+                    <Link href={`/solicitudes/${request.id}`}>
+                      {request.subject}
+                    </Link>
+                    <br />
+                    {formatDate(request.createdAt)}
+                  </dt>
+                  <dd>{getSupportStatusLabel(request.status)}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <div className={styles.inlineEmpty}>
+              Este cliente todavía no tiene solicitudes de soporte.
+            </div>
+          )}
+        </article>
+
+        <article className={styles.detailPanel}>
+          <div className={styles.sectionHeader}>
+            <h2>Cotizaciones</h2>
+            <p>Propuestas comerciales generadas para este cliente.</p>
+          </div>
+
+          {quotations.length > 0 ? (
+            <dl className={styles.detailList}>
+              {quotations.slice(0, 6).map(({ log, metadata }) => (
+                <div key={log.id}>
+                  <dt>
+                    <Link
+                      href={`/api/cotizaciones/${log.id}/pdf`}
+                      target="_blank"
+                    >
+                      {metadata.number}
+                    </Link>
+                    <br />
+                    {formatDate(log.createdAt)}
+                  </dt>
+                  <dd>
+                    {formatCurrency(metadata.totalAmount)}
+                    <br />
+                    {metadata.emailStatus === "SENT"
+                      ? "Enviada"
+                      : metadata.emailStatus === "FAILED"
+                        ? "Con error de envío"
+                        : "Pendiente"}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <div className={styles.inlineEmpty}>
+              Aún no existen cotizaciones asociadas a este cliente.
+            </div>
+          )}
         </article>
       </section>
 

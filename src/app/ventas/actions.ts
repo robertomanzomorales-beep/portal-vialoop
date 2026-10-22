@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getSalesGoalKey } from "@/lib/sales-goal";
 
 type SaleActionState = {
   ok: boolean;
@@ -35,6 +37,8 @@ export async function saveSale(
   _previousState: SaleActionState,
   formData: FormData,
 ): Promise<SaleActionState> {
+  await requireUser();
+
   const saleId = getText(formData, "saleId");
   const clientId = getText(formData, "clientId");
   const service = getText(formData, "service");
@@ -146,6 +150,8 @@ export async function saveSale(
 }
 
 export async function cancelSale(formData: FormData) {
+  await requireUser();
+
   const saleId = getText(formData, "saleId");
 
   if (!saleId) {
@@ -171,6 +177,8 @@ export async function deleteSale(
   _previousState: SaleActionState,
   formData: FormData,
 ): Promise<SaleActionState> {
+  await requireUser();
+
   const saleId = getText(formData, "saleId");
 
   if (!saleId) {
@@ -220,4 +228,62 @@ export async function deleteSale(
     ok: true,
     message: `Venta N.º ${sale.number} eliminada correctamente.`,
   };
+}
+
+export async function updateMonthlyGoal(
+  formData: FormData,
+) {
+  await requireUser();
+
+  const period =
+    getText(formData, "period");
+
+  const amount =
+    parseAmount(
+      getText(formData, "goal"),
+    );
+
+  const match =
+    /^(\d{4})-(\d{2})$/.exec(
+      period,
+    );
+
+  if (!match || amount <= 0) {
+    throw new Error(
+      "Selecciona un mes y una meta mayor que cero.",
+    );
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+
+  if (
+    year < 2020 ||
+    year > 2100 ||
+    month < 1 ||
+    month > 12
+  ) {
+    throw new Error(
+      "El periodo seleccionado no es válido.",
+    );
+  }
+
+  const key =
+    getSalesGoalKey(year, month);
+
+  await prisma.counter.upsert({
+    where: {
+      key,
+    },
+    update: {
+      nextValue: amount,
+    },
+    create: {
+      key,
+      nextValue: amount,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/ventas");
 }

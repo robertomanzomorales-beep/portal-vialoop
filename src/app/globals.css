@@ -4,21 +4,41 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+  --portal-bg: #f4f6fa;
+  --portal-surface: #ffffff;
+  --portal-surface-soft: #f8fafc;
+  --portal-border: #e4e7ec;
+  --portal-text: #101828;
+  --portal-muted: #667085;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --portal-bg: #0b0d12;
+  --portal-surface: #141820;
+  --portal-surface-soft: #191e27;
+  --portal-border: #2a303b;
+  --portal-text: #f2f4f7;
+  --portal-muted: #a6afbf;
+}
+
 html,
 body {
   min-height: 100%;
 }
 
 html {
-  background: #f4f6fa;
+  background: var(--portal-bg);
 }
 
 body {
   min-width: 320px;
   margin: 0;
   overflow-x: hidden;
-  background: #f4f6fa;
-  color: #101828;
+  background: var(--portal-bg);
+  color: var(--portal-text);
   font-family:
     var(--font-geist-sans),
     Arial,
@@ -36,4 +56,140 @@ select {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+main h1 {
+  font-size: clamp(1.8rem, 3.2vw, 2.55rem) !important;
+  letter-spacing: -0.04em;
+}
+
+main h2 {
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] main {
+  background: var(--portal-bg) !important;
+  color: var(--portal-text) !important;
+}
+
+html[data-theme="dark"] main section,
+html[data-theme="dark"] main article,
+html[data-theme="dark"] main form,
+html[data-theme="dark"] main aside > div {
+  border-color: var(--portal-border) !important;
+}
+
+html[data-theme="dark"] main article,
+html[data-theme="dark"] main section[class*="panel"],
+html[data-theme="dark"] main div[class*="modal"],
+html[data-theme="dark"] main div[class*="Panel"] {
+  background-color: var(--portal-surface) !important;
+}
+
+html[data-theme="dark"] main h1,
+html[data-theme="dark"] main h2,
+html[data-theme="dark"] main h3,
+html[data-theme="dark"] main strong,
+html[data-theme="dark"] main dt,
+html[data-theme="dark"] main label,
+html[data-theme="dark"] main td {
+  color: var(--portal-text) !important;
+}
+
+html[data-theme="dark"] main p,
+html[data-theme="dark"] main small,
+html[data-theme="dark"] main dd,
+html[data-theme="dark"] main time {
+  color: var(--portal-muted) !important;
+  border-color: var(--portal-border);
+}
+
+html[data-theme="dark"] main input,
+html[data-theme="dark"] main textarea,
+html[data-theme="dark"] main select {
+  border-color: #3a414e !important;
+  background: #10141b !important;
+  color: #f2f4f7 !important;
+}
+
+html[data-theme="dark"] main table,
+html[data-theme="dark"] main th,
+html[data-theme="dark"] main td {
+  border-color: var(--portal-border) !important;
+}
+
+html[data-theme="dark"] main th {
+  background: #191e27 !important;
+  color: #a6afbf !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.portal-route-loading {
+  display: grid;
+  min-height: 62vh;
+  place-items: center;
+  padding: 32px;
+}
+
+.portal-route-loading > div {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  color: var(--portal-muted);
+}
+
+.portal-route-loading span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--portal-text);
+  color: var(--portal-bg);
+  font-weight: 850;
+}
+
+.portal-route-loading i {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--portal-border);
+  border-top-color: #175cd3;
+  border-radius: 50%;
+  animation: portalRouteSpin 680ms linear infinite;
+}
+
+.portal-route-loading strong {
+  font-size: 12px;
+}
+
+@keyframes portalRouteSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-route-loading i {
+    animation: none;
+  }
 }

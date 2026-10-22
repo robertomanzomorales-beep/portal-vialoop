@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getMonthlySalesGoal } from "@/lib/sales-goal";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-const MONTHLY_SALES_TARGET =
-  3_500_000;
 
 function formatCurrency(
   value: unknown,
@@ -267,6 +265,9 @@ export default async function Home() {
     recentPaidCandidates,
     monthlySalesAmountResult,
     monthlySalesCount,
+    monthlyHostingAmountResult,
+    monthlyHostingCount,
+    monthlySalesTarget,
     recentSales,
     recentManualCharges,
   ] = await Promise.all([
@@ -435,6 +436,34 @@ export default async function Home() {
       },
     }),
 
+    prisma.payment.aggregate({
+      where: {
+        status: "PAID",
+        paidAt: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.payment.count({
+      where: {
+        status: "PAID",
+        paidAt: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
+    }),
+
+    getMonthlySalesGoal(
+      currentMonth.start.getUTCFullYear(),
+      currentMonth.start.getUTCMonth() + 1,
+    ),
+
     prisma.sale.findMany({
       where: {
         status: "ACTIVE",
@@ -513,22 +542,38 @@ export default async function Home() {
     upcomingRenewalCount +
     pendingPaymentCount;
 
-  const monthlySalesAmount =
+  const monthlyDirectSalesAmount =
     Number(
       monthlySalesAmountResult
         ._sum.netAmount ?? 0,
     );
 
+  const monthlyHostingSalesAmount =
+    Math.round(
+      Number(
+        monthlyHostingAmountResult
+          ._sum.amount ?? 0,
+      ) / 1.19,
+    );
+
+  const monthlySalesAmount =
+    monthlyDirectSalesAmount +
+    monthlyHostingSalesAmount;
+
+  const monthlyCommercialCount =
+    monthlySalesCount +
+    monthlyHostingCount;
+
   const monthlySalesProgress =
     Math.round(
       (monthlySalesAmount /
-        MONTHLY_SALES_TARGET) *
+        monthlySalesTarget) *
         100,
     );
 
   const monthlySalesRemaining =
     Math.max(
-      MONTHLY_SALES_TARGET -
+      monthlySalesTarget -
         monthlySalesAmount,
       0,
     );
@@ -611,6 +656,24 @@ export default async function Home() {
             className={
               styles.secondaryButton
             }
+            href="/seguimiento"
+          >
+            Seguimiento
+          </Link>
+
+          <Link
+            className={
+              styles.secondaryButton
+            }
+            href="/cotizaciones"
+          >
+            Cotizar
+          </Link>
+
+          <Link
+            className={
+              styles.secondaryButton
+            }
             href="/cobros"
           >
             Cobros manuales
@@ -677,10 +740,7 @@ export default async function Home() {
           </strong>
 
           <p>
-            {monthlySalesCount}{" "}
-            {monthlySalesCount === 1
-              ? "venta activa"
-              : "ventas activas"}
+            {monthlyCommercialCount} movimientos: {monthlySalesCount} ventas y {monthlyHostingCount} pagos de hosting
           </p>
         </Link>
 
@@ -691,7 +751,7 @@ export default async function Home() {
 
           <strong>
             {formatCurrency(
-              MONTHLY_SALES_TARGET,
+              monthlySalesTarget,
             )}
           </strong>
 

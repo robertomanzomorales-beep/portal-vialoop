@@ -99,6 +99,7 @@ export default async function RootLayout({
     <html
       className={`${geistSans.variable} ${geistMono.variable}`}
       lang="es"
+      suppressHydrationWarning
     >
       <body>
         {isLoginPage ? (

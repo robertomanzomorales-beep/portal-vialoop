@@ -2,13 +2,20 @@ import SalesManager, {
   type SaleListItem,
 } from "./SalesManager";
 import { prisma } from "@/lib/prisma";
+import { getMonthlySalesGoal } from "@/lib/sales-goal";
+import { updateMonthlyGoal } from "./actions";
 import styles from "./ventas.module.css";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const CHILE_TIME_ZONE = "America/Santiago";
-const MONTHLY_GOAL = 3_500_000;
+
+type SalesPageProps = {
+  searchParams: Promise<{
+    periodo?: string;
+  }>;
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -37,6 +44,39 @@ function getCurrentYearAndMonth() {
   return {
     year: Number(parts.find((part) => part.type === "year")?.value),
     month: Number(parts.find((part) => part.type === "month")?.value),
+  };
+}
+
+function getSelectedPeriod(
+  value?: string,
+) {
+  const current =
+    getCurrentYearAndMonth();
+
+  const match =
+    /^(\d{4})-(\d{2})$/.exec(
+      value ?? "",
+    );
+
+  if (!match) {
+    return current;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+
+  if (
+    year < 2020 ||
+    year > 2100 ||
+    month < 1 ||
+    month > 12
+  ) {
+    return current;
+  }
+
+  return {
+    year,
+    month,
   };
 }
 
@@ -91,14 +131,39 @@ function grossFromNet(netAmount: number) {
   return netAmount + Math.round(netAmount * 0.19);
 }
 
-export default async function SalesPage() {
-  const { year, month } = getCurrentYearAndMonth();
+function netFromGross(grossAmount: number) {
+  return Math.round(grossAmount / 1.19);
+}
+
+export default async function SalesPage({
+  searchParams,
+}: SalesPageProps) {
+  const resolvedSearchParams =
+    await searchParams;
+
+  const { year, month } =
+    getSelectedPeriod(
+      resolvedSearchParams.periodo,
+    );
+
+  const period = `${year}-${String(
+    month,
+  ).padStart(2, "0")}`;
+
   const currentMonth = getMonthRange(year, month);
   const firstChartMonthDate = createDateOnly(year, month - 11);
   const firstChartYear = firstChartMonthDate.getUTCFullYear();
   const firstChartMonth = firstChartMonthDate.getUTCMonth() + 1;
 
-  const [clients, monthlySales, chartSales, recentSales] = await Promise.all([
+  const [
+    clients,
+    monthlySales,
+    monthlyHostingPayments,
+    chartSales,
+    chartHostingPayments,
+    recentSales,
+    monthlyGoal,
+  ] = await Promise.all([
     prisma.client.findMany({
       where: {
         status: "ACTIVE",
@@ -124,6 +189,32 @@ export default async function SalesPage() {
         netAmount: true,
       },
     }),
+    prisma.payment.findMany({
+      where: {
+        status: "PAID",
+        paidAt: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
+      orderBy: {
+        paidAt: "desc",
+      },
+      select: {
+        id: true,
+        description: true,
+        amount: true,
+        paidAt: true,
+        method: true,
+        reference: true,
+        client: {
+          select: {
+            businessName: true,
+            tradeName: true,
+          },
+        },
+      },
+    }),
     prisma.sale.findMany({
       where: {
         status: "ACTIVE",
@@ -137,7 +228,26 @@ export default async function SalesPage() {
         netAmount: true,
       },
     }),
+    prisma.payment.findMany({
+      where: {
+        status: "PAID",
+        paidAt: {
+          gte: createDateOnly(firstChartYear, firstChartMonth),
+          lt: currentMonth.end,
+        },
+      },
+      select: {
+        paidAt: true,
+        amount: true,
+      },
+    }),
     prisma.sale.findMany({
+      where: {
+        saleDate: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+      },
       orderBy: [
         {
           saleDate: "desc",
@@ -146,7 +256,7 @@ export default async function SalesPage() {
           createdAt: "desc",
         },
       ],
-      take: 50,
+      take: 100,
       include: {
         client: {
           select: {
@@ -172,22 +282,44 @@ export default async function SalesPage() {
         },
       },
     }),
+    getMonthlySalesGoal(
+      year,
+      month,
+    ),
   ]);
 
-  const monthlyTotal = monthlySales.reduce(
+  const manualSalesTotal = monthlySales.reduce(
     (total, sale) => total + Number(sale.netAmount),
     0,
   );
-  const salesCount = monthlySales.length;
+
+  const hostingSalesTotal =
+    monthlyHostingPayments.reduce(
+      (total, payment) =>
+        total +
+        netFromGross(
+          Number(payment.amount),
+        ),
+      0,
+    );
+
+  const monthlyTotal =
+    manualSalesTotal +
+    hostingSalesTotal;
+
+  const salesCount =
+    monthlySales.length +
+    monthlyHostingPayments.length;
+
   const averageSale = salesCount > 0 ? monthlyTotal / salesCount : 0;
-  const progress = (monthlyTotal / MONTHLY_GOAL) * 100;
-  const remaining = Math.max(MONTHLY_GOAL - monthlyTotal, 0);
+  const progress = (monthlyTotal / monthlyGoal) * 100;
+  const remaining = Math.max(monthlyGoal - monthlyTotal, 0);
 
   const chartData = Array.from({ length: 12 }, (_, index) => {
     const date = createDateOnly(firstChartYear, firstChartMonth + index);
     const itemYear = date.getUTCFullYear();
     const itemMonth = date.getUTCMonth() + 1;
-    const total = chartSales
+    const manualTotal = chartSales
       .filter(
         (sale) =>
           sale.saleDate.getUTCFullYear() === itemYear &&
@@ -195,16 +327,35 @@ export default async function SalesPage() {
       )
       .reduce((sum, sale) => sum + Number(sale.netAmount), 0);
 
+    const hostingTotal =
+      chartHostingPayments
+        .filter(
+          (payment) =>
+            payment.paidAt &&
+            payment.paidAt.getUTCFullYear() === itemYear &&
+            payment.paidAt.getUTCMonth() + 1 === itemMonth,
+        )
+        .reduce(
+          (sum, payment) =>
+            sum +
+            netFromGross(
+              Number(payment.amount),
+            ),
+          0,
+        );
+
     return {
       key: `${itemYear}-${String(itemMonth).padStart(2, "0")}`,
       label: getMonthLabel(itemYear, itemMonth),
-      total,
+      total:
+        manualTotal +
+        hostingTotal,
     };
   });
 
   const chartMaximum =
-    Math.max(MONTHLY_GOAL, ...chartData.map((item) => item.total)) * 1.12;
-  const goalPosition = (MONTHLY_GOAL / chartMaximum) * 100;
+    Math.max(monthlyGoal, ...chartData.map((item) => item.total)) * 1.12;
+  const goalPosition = (monthlyGoal / chartMaximum) * 100;
 
   const saleItems: SaleListItem[] = recentSales.map((sale) => {
     const netAmount = Number(sale.netAmount);
@@ -298,18 +449,66 @@ export default async function SalesPage() {
             Control de ventas cerradas y avance de la meta comercial mensual.
           </p>
         </div>
+
+        <div className={styles.periodTools}>
+          <form
+            className={styles.periodForm}
+            method="get"
+          >
+            <label>
+              <span>Mes de análisis</span>
+              <input
+                defaultValue={period}
+                name="periodo"
+                type="month"
+              />
+            </label>
+
+            <button type="submit">
+              Ver mes
+            </button>
+          </form>
+
+          <form
+            action={updateMonthlyGoal}
+            className={styles.periodForm}
+          >
+            <input
+              name="period"
+              type="hidden"
+              value={period}
+            />
+
+            <label>
+              <span>Meta del mes</span>
+              <input
+                defaultValue={monthlyGoal}
+                min="1"
+                name="goal"
+                step="1"
+                type="number"
+              />
+            </label>
+
+            <button type="submit">
+              Guardar meta
+            </button>
+          </form>
+        </div>
       </header>
 
       <section className={styles.metrics}>
         <article className={styles.metricCard}>
           <span>Vendido en {getMonthLabel(year, month, true)}</span>
           <strong>{formatCurrency(monthlyTotal)}</strong>
-          <small>{salesCount} ventas activas registradas</small>
+          <small>
+            {monthlySales.length} ventas y {monthlyHostingPayments.length} pagos de hosting
+          </small>
         </article>
 
         <article className={styles.metricCard}>
           <span>Meta mensual</span>
-          <strong>{formatCurrency(MONTHLY_GOAL)}</strong>
+          <strong>{formatCurrency(monthlyGoal)}</strong>
           <small>Valor neto, sin IVA</small>
         </article>
 
@@ -320,7 +519,7 @@ export default async function SalesPage() {
             {remaining > 0
               ? `Faltan ${formatCurrency(remaining)}`
               : `Meta superada por ${formatCurrency(
-                  monthlyTotal - MONTHLY_GOAL,
+                  monthlyTotal - monthlyGoal,
                 )}`}
           </small>
         </article>
@@ -339,7 +538,7 @@ export default async function SalesPage() {
             <strong>{Math.min(progress, 100).toFixed(1).replace(".", ",")}%</strong>
           </div>
           <p>
-            {monthlyTotal >= MONTHLY_GOAL
+            {monthlyTotal >= monthlyGoal
               ? "Meta mensual cumplida"
               : `${formatCurrency(remaining)} para alcanzar la meta`}
           </p>
@@ -366,7 +565,7 @@ export default async function SalesPage() {
             </span>
             <span>
               <i className={styles.legendGoal} />
-              Meta {formatCurrency(MONTHLY_GOAL)}
+              Meta {formatCurrency(monthlyGoal)}
             </span>
           </div>
         </div>
@@ -402,6 +601,82 @@ export default async function SalesPage() {
             })}
           </div>
         </div>
+      </section>
+
+      <section className={styles.listPanel}>
+        <div className={styles.listHeader}>
+          <div>
+            <span className={styles.eyebrow}>
+              Ingresos recurrentes
+            </span>
+            <h2>Pagos de hosting confirmados</h2>
+            <p>
+              Estos pagos se incorporan automáticamente al total comercial del mes.
+            </p>
+          </div>
+
+          <strong className={styles.hostingTotal}>
+            {formatCurrency(hostingSalesTotal)} netos
+          </strong>
+        </div>
+
+        {monthlyHostingPayments.length === 0 ? (
+          <div className={styles.emptyState}>
+            <strong>No hay pagos de hosting confirmados en este mes</strong>
+            <p>Cuando un pago pase a pagado aparecerá aquí y sumará en los indicadores.</p>
+          </div>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Servicio</th>
+                  <th>Medio</th>
+                  <th>Total pagado</th>
+                  <th>Neto comercial</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyHostingPayments.map((payment) => (
+                  <tr key={payment.id}>
+                    <td>
+                      {payment.paidAt
+                        ? formatDateOnly(payment.paidAt)
+                        : "Sin fecha"}
+                    </td>
+                    <td>
+                      <strong>
+                        {payment.client.tradeName ||
+                          payment.client.businessName}
+                      </strong>
+                    </td>
+                    <td>
+                      <strong>{payment.description}</strong>
+                      {payment.reference ? (
+                        <small>{payment.reference}</small>
+                      ) : null}
+                    </td>
+                    <td>
+                      {payment.method
+                        ? getPaymentMethodLabel(payment.method)
+                        : "Sin informar"}
+                    </td>
+                    <td className={styles.amountCell}>
+                      {formatCurrency(Number(payment.amount))}
+                    </td>
+                    <td className={styles.amountCell}>
+                      {formatCurrency(
+                        netFromGross(Number(payment.amount)),
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className={styles.listPanel}>

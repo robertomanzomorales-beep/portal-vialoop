@@ -50,6 +50,59 @@
   margin: 0;
 }
 
+.periodTools {
+  display: grid;
+  gap: 8px;
+}
+
+.periodForm {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.periodForm label {
+  display: grid;
+  gap: 5px;
+}
+
+.periodForm label span {
+  color: #667085;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.periodForm input {
+  min-height: 38px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #101828;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.periodForm button {
+  min-height: 38px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #101828;
+  padding: 0 13px;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hostingTotal {
+  color: #175cd3;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
 .eyebrow {
   color: #175cd3;
   font-size: 0.74rem;
@@ -766,6 +819,16 @@
   .goalTopline,
   .modalHeader {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .periodTools,
+  .periodForm {
+    width: 100%;
+  }
+
+  .periodForm {
+    align-items: stretch;
     flex-direction: column;
   }
 

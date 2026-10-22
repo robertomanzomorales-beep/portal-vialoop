@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 import { logout } from "@/app/login/actions";
@@ -85,13 +86,17 @@ const navigationGroups: NavigationGroup[] = [
         label: "Ventas",
         href: "/ventas",
       },
-{
+      {
         label: "Cobros",
         href: "/cobros",
       },
       {
-        label: "Documentos",
-        href: "/documentos",
+        label: "Cotizaciones",
+        href: "/cotizaciones",
+      },
+      {
+        label: "Seguimiento",
+        href: "/seguimiento",
       },
       {
         label: "Equipo",
@@ -160,6 +165,16 @@ export default function PortalLayout({
     setMenuOpen,
   ] = useState(false);
 
+  const [
+    navigationTarget,
+    setNavigationTarget,
+  ] = useState<string | null>(null);
+
+  const [
+    theme,
+    setTheme,
+  ] = useState<"light" | "dark">("light");
+
   const visibleNavigationGroups =
     useMemo(
       () =>
@@ -178,8 +193,31 @@ export default function PortalLayout({
     );
 
   useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+    const savedTheme =
+      window.localStorage.getItem(
+        "portal-vialoop-theme",
+      );
+
+    const nextTheme =
+      savedTheme === "dark" ||
+      savedTheme === "light"
+        ? savedTheme
+        : window.matchMedia(
+              "(prefers-color-scheme: dark)",
+            ).matches
+          ? "dark"
+          : "light";
+
+    document.documentElement.dataset.theme =
+      nextTheme;
+
+    const frame = window.requestAnimationFrame(
+      () => setTheme(nextTheme),
+    );
+
+    return () =>
+      window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -221,6 +259,58 @@ export default function PortalLayout({
   const initials =
     getInitials(user.name);
 
+  const navigating = Boolean(
+    navigationTarget &&
+      !isCurrentRoute(
+        pathname,
+        navigationTarget,
+      ),
+  );
+
+  const handleNavigation = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      isCurrentRoute(pathname, href)
+    ) {
+      return;
+    }
+
+    setMenuOpen(false);
+    setNavigationTarget(href);
+
+    window.setTimeout(() => {
+      setNavigationTarget(
+        (current) =>
+          current === href
+            ? null
+            : current,
+      );
+    }, 10_000);
+  };
+
+  const toggleTheme = () => {
+    const nextTheme =
+      theme === "light"
+        ? "dark"
+        : "light";
+
+    setTheme(nextTheme);
+    document.documentElement.dataset.theme =
+      nextTheme;
+    window.localStorage.setItem(
+      "portal-vialoop-theme",
+      nextTheme,
+    );
+  };
+
   return (
     <div className={styles.shell}>
       <header
@@ -233,6 +323,9 @@ export default function PortalLayout({
             styles.mobileBrand
           }
           href="/"
+          onClick={(event) =>
+            handleNavigation(event, "/")
+          }
         >
           <span
             className={
@@ -320,6 +413,9 @@ export default function PortalLayout({
           <Link
             className={styles.brand}
             href="/"
+            onClick={(event) =>
+              handleNavigation(event, "/")
+            }
           >
             <span
               className={
@@ -411,6 +507,12 @@ export default function PortalLayout({
                         }
                         href={item.href}
                         key={item.href}
+                        onClick={(event) =>
+                          handleNavigation(
+                            event,
+                            item.href,
+                          )
+                        }
                       >
                         {item.label}
                       </Link>
@@ -461,6 +563,23 @@ export default function PortalLayout({
             </div>
           </div>
 
+          <button
+            aria-label={`Cambiar a tema ${
+              theme === "light"
+                ? "oscuro"
+                : "claro"
+            }`}
+            className={styles.themeButton}
+            onClick={toggleTheme}
+            type="button"
+          >
+            <span aria-hidden="true">
+              {theme === "light" ? "◐" : "☀"}
+            </span>
+
+            Tema {theme === "light" ? "oscuro" : "claro"}
+          </button>
+
           <form action={logout}>
             <button
               className={
@@ -477,6 +596,30 @@ export default function PortalLayout({
       <div className={styles.main}>
         {children}
       </div>
+
+      {navigating && (
+        <div
+          aria-live="polite"
+          className={styles.routeLoader}
+          role="status"
+        >
+          <div className={styles.routeLoaderCard}>
+            <span
+              aria-hidden="true"
+              className={styles.routeLoaderMark}
+            >
+              V
+            </span>
+
+            <span
+              aria-hidden="true"
+              className={styles.routeLoaderSpinner}
+            />
+
+            <strong>Abriendo módulo</strong>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

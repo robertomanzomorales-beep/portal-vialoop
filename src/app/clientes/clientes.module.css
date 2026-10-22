@@ -43,7 +43,8 @@
 
 .primaryButton,
 .secondaryButton,
-.viewButton {
+.viewButton,
+.dangerButton {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -99,9 +100,32 @@
   background: #eef3ff;
 }
 
+.dangerButton {
+  min-height: 44px;
+  border: 1px solid #fecdca;
+  background: #fff5f4;
+  color: #b42318;
+}
+
+.dangerButton:hover {
+  border-color: #f97066;
+  background: #fef3f2;
+}
+
+.successMessage {
+  margin-bottom: 18px;
+  border: 1px solid #abefc6;
+  border-radius: 11px;
+  background: #ecfdf3;
+  padding: 13px 16px;
+  color: #067647;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
   margin-bottom: 18px;
 }
@@ -136,8 +160,75 @@
 }
 
 .panelHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
   padding: 24px;
   border-bottom: 1px solid #eaecf0;
+}
+
+.searchForm {
+  display: flex;
+  min-width: min(100%, 480px);
+  align-items: center;
+  gap: 8px;
+}
+
+.searchForm label {
+  flex: 1;
+}
+
+.searchForm input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  padding: 0 12px;
+  color: #101828;
+  outline: none;
+}
+
+.searchForm input:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+}
+
+.searchForm button,
+.clearSearch {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.searchForm button {
+  border: 0;
+  background: #101828;
+  padding: 0 15px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.clearSearch {
+  border: 1px solid #d0d5dd;
+  padding: 0 12px;
+  color: #475467;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .panelHeader h2,
@@ -433,6 +524,10 @@
   .detailGrid {
     grid-template-columns: 1fr;
   }
+
+  .summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 800px) {
@@ -449,6 +544,17 @@
     flex-direction: column;
   }
 
+  .panelHeader,
+  .searchForm {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchForm {
+    width: 100%;
+    min-width: 0;
+  }
+
   .summary,
   .formGrid {
     grid-template-columns: 1fr;
@@ -459,7 +565,8 @@
   }
 
   .primaryButton,
-  .secondaryButton {
+  .secondaryButton,
+  .dangerButton {
     width: 100%;
   }
 

@@ -8,6 +8,7 @@ type SupportRequestsPageProps = {
     prioridad?: string;
     q?: string;
     resultado?: string;
+    numero?: string;
   }>;
 };
 
@@ -335,6 +336,19 @@ export default async function SupportRequestsPage({
     (request) => request.status === "COMPLETED",
   ).length;
 
+  const scheduledRequests = requests
+    .filter(
+      (request) =>
+        request.estimatedDelivery &&
+        isOpenStatus(request.status),
+    )
+    .sort(
+      (first, second) =>
+        first.estimatedDelivery!.getTime() -
+        second.estimatedDelivery!.getTime(),
+    )
+    .slice(0, 6);
+
   const statusFilters: Array<{
     label: string;
     value: StatusFilter;
@@ -478,6 +492,16 @@ export default async function SupportRequestsPage({
         </div>
       )}
 
+      {resolvedSearchParams.resultado === "eliminada" && (
+        <div className={styles.successMessage}>
+          La solicitud
+          {resolvedSearchParams.numero
+            ? ` #${resolvedSearchParams.numero.padStart(4, "0")}`
+            : ""}{" "}
+          fue eliminada correctamente.
+        </div>
+      )}
+
       <section className={styles.summary}>
         <article>
           <span>Solicitudes registradas</span>
@@ -509,6 +533,46 @@ export default async function SupportRequestsPage({
           <p>Casos resueltos y cerrados</p>
         </article>
       </section>
+
+      {scheduledRequests.length > 0 ? (
+        <section className={styles.agendaPanel}>
+          <div className={styles.agendaHeader}>
+            <div>
+              <span className={styles.eyebrow}>
+                Calendario operativo
+              </span>
+              <h2>Próximas entregas</h2>
+            </div>
+
+            <span>
+              {scheduledRequests.length} solicitudes agendadas
+            </span>
+          </div>
+
+          <div className={styles.agendaGrid}>
+            {scheduledRequests.map((request) => (
+              <Link
+                href={`/solicitudes/${request.id}`}
+                key={request.id}
+              >
+                <time>
+                  {formatDate(request.estimatedDelivery)}
+                </time>
+                <strong>{request.subject}</strong>
+                <span>
+                  {request.client?.tradeName ||
+                    request.client?.businessName ||
+                    request.requesterName ||
+                    "Sin cliente asociado"}
+                </span>
+                <small>
+                  {getStatusLabel(request.status)}
+                </small>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className={styles.controls}>
         <form className={styles.searchForm} method="get">

@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  requireAdmin,
+  requireUser,
+} from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function getOptionalString(formData: FormData, field: string) {
@@ -66,6 +70,8 @@ function validateEmail(email: string | null) {
 }
 
 export async function createClient(formData: FormData) {
+  await requireUser();
+
   const businessName = getRequiredString(formData, "businessName");
   const email = getOptionalString(formData, "email");
   const rut = getOptionalString(formData, "rut");
@@ -97,6 +103,8 @@ export async function updateClient(
   clientId: string,
   formData: FormData,
 ) {
+  await requireUser();
+
   const businessName = getRequiredString(formData, "businessName");
   const email = getOptionalString(formData, "email");
   const rut = getOptionalString(formData, "rut");
@@ -292,4 +300,58 @@ export async function updateClient(
   revalidatePath("/renovaciones");
 
   redirect(`/clientes/${clientId}`);
+}
+
+export async function deleteClient(
+  clientId: string,
+) {
+  await requireAdmin();
+
+  const client =
+    await prisma.client.findUnique({
+      where: {
+        id: clientId,
+      },
+      select: {
+        id: true,
+        businessName: true,
+      },
+    });
+
+  if (!client) {
+    redirect("/clientes?resultado=no-encontrado");
+  }
+
+  await prisma.$transaction(
+    async (transaction) => {
+      /*
+       * Sale protege la relación con el cliente mediante
+       * Restrict. Sus dependencias financieras usan Cascade,
+       * por lo que se eliminan primero de forma explícita.
+       */
+      await transaction.sale.deleteMany({
+        where: {
+          clientId,
+        },
+      });
+
+      await transaction.client.delete({
+        where: {
+          id: clientId,
+        },
+      });
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/clientes");
+  revalidatePath("/ventas");
+  revalidatePath("/pagos");
+  revalidatePath("/renovaciones");
+
+  redirect(
+    `/clientes?resultado=eliminado&cliente=${encodeURIComponent(
+      client.businessName,
+    )}`,
+  );
 }
