@@ -79,9 +79,9 @@
 .historyPanel {
   overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 24px;
+  border-radius: 2px;
   background: var(--portal-surface);
-  box-shadow: var(--portal-shadow-sm);
+  box-shadow: none;
 }
 
 .quotationWorkspace {
@@ -111,16 +111,17 @@
 }
 
 .sectionHeading > span {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  place-items: center;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 50%;
-  background: var(--portal-surface-soft);
-  color: var(--portal-text);
-  font-size: 0.64rem;
+  display: block;
+  width: 34px;
+  height: auto;
+  flex: 0 0 34px;
+  border: 0;
+  border-bottom: 2px solid var(--portal-text);
+  border-radius: 0;
+  background: transparent;
+  padding: 3px 0 8px;
+  color: var(--portal-text-tertiary);
+  font-size: 0.6rem;
   font-weight: 820;
 }
 
@@ -163,10 +164,11 @@
 .itemRow textarea {
   width: 100%;
   min-height: 42px;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 12px;
-  background: var(--portal-surface);
-  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--portal-border-strong);
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0 8px;
   color: var(--portal-text);
   font: inherit;
   font-size: 0.79rem;
@@ -189,7 +191,7 @@
 .itemRow input:focus,
 .itemRow textarea:focus {
   border-color: var(--portal-text);
-  box-shadow: 0 0 0 3px var(--portal-focus);
+  box-shadow: 0 1px 0 var(--portal-text);
 }
 
 .fullWidth {
@@ -198,8 +200,9 @@
 
 .itemsTable {
   overflow: hidden;
-  border: 1px solid var(--portal-border);
-  border-radius: 16px;
+  border-top: 2px solid var(--portal-text);
+  border-bottom: 1px solid var(--portal-text);
+  border-radius: 0;
 }
 
 .itemsHeader,
@@ -217,9 +220,10 @@
 .itemsHeader {
   align-items: center;
   min-height: 34px;
-  background: var(--portal-text);
+  border-bottom: 1px solid var(--portal-text);
+  background: var(--portal-surface-soft);
   padding: 0 12px;
-  color: var(--portal-bg);
+  color: var(--portal-text-secondary);
 }
 
 .itemsHeader span {
@@ -246,7 +250,7 @@
   align-items: start;
   gap: 0;
   padding: 16px 12px;
-  background: var(--portal-surface);
+  background: transparent;
   transition: background-color var(--portal-motion-fast) var(--portal-ease);
 }
 
@@ -255,7 +259,7 @@
 }
 
 .itemRow:nth-child(even) {
-  background: var(--portal-surface-soft);
+  background: transparent;
 }
 
 .itemNumber {
@@ -277,7 +281,8 @@
 
 .itemDetail textarea {
   min-height: 72px;
-  background: var(--portal-surface-soft);
+  border-left: 1px solid var(--portal-border);
+  padding-left: 11px;
 }
 
 .compactField {
@@ -315,7 +320,7 @@
   margin: 5px 0 0 6px;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 0;
   background: transparent;
   color: var(--portal-text-tertiary);
   font-size: 1.05rem;
@@ -341,10 +346,11 @@
 .addItemButton {
   justify-self: start;
   min-height: 36px;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 9px;
-  background: var(--portal-surface-soft);
-  padding: 0 13px;
+  border: 0;
+  border-bottom: 1px solid var(--portal-text);
+  border-radius: 0;
+  background: transparent;
+  padding: 0 1px;
   color: var(--portal-text);
   font: inherit;
   font-size: 0.72rem;
@@ -357,7 +363,8 @@
 }
 
 .addItemButton:hover {
-  background: var(--portal-surface-hover);
+  border-bottom-width: 2px;
+  background: transparent;
 }
 
 .addItemButton:active,
@@ -395,20 +402,21 @@
 .totalPanel .grandTotal {
   min-height: 56px;
   margin-top: 8px;
-  border-bottom: 0;
-  border-radius: 13px;
-  background: var(--portal-accent);
-  padding: 0 15px;
+  border-top: 2px solid var(--portal-text);
+  border-bottom: 1px solid var(--portal-text);
+  border-radius: 0;
+  background: transparent;
+  padding: 0 3px;
 }
 
 .grandTotal span {
-  color: var(--portal-on-accent);
+  color: var(--portal-text);
   font-weight: 760;
 }
 
 .grandTotal strong {
-  color: var(--portal-on-accent);
-  font-size: 1.15rem;
+  color: var(--portal-text);
+  font-size: 1.3rem;
   font-weight: 800;
 }
 
@@ -419,15 +427,10 @@
   min-height: 620px;
   flex-direction: column;
   align-self: start;
-  background:
-    radial-gradient(
-      circle at 80% 12%,
-      color-mix(in srgb, var(--portal-contrast-text) 11%, transparent),
-      transparent 28%
-    ),
-    var(--portal-contrast-bg);
+  border-top: 5px solid #151517;
+  background: #f3f2ed;
   padding: 29px 26px;
-  color: var(--portal-contrast-text);
+  color: #171719;
   contain: layout paint;
 }
 
@@ -435,7 +438,7 @@
   display: grid;
   gap: 5px;
   padding-bottom: 24px;
-  border-bottom: 1px solid color-mix(in srgb, var(--portal-contrast-text) 18%, transparent);
+  border-bottom: 1px solid #171719;
 }
 
 .previewBrand strong {
@@ -447,7 +450,7 @@
 .previewBrand span,
 .previewReference span,
 .previewClient > span {
-  color: var(--portal-contrast-muted);
+  color: #747477;
   font-size: 0.58rem;
   font-weight: 760;
   letter-spacing: 0.11em;
@@ -479,7 +482,7 @@
 }
 
 .previewClient small {
-  color: var(--portal-contrast-muted);
+  color: #66666a;
   font-size: 0.73rem;
   line-height: 1.55;
 }
@@ -497,11 +500,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--portal-contrast-text) 16%, transparent);
+  border-bottom: 1px solid #cecec8;
 }
 
 .previewSummary span {
-  color: var(--portal-contrast-muted);
+  color: #6c6c70;
   font-size: 0.69rem;
 }
 
@@ -511,12 +514,12 @@
 
 .previewSummary .previewTotal {
   min-height: 58px;
-  border-top: 1px solid var(--portal-contrast-text);
-  border-bottom: 0;
+  border-top: 2px solid #171719;
+  border-bottom: 1px solid #171719;
 }
 
 .previewTotal span {
-  color: var(--portal-contrast-text);
+  color: #171719;
   font-weight: 750;
 }
 
@@ -526,7 +529,7 @@
 
 .documentPreview > p {
   margin: 20px 0 0;
-  color: var(--portal-contrast-muted);
+  color: #747477;
   font-size: 0.66rem;
   line-height: 1.65;
 }
@@ -539,7 +542,7 @@
   gap: 16px;
   margin: 22px 26px 0;
   border: 1px solid;
-  border-radius: 14px;
+  border-radius: 2px;
   padding: 12px 14px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -581,7 +584,7 @@
 .formFooter button {
   min-height: 42px;
   border: 1px solid var(--portal-accent);
-  border-radius: 10px;
+  border-radius: 2px;
   background: var(--portal-accent);
   padding: 0 18px;
   color: var(--portal-on-accent);
@@ -664,7 +667,7 @@
 
 .status {
   display: inline-flex;
-  border-radius: 999px;
+  border-radius: 1px;
   padding: 5px 9px;
   font-size: 0.66rem;
   font-weight: 800;

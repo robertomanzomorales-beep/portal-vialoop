@@ -7,6 +7,7 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import { vialoopLogoPng } from "@/lib/vialoop-logo";
+import { VIALOOP_PAYMENT_DETAILS } from "@/lib/vialoop-payment-details";
 
 export type QuotationItem = {
   description: string;
@@ -39,31 +40,17 @@ export type QuotationMetadata = {
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
-const MARGIN = 42;
+const MARGIN = 44;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const FOOTER_LIMIT = 68;
 
-const BLACK = rgb(0.045, 0.045, 0.052);
-const INK = rgb(0.11, 0.11, 0.12);
-const SECONDARY = rgb(0.34, 0.34, 0.36);
-const MUTED = rgb(0.55, 0.55, 0.58);
-const LINE = rgb(0.88, 0.88, 0.9);
-const SOFT = rgb(0.968, 0.968, 0.975);
-const SOFT_DEEP = rgb(0.935, 0.935, 0.945);
-const WHITE = rgb(1, 1, 1);
-
-type PdfColor = ReturnType<typeof rgb>;
-
-type RoundedRectangleOptions = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  radius: number;
-  color: PdfColor;
-  borderColor?: PdfColor;
-  borderWidth?: number;
-};
+const BLACK = rgb(0.045, 0.045, 0.05);
+const INK = rgb(0.105, 0.105, 0.115);
+const SECONDARY = rgb(0.33, 0.33, 0.35);
+const MUTED = rgb(0.52, 0.52, 0.55);
+const LINE = rgb(0.79, 0.79, 0.81);
+const LIGHT_LINE = rgb(0.89, 0.89, 0.9);
+const PAPER = rgb(0.965, 0.96, 0.948);
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -169,85 +156,6 @@ function formatDate(value: string) {
   }).format(parsed);
 }
 
-function fillRoundedRectangle(
-  page: PDFPage,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-  color: PdfColor,
-) {
-  const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
-
-  if (safeRadius === 0) {
-    page.drawRectangle({ x, y, width, height, color });
-    return;
-  }
-
-  page.drawRectangle({
-    x: x + safeRadius,
-    y,
-    width: width - safeRadius * 2,
-    height,
-    color,
-  });
-  page.drawRectangle({
-    x,
-    y: y + safeRadius,
-    width,
-    height: height - safeRadius * 2,
-    color,
-  });
-
-  const corners = [
-    [x + safeRadius, y + safeRadius],
-    [x + width - safeRadius, y + safeRadius],
-    [x + safeRadius, y + height - safeRadius],
-    [x + width - safeRadius, y + height - safeRadius],
-  ] as const;
-
-  corners.forEach(([centerX, centerY]) => {
-    page.drawEllipse({
-      x: centerX,
-      y: centerY,
-      xScale: safeRadius,
-      yScale: safeRadius,
-      color,
-    });
-  });
-}
-
-function drawRoundedRectangle(
-  page: PDFPage,
-  {
-    x,
-    y,
-    width,
-    height,
-    radius,
-    color,
-    borderColor,
-    borderWidth = 0,
-  }: RoundedRectangleOptions,
-) {
-  if (borderColor && borderWidth > 0) {
-    fillRoundedRectangle(page, x, y, width, height, radius, borderColor);
-    fillRoundedRectangle(
-      page,
-      x + borderWidth,
-      y + borderWidth,
-      width - borderWidth * 2,
-      height - borderWidth * 2,
-      Math.max(0, radius - borderWidth),
-      color,
-    );
-    return;
-  }
-
-  fillRoundedRectangle(page, x, y, width, height, radius, color);
-}
-
 function splitLongWord(
   word: string,
   font: PDFFont,
@@ -320,6 +228,29 @@ function wrapText(
   return lines.length > 0 ? lines : [""];
 }
 
+function drawRule(
+  page: PDFPage,
+  y: number,
+  {
+    start = MARGIN,
+    end = PAGE_WIDTH - MARGIN,
+    thickness = 0.55,
+    color = LINE,
+  }: {
+    start?: number;
+    end?: number;
+    thickness?: number;
+    color?: ReturnType<typeof rgb>;
+  } = {},
+) {
+  page.drawLine({
+    start: { x: start, y },
+    end: { x: end, y },
+    thickness,
+    color,
+  });
+}
+
 function drawRightText(
   page: PDFPage,
   text: string,
@@ -358,6 +289,23 @@ function drawCenteredText(
   });
 }
 
+function drawLabel(
+  page: PDFPage,
+  label: string,
+  x: number,
+  y: number,
+  bold: PDFFont,
+  color = MUTED,
+) {
+  page.drawText(safeText(label.toUpperCase()), {
+    x,
+    y,
+    font: bold,
+    size: 6.3,
+    color,
+  });
+}
+
 function drawHeader(
   page: PDFPage,
   bold: PDFFont,
@@ -367,106 +315,57 @@ function drawHeader(
 ) {
   page.drawRectangle({
     x: 0,
-    y: PAGE_HEIGHT - 5,
+    y: PAGE_HEIGHT - 3.5,
     width: PAGE_WIDTH,
-    height: 5,
+    height: 3.5,
     color: BLACK,
   });
 
   page.drawImage(logo, {
     x: MARGIN,
-    y: PAGE_HEIGHT - 92,
-    width: 50,
-    height: 50,
+    y: PAGE_HEIGHT - 72,
+    width: 38,
+    height: 38,
   });
 
-  page.drawText("Vialoop", {
-    x: MARGIN + 62,
-    y: PAGE_HEIGHT - 63,
+  page.drawText("Vialoop Studio SpA", {
+    x: MARGIN + 50,
+    y: PAGE_HEIGHT - 48,
     font: bold,
-    size: 18,
+    size: 11.5,
     color: INK,
   });
-
-  page.drawText("STUDIO SPA  /  SOLUCIONES DIGITALES", {
-    x: MARGIN + 62,
-    y: PAGE_HEIGHT - 80,
+  page.drawText("Diseño, tecnología y operación digital", {
+    x: MARGIN + 50,
+    y: PAGE_HEIGHT - 63,
     font: regular,
-    size: 6.5,
-    color: MUTED,
-  });
-
-  const badgeWidth = 142;
-  const badgeHeight = 51;
-  const badgeX = PAGE_WIDTH - MARGIN - badgeWidth;
-  const badgeY = PAGE_HEIGHT - 91;
-
-  drawRoundedRectangle(page, {
-    x: badgeX,
-    y: badgeY,
-    width: badgeWidth,
-    height: badgeHeight,
-    radius: 14,
-    color: BLACK,
-  });
-
-  page.drawText("COTIZACIÓN", {
-    x: badgeX + 15,
-    y: badgeY + 31,
-    font: bold,
-    size: 7.2,
-    color: WHITE,
-  });
-  page.drawText(safeText(quotation.number), {
-    x: badgeX + 15,
-    y: badgeY + 14,
-    font: regular,
-    size: 8.4,
-    color: rgb(0.78, 0.78, 0.8),
-  });
-}
-
-function drawSectionLabel(page: PDFPage, bold: PDFFont, label: string, y: number) {
-  page.drawText(safeText(label.toUpperCase()), {
-    x: MARGIN + 2,
-    y,
-    font: bold,
     size: 6.8,
     color: MUTED,
   });
-}
 
-function drawTableHeader(page: PDFPage, bold: PDFFont, y: number) {
-  const height = 32;
+  drawRightText(
+    page,
+    "COTIZACIÓN",
+    PAGE_WIDTH - MARGIN,
+    PAGE_HEIGHT - 47,
+    bold,
+    6.6,
+    MUTED,
+  );
+  drawRightText(
+    page,
+    quotation.number,
+    PAGE_WIDTH - MARGIN,
+    PAGE_HEIGHT - 64,
+    bold,
+    10.3,
+    INK,
+  );
 
-  drawRoundedRectangle(page, {
-    x: MARGIN,
-    y: y - height,
-    width: CONTENT_WIDTH,
-    height,
-    radius: 10,
+  drawRule(page, PAGE_HEIGHT - 86, {
+    thickness: 0.8,
     color: BLACK,
   });
-
-  const labels = [
-    ["N°", MARGIN + 12],
-    ["SERVICIO Y DETALLE", MARGIN + 45],
-    ["CANT.", MARGIN + 313],
-    ["VALOR UNIT.", MARGIN + 361],
-    ["SUBTOTAL", MARGIN + 445],
-  ] as const;
-
-  labels.forEach(([label, x]) => {
-    page.drawText(label, {
-      x,
-      y: y - 20,
-      font: bold,
-      size: 6.3,
-      color: WHITE,
-    });
-  });
-
-  return y - height - 6;
 }
 
 function drawFooter(
@@ -477,49 +376,51 @@ function drawFooter(
   pageNumber: number,
   pageCount: number,
 ) {
-  page.drawLine({
-    start: { x: MARGIN, y: 49 },
-    end: { x: PAGE_WIDTH - MARGIN, y: 49 },
-    thickness: 0.6,
-    color: LINE,
-  });
+  drawRule(page, 48, { color: LIGHT_LINE });
 
   page.drawText("Vialoop Studio SpA", {
     x: MARGIN,
     y: 27,
     font: bold,
-    size: 7,
+    size: 6.7,
     color: SECONDARY,
   });
-
-  page.drawText(`vialoop.cl  /  ${safeText(quotation.senderEmail)}`, {
-    x: MARGIN + 83,
+  page.drawText(`vialoop.cl / ${safeText(quotation.senderEmail)}`, {
+    x: MARGIN + 84,
     y: 27,
     font: regular,
-    size: 7,
+    size: 6.7,
     color: MUTED,
   });
-
-  const pageLabel = `${pageNumber} / ${pageCount}`;
-  const pillWidth = 38;
-
-  drawRoundedRectangle(page, {
-    x: PAGE_WIDTH - MARGIN - pillWidth,
-    y: 19,
-    width: pillWidth,
-    height: 19,
-    radius: 9.5,
-    color: SOFT_DEEP,
-  });
-  drawCenteredText(
+  drawRightText(
     page,
-    pageLabel,
-    PAGE_WIDTH - MARGIN - pillWidth / 2,
-    25.5,
+    `${String(pageNumber).padStart(2, "0")} / ${String(pageCount).padStart(2, "0")}`,
+    PAGE_WIDTH - MARGIN,
+    27,
     bold,
-    6.5,
+    6.7,
     SECONDARY,
   );
+}
+
+function drawTableHeader(page: PDFPage, bold: PDFFont, y: number) {
+  page.drawRectangle({
+    x: MARGIN,
+    y: y - 28,
+    width: CONTENT_WIDTH,
+    height: 28,
+    color: PAPER,
+  });
+  drawRule(page, y, { thickness: 1.1, color: BLACK });
+  drawRule(page, y - 28, { color: BLACK });
+
+  drawLabel(page, "N°", MARGIN + 2, y - 18, bold, SECONDARY);
+  drawLabel(page, "Servicio / alcance", MARGIN + 36, y - 18, bold, SECONDARY);
+  drawLabel(page, "Cant.", MARGIN + 319, y - 18, bold, SECONDARY);
+  drawLabel(page, "Unitario", MARGIN + 371, y - 18, bold, SECONDARY);
+  drawLabel(page, "Subtotal", MARGIN + 449, y - 18, bold, SECONDARY);
+
+  return y - 38;
 }
 
 export async function createQuotationPdf(quotation: QuotationMetadata) {
@@ -539,208 +440,161 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
   pages.push(page);
   drawHeader(page, bold, regular, logo, quotation);
 
-  let y = PAGE_HEIGHT - 126;
+  let y = PAGE_HEIGHT - 116;
 
   const addPage = (section: string, includeTableHeader = false) => {
     page = document.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     pages.push(page);
     drawHeader(page, bold, regular, logo, quotation);
-    y = PAGE_HEIGHT - 126;
-    drawSectionLabel(page, bold, section, y);
-    y -= 22;
+    y = PAGE_HEIGHT - 112;
+    drawLabel(page, section, MARGIN, y, bold);
+    y -= 23;
 
     if (includeTableHeader) {
       y = drawTableHeader(page, bold, y);
     }
   };
 
-  const clientPanelHeight = 112;
-  drawRoundedRectangle(page, {
-    x: MARGIN,
-    y: y - clientPanelHeight,
-    width: CONTENT_WIDTH,
-    height: clientPanelHeight,
-    radius: 17,
-    color: SOFT,
-    borderColor: LINE,
-    borderWidth: 0.7,
+  drawLabel(page, "Propuesta comercial", MARGIN, y, bold);
+  y -= 29;
+
+  const projectTitle = quotation.projectName || "Propuesta comercial";
+  const titleLines = wrapText(projectTitle, bold, 24, CONTENT_WIDTH - 20).slice(0, 3);
+  titleLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: MARGIN,
+      y: y - index * 27,
+      font: bold,
+      size: 24,
+      color: INK,
+    });
+  });
+  y -= titleLines.length * 27 + 20;
+
+  const clientWidth = 278;
+  const issuedWidth = 112;
+  const metaStart = MARGIN + clientWidth;
+  const validityStart = metaStart + issuedWidth;
+  const gridHeight = 77;
+
+  drawRule(page, y, { thickness: 1, color: BLACK });
+  drawRule(page, y - gridHeight, { color: BLACK });
+  page.drawLine({
+    start: { x: metaStart, y },
+    end: { x: metaStart, y: y - gridHeight },
+    thickness: 0.5,
+    color: LINE,
+  });
+  page.drawLine({
+    start: { x: validityStart, y },
+    end: { x: validityStart, y: y - gridHeight },
+    thickness: 0.5,
+    color: LINE,
   });
 
-  page.drawText("PREPARADA PARA", {
-    x: MARGIN + 18,
-    y: y - 23,
-    font: bold,
-    size: 6.7,
-    color: MUTED,
-  });
-
-  const clientLines = wrapText(quotation.clientName, bold, 18.5, 300).slice(0, 2);
+  drawLabel(page, "Preparada para", MARGIN, y - 18, bold);
+  const clientLines = wrapText(
+    quotation.clientName,
+    bold,
+    12.7,
+    clientWidth - 24,
+  ).slice(0, 2);
   clientLines.forEach((line, index) => {
     page.drawText(line, {
-      x: MARGIN + 18,
-      y: y - 49 - index * 21,
+      x: MARGIN,
+      y: y - 39 - index * 14,
       font: bold,
-      size: 18.5,
+      size: 12.7,
+      color: INK,
+    });
+  });
+  const contact = quotation.contactName || quotation.recipientEmail;
+  page.drawText(safeText(contact), {
+    x: MARGIN,
+    y: y - 65,
+    font: regular,
+    size: 7.7,
+    color: SECONDARY,
+  });
+
+  drawLabel(page, "Emisión", metaStart + 14, y - 18, bold);
+  const issuedLines = wrapText(
+    formatDate(quotation.issuedAt),
+    bold,
+    7.8,
+    issuedWidth - 28,
+  ).slice(0, 2);
+  issuedLines.forEach((line, index) => {
+    page.drawText(line, {
+      x: metaStart + 14,
+      y: y - 39 - index * 11,
+      font: bold,
+      size: 7.8,
       color: INK,
     });
   });
 
-  const contactLines = wrapText(
-    quotation.contactName || quotation.recipientEmail,
-    regular,
-    8.3,
-    300,
+  drawLabel(page, "Vigencia", validityStart + 14, y - 18, bold);
+  const validityLines = wrapText(
+    `Hasta ${formatDate(quotation.validUntil)}`,
+    bold,
+    7.8,
+    PAGE_WIDTH - MARGIN - validityStart - 14,
   ).slice(0, 2);
-  const contactY = y - 49 - clientLines.length * 21 - 2;
-  contactLines.forEach((line, index) => {
+  validityLines.forEach((line, index) => {
     page.drawText(line, {
-      x: MARGIN + 18,
-      y: contactY - index * 10.5,
-      font: regular,
-      size: 8.3,
-      color: SECONDARY,
-    });
-  });
-
-  const metaX = MARGIN + 352;
-  page.drawLine({
-    start: { x: metaX - 15, y: y - 94 },
-    end: { x: metaX - 15, y: y - 18 },
-    thickness: 0.7,
-    color: LINE,
-  });
-  page.drawText("FECHA DE EMISIÓN", {
-    x: metaX,
-    y: y - 28,
-    font: bold,
-    size: 6.2,
-    color: MUTED,
-  });
-  page.drawText(formatDate(quotation.issuedAt), {
-    x: metaX,
-    y: y - 44,
-    font: bold,
-    size: 8.2,
-    color: INK,
-  });
-  page.drawText("VIGENCIA", {
-    x: metaX,
-    y: y - 69,
-    font: bold,
-    size: 6.2,
-    color: MUTED,
-  });
-  page.drawText(`Hasta ${safeText(formatDate(quotation.validUntil))}`, {
-    x: metaX,
-    y: y - 85,
-    font: bold,
-    size: 8.2,
-    color: INK,
-  });
-
-  y -= clientPanelHeight + 14;
-
-  if (quotation.projectName) {
-    const projectLines = wrapText(
-      quotation.projectName,
-      bold,
-      10.5,
-      CONTENT_WIDTH - 34,
-    ).slice(0, 2);
-    const projectPanelHeight = 48 + Math.max(0, projectLines.length - 1) * 13;
-
-    drawRoundedRectangle(page, {
-      x: MARGIN,
-      y: y - projectPanelHeight,
-      width: CONTENT_WIDTH,
-      height: projectPanelHeight,
-      radius: 13,
-      color: WHITE,
-      borderColor: LINE,
-      borderWidth: 0.8,
-    });
-    page.drawText("PROYECTO / PROPUESTA", {
-      x: MARGIN + 16,
-      y: y - 17,
+      x: validityStart + 14,
+      y: y - 39 - index * 11,
       font: bold,
-      size: 6.2,
-      color: MUTED,
+      size: 7.8,
+      color: INK,
     });
-    projectLines.forEach((line, index) => {
-      page.drawText(line, {
-        x: MARGIN + 16,
-        y: y - 35 - index * 13,
-        font: bold,
-        size: 10.5,
-        color: INK,
-      });
-    });
-    y -= projectPanelHeight + 18;
-  }
+  });
 
-  drawSectionLabel(page, bold, "Alcance y valores", y);
-  y -= 19;
+  y -= gridHeight + 31;
+  drawLabel(page, "Servicios y valores", MARGIN, y, bold);
+  y -= 18;
   y = drawTableHeader(page, bold, y);
 
   quotation.items.forEach((item, itemIndex) => {
-    const titleLines = wrapText(item.description, bold, 8.7, 250);
+    const itemTitleLines = wrapText(item.description, bold, 9.1, 272);
     const detailLines = item.detail
-      ? wrapText(item.detail, regular, 7.7, 250)
+      ? wrapText(item.detail, regular, 7.7, 272)
       : [];
-    const textHeight = titleLines.length * 10.7 + detailLines.length * 9.4;
-    const detailGap = detailLines.length > 0 ? 3 : 0;
-    const rowHeight = Math.max(47, textHeight + detailGap + 19);
+    const detailGap = detailLines.length > 0 ? 5 : 0;
+    const textHeight =
+      itemTitleLines.length * 11.2 + detailGap + detailLines.length * 9.4;
+    const rowHeight = Math.max(52, textHeight + 20);
 
-    if (y - rowHeight < FOOTER_LIMIT + 14) {
-      addPage("Detalle de servicios - continuación", true);
+    if (y - rowHeight < FOOTER_LIMIT + 12) {
+      addPage("Servicios / continuación", true);
     }
 
-    drawRoundedRectangle(page, {
-      x: MARGIN,
-      y: y - rowHeight,
-      width: CONTENT_WIDTH,
-      height: rowHeight,
-      radius: 10,
-      color: itemIndex % 2 === 0 ? WHITE : SOFT,
-      borderColor: LINE,
-      borderWidth: 0.65,
+    page.drawText(String(itemIndex + 1).padStart(2, "0"), {
+      x: MARGIN + 2,
+      y: y - 20,
+      font: bold,
+      size: 7.1,
+      color: MUTED,
     });
 
-    drawRoundedRectangle(page, {
-      x: MARGIN + 10,
-      y: y - 33,
-      width: 23,
-      height: 23,
-      radius: 11.5,
-      color: itemIndex % 2 === 0 ? SOFT : SOFT_DEEP,
-    });
-    drawCenteredText(
-      page,
-      String(itemIndex + 1).padStart(2, "0"),
-      MARGIN + 21.5,
-      y - 25.5,
-      bold,
-      6.8,
-      SECONDARY,
-    );
-
-    let textY = y - 19;
-    titleLines.forEach((line) => {
+    let textY = y - 20;
+    itemTitleLines.forEach((line) => {
       page.drawText(line, {
-        x: MARGIN + 45,
+        x: MARGIN + 36,
         y: textY,
         font: bold,
-        size: 8.7,
+        size: 9.1,
         color: INK,
       });
-      textY -= 10.7;
+      textY -= 11.2;
     });
 
     if (detailLines.length > 0) {
       textY -= 2;
       detailLines.forEach((line) => {
         page.drawText(line, {
-          x: MARGIN + 45,
+          x: MARGIN + 36,
           y: textY,
           font: regular,
           size: 7.7,
@@ -753,8 +607,8 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
     drawCenteredText(
       page,
       String(item.quantity),
-      MARGIN + 329,
-      y - 24,
+      MARGIN + 334,
+      y - 20,
       regular,
       8,
       SECONDARY,
@@ -762,8 +616,8 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
     drawRightText(
       page,
       formatCurrency(item.unitPrice),
-      MARGIN + 434,
-      y - 24,
+      MARGIN + 421,
+      y - 20,
       regular,
       8,
       SECONDARY,
@@ -771,124 +625,113 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
     drawRightText(
       page,
       formatCurrency(item.quantity * item.unitPrice),
-      PAGE_WIDTH - MARGIN - 12,
-      y - 24,
+      PAGE_WIDTH - MARGIN,
+      y - 20,
       bold,
       8.2,
       INK,
     );
 
-    y -= rowHeight + 6;
+    y -= rowHeight;
+    drawRule(page, y, { color: LIGHT_LINE });
   });
 
-  const notesLines = wrapText(quotation.notes, regular, 8.2, CONTENT_WIDTH - 34);
-  const summaryHeight = 122;
-  const firstNotesHeight = Math.min(notesLines.length, 11) * 10.7 + 48;
+  const notesLines = quotation.notes.trim()
+    ? wrapText(quotation.notes, regular, 8.2, CONTENT_WIDTH)
+    : [];
+  const estimatedNotesHeight = notesLines.length * 10.7 + 44;
+  const estimatedClosingHeight = 112;
 
-  if (y - summaryHeight - firstNotesHeight < FOOTER_LIMIT) {
+  if (y - 128 - estimatedNotesHeight - estimatedClosingHeight < FOOTER_LIMIT) {
     addPage("Resumen comercial");
   } else {
-    y -= 18;
-    drawSectionLabel(page, bold, "Resumen comercial", y);
-    y -= 20;
+    y -= 28;
+    drawLabel(page, "Resumen comercial", MARGIN, y, bold);
+    y -= 19;
   }
 
-  const summaryWidth = 246;
-  const summaryX = PAGE_WIDTH - MARGIN - summaryWidth;
-  const summaryPanelHeight = 112;
-
-  drawRoundedRectangle(page, {
-    x: summaryX,
-    y: y - summaryPanelHeight,
-    width: summaryWidth,
-    height: summaryPanelHeight,
-    radius: 16,
-    color: SOFT,
-    borderColor: LINE,
-    borderWidth: 0.7,
-  });
-
-  const summaryRows = [
-    ["Neto", quotation.netAmount],
-    ["IVA 19%", quotation.taxAmount],
-  ] as const;
-
-  summaryRows.forEach(([label, value], index) => {
-    const rowY = y - 23 - index * 22;
-    page.drawText(label, {
-      x: summaryX + 15,
-      y: rowY,
-      font: regular,
-      size: 8.1,
-      color: SECONDARY,
-    });
-    drawRightText(
-      page,
-      formatCurrency(value),
-      summaryX + summaryWidth - 15,
-      rowY,
-      bold,
-      8.4,
-      INK,
-    );
-  });
-
-  drawRoundedRectangle(page, {
-    x: summaryX + 8,
-    y: y - summaryPanelHeight + 8,
-    width: summaryWidth - 16,
-    height: 43,
-    radius: 12,
-    color: BLACK,
-  });
-  page.drawText("TOTAL", {
-    x: summaryX + 22,
-    y: y - summaryPanelHeight + 24,
-    font: bold,
-    size: 7.6,
-    color: WHITE,
-  });
-  drawRightText(
-    page,
-    formatCurrency(quotation.totalAmount),
-    summaryX + summaryWidth - 22,
-    y - summaryPanelHeight + 21,
-    bold,
-    13.5,
-    WHITE,
-  );
-
-  page.drawText("INVERSIÓN", {
-    x: MARGIN + 2,
-    y: y - 19,
-    font: bold,
-    size: 6.6,
-    color: MUTED,
-  });
-  page.drawText("Valores expresados en pesos chilenos", {
-    x: MARGIN + 2,
-    y: y - 39,
+  drawRule(page, y, { thickness: 1.15, color: BLACK });
+  drawLabel(page, "Inversión", MARGIN, y - 21, bold, SECONDARY);
+  page.drawText("Valores expresados en pesos chilenos.", {
+    x: MARGIN,
+    y: y - 43,
     font: regular,
     size: 8.2,
     color: SECONDARY,
   });
   page.drawText("El total incluye IVA.", {
-    x: MARGIN + 2,
-    y: y - 54,
+    x: MARGIN,
+    y: y - 59,
     font: bold,
     size: 8.2,
     color: INK,
   });
 
-  y -= summaryPanelHeight + 22;
+  const summaryX = MARGIN + 305;
+  page.drawText("Neto", {
+    x: summaryX,
+    y: y - 21,
+    font: regular,
+    size: 8.1,
+    color: SECONDARY,
+  });
+  drawRightText(
+    page,
+    formatCurrency(quotation.netAmount),
+    PAGE_WIDTH - MARGIN,
+    y - 21,
+    bold,
+    8.4,
+    INK,
+  );
+  page.drawText("IVA 19%", {
+    x: summaryX,
+    y: y - 43,
+    font: regular,
+    size: 8.1,
+    color: SECONDARY,
+  });
+  drawRightText(
+    page,
+    formatCurrency(quotation.taxAmount),
+    PAGE_WIDTH - MARGIN,
+    y - 43,
+    bold,
+    8.4,
+    INK,
+  );
+  drawRule(page, y - 57, {
+    start: summaryX,
+    thickness: 0.8,
+    color: BLACK,
+  });
+  page.drawText("TOTAL", {
+    x: summaryX,
+    y: y - 82,
+    font: bold,
+    size: 7.1,
+    color: INK,
+  });
+  drawRightText(
+    page,
+    formatCurrency(quotation.totalAmount),
+    PAGE_WIDTH - MARGIN,
+    y - 88,
+    bold,
+    18,
+    BLACK,
+  );
+  y -= 108;
+  drawRule(page, y, { thickness: 1.15, color: BLACK });
+  y -= 28;
 
-  let remainingNotes = notesLines;
+  let remainingNotes = [...notesLines];
   let firstNotesBlock = true;
 
   while (remainingNotes.length > 0) {
     const availableLines = Math.max(
       1,
-      Math.floor((y - FOOTER_LIMIT - 48) / 10.7),
+      Math.floor((y - FOOTER_LIMIT - 126) / 10.7),
     );
 
     if (availableLines < 3) {
@@ -898,37 +741,32 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
 
     const currentLines = remainingNotes.slice(0, availableLines);
     remainingNotes = remainingNotes.slice(currentLines.length);
-    const panelHeight = currentLines.length * 10.7 + 43;
 
-    drawRoundedRectangle(page, {
-      x: MARGIN,
-      y: y - panelHeight,
-      width: CONTENT_WIDTH,
-      height: panelHeight,
-      radius: 15,
-      color: SOFT,
-      borderColor: LINE,
-      borderWidth: 0.65,
-    });
-    page.drawText(firstNotesBlock ? "CONDICIONES COMERCIALES" : "CONTINUACIÓN", {
-      x: MARGIN + 17,
-      y: y - 20,
-      font: bold,
-      size: 6.6,
-      color: MUTED,
-    });
+    drawLabel(
+      page,
+      firstNotesBlock ? "Condiciones comerciales" : "Condiciones / continuación",
+      MARGIN,
+      y,
+      bold,
+    );
+    y -= 24;
 
-    currentLines.forEach((line, index) => {
-      page.drawText(line || " ", {
-        x: MARGIN + 17,
-        y: y - 39 - index * 10.7,
-        font: regular,
-        size: 8.2,
-        color: SECONDARY,
-      });
+    currentLines.forEach((line) => {
+      if (line) {
+        page.drawText(line, {
+          x: MARGIN,
+          y,
+          font: regular,
+          size: 8.2,
+          color: SECONDARY,
+        });
+      }
+      y -= 10.7;
     });
 
-    y -= panelHeight + 18;
+    y -= 14;
+    drawRule(page, y, { color: LIGHT_LINE });
+    y -= 27;
     firstNotesBlock = false;
 
     if (remainingNotes.length > 0) {
@@ -936,73 +774,132 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
     }
   }
 
-  if (y < 154) {
+  if (y < 258) {
+    addPage("Datos para pago");
+  }
+
+  drawLabel(page, "Datos para pago", MARGIN, y, bold);
+  y -= 18;
+  drawRule(page, y, { thickness: 0.85, color: BLACK });
+
+  const paymentColumnWidth = CONTENT_WIDTH / 3;
+  const paymentStartY = y;
+  const paymentBottomY = y - 62;
+
+  page.drawLine({
+    start: { x: MARGIN + paymentColumnWidth, y: paymentStartY },
+    end: { x: MARGIN + paymentColumnWidth, y: paymentBottomY },
+    thickness: 0.45,
+    color: LINE,
+  });
+  page.drawLine({
+    start: { x: MARGIN + paymentColumnWidth * 2, y: paymentStartY },
+    end: { x: MARGIN + paymentColumnWidth * 2, y: paymentBottomY },
+    thickness: 0.45,
+    color: LINE,
+  });
+
+  drawLabel(page, "Titular", MARGIN, y - 17, bold);
+  page.drawText(VIALOOP_PAYMENT_DETAILS.holder, {
+    x: MARGIN,
+    y: y - 36,
+    font: bold,
+    size: 8.7,
+    color: INK,
+  });
+  page.drawText(`RUT ${VIALOOP_PAYMENT_DETAILS.taxId}`, {
+    x: MARGIN,
+    y: y - 51,
+    font: regular,
+    size: 7.4,
+    color: SECONDARY,
+  });
+
+  const institutionX = MARGIN + paymentColumnWidth + 14;
+  drawLabel(page, "Institución / tipo", institutionX, y - 17, bold);
+  page.drawText(VIALOOP_PAYMENT_DETAILS.institution, {
+    x: institutionX,
+    y: y - 36,
+    font: bold,
+    size: 8.7,
+    color: INK,
+  });
+  page.drawText(VIALOOP_PAYMENT_DETAILS.accountType, {
+    x: institutionX,
+    y: y - 51,
+    font: regular,
+    size: 7.4,
+    color: SECONDARY,
+  });
+
+  const accountX = MARGIN + paymentColumnWidth * 2 + 14;
+  drawLabel(page, "Cuenta / comprobante", accountX, y - 17, bold);
+  page.drawText(VIALOOP_PAYMENT_DETAILS.accountNumber, {
+    x: accountX,
+    y: y - 36,
+    font: bold,
+    size: 8.7,
+    color: INK,
+  });
+  page.drawText(VIALOOP_PAYMENT_DETAILS.email, {
+    x: accountX,
+    y: y - 51,
+    font: regular,
+    size: 7.4,
+    color: SECONDARY,
+  });
+
+  y = paymentBottomY;
+  drawRule(page, y, { color: BLACK });
+  y -= 29;
+
+  if (y < 166) {
     addPage("Contacto comercial");
   }
 
-  drawRoundedRectangle(page, {
-    x: MARGIN,
-    y: y - 25,
-    width: 112,
-    height: 24,
-    radius: 12,
-    color: BLACK,
-  });
-  page.drawText("RESPONSABLE COMERCIAL", {
-    x: MARGIN + 13,
-    y: y - 16.5,
-    font: bold,
-    size: 5.8,
-    color: WHITE,
-  });
+  drawRule(page, y, { thickness: 0.85, color: BLACK });
+  drawLabel(page, "Responsable comercial", MARGIN, y - 21, bold);
   page.drawText(safeText(quotation.senderName), {
     x: MARGIN,
-    y: y - 49,
+    y: y - 47,
     font: bold,
-    size: 10.2,
+    size: 11.2,
     color: INK,
   });
   page.drawText(safeText(quotation.senderRole), {
     x: MARGIN,
-    y: y - 65,
+    y: y - 64,
     font: regular,
-    size: 7.4,
+    size: 7.7,
     color: SECONDARY,
   });
   page.drawText(safeText(quotation.senderEmail), {
     x: MARGIN,
     y: y - 79,
     font: regular,
-    size: 7.4,
+    size: 7.7,
     color: MUTED,
   });
 
-  const referenceWidth = 158;
-  drawRoundedRectangle(page, {
-    x: PAGE_WIDTH - MARGIN - referenceWidth,
-    y: y - 78,
-    width: referenceWidth,
-    height: 62,
-    radius: 15,
-    color: WHITE,
-    borderColor: LINE,
-    borderWidth: 0.75,
-  });
-  page.drawText("PROPUESTA COMERCIAL", {
-    x: PAGE_WIDTH - MARGIN - referenceWidth + 15,
-    y: y - 36,
-    font: bold,
-    size: 6.1,
-    color: MUTED,
-  });
+  const referenceX = MARGIN + 305;
+  drawLabel(page, "Referencia", referenceX, y - 21, bold);
   drawRightText(
     page,
     quotation.number,
-    PAGE_WIDTH - MARGIN - 15,
-    y - 58,
+    PAGE_WIDTH - MARGIN,
+    y - 48,
     bold,
-    9.4,
+    11.2,
     INK,
+  );
+  drawRightText(
+    page,
+    "Propuesta comercial",
+    PAGE_WIDTH - MARGIN,
+    y - 65,
+    regular,
+    7.7,
+    SECONDARY,
   );
 
   pages.forEach((currentPage, index) => {

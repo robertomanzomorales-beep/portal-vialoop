@@ -3,6 +3,7 @@ import {
   buildVialoopEmailLayout,
   escapeEmailHtml,
 } from "@/lib/vialoop-email";
+import { VIALOOP_PAYMENT_DETAILS } from "@/lib/vialoop-payment-details";
 
 function money(value: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -31,35 +32,34 @@ function date(value: string) {
   }).format(parsed);
 }
 
-function itemCards(quotation: QuotationMetadata) {
+function serviceRows(quotation: QuotationMetadata) {
   return quotation.items
     .map((item, index) => {
       const detail = item.detail
-        ? `<div style="margin-top:7px;color:#6e6e73;font-size:12px;line-height:1.6;">${escapeEmailHtml(item.detail).replaceAll("\n", "<br />")}</div>`
+        ? `<div style="max-width:360px;margin-top:5px;color:#66666a;font-size:12px;line-height:1.58;">${escapeEmailHtml(item.detail).replaceAll("\n", "<br />")}</div>`
         : "";
-      const background = index % 2 === 0 ? "#ffffff" : "#fafafa";
 
       return `
-        <table class="quotation-item-card" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 10px;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid #e1e1e6;border-radius:15px;background:${background};">
+        <table class="quotation-item-row" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;border-top:1px solid #d8d8d4;">
           <tr>
-            <td class="quotation-item-number" align="center" valign="top" width="45" style="width:45px;padding:17px 8px;">
-              <span style="display:inline-block;min-width:24px;padding:6px 4px;border-radius:999px;background:#eeeef1;color:#636366;font-size:10px;font-weight:800;line-height:1;">${String(index + 1).padStart(2, "0")}</span>
+            <td class="quotation-item-number" valign="top" width="34" style="width:34px;padding:17px 8px 17px 0;color:#8a8a8d;font-size:9px;font-weight:800;letter-spacing:.06em;">
+              ${String(index + 1).padStart(2, "0")}
             </td>
-            <td class="quotation-item-service" valign="top" style="padding:17px 12px 17px 0;">
-              <div style="color:#1d1d1f;font-size:13px;font-weight:800;line-height:1.4;">${escapeEmailHtml(item.description)}</div>
+            <td class="quotation-item-service" valign="top" style="padding:15px 14px 16px 0;">
+              <div style="color:#181819;font-size:13px;font-weight:780;line-height:1.4;">${escapeEmailHtml(item.description)}</div>
               ${detail}
             </td>
-            <td class="quotation-item-metric" align="center" valign="top" width="62" style="width:62px;padding:17px 7px;">
-              <div style="color:#8e8e93;font-size:8px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;">Cant.</div>
-              <div style="margin-top:7px;color:#1d1d1f;font-size:12px;font-weight:700;">${item.quantity}</div>
+            <td class="quotation-item-metric" align="center" valign="top" width="58" style="width:58px;padding:16px 5px;color:#4b4b4e;font-size:11px;line-height:1.45;">
+              <span style="display:block;margin-bottom:4px;color:#8a8a8d;font-size:7px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;">Cant.</span>
+              ${item.quantity}
             </td>
-            <td class="quotation-item-metric" align="right" valign="top" width="90" style="width:90px;padding:17px 7px;">
-              <div style="color:#8e8e93;font-size:8px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;">Unitario</div>
-              <div style="margin-top:7px;color:#636366;font-size:11px;font-weight:700;white-space:nowrap;">${escapeEmailHtml(money(item.unitPrice))}</div>
+            <td class="quotation-item-metric" align="right" valign="top" width="88" style="width:88px;padding:16px 6px;color:#4b4b4e;font-size:11px;line-height:1.45;white-space:nowrap;">
+              <span style="display:block;margin-bottom:4px;color:#8a8a8d;font-size:7px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;">Unitario</span>
+              ${escapeEmailHtml(money(item.unitPrice))}
             </td>
-            <td class="quotation-item-metric" align="right" valign="top" width="105" style="width:105px;padding:17px 15px 17px 7px;">
-              <div style="color:#8e8e93;font-size:8px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;">Subtotal</div>
-              <div style="margin-top:7px;color:#1d1d1f;font-size:12px;font-weight:800;white-space:nowrap;">${escapeEmailHtml(money(item.quantity * item.unitPrice))}</div>
+            <td class="quotation-item-metric" align="right" valign="top" width="102" style="width:102px;padding:16px 0 16px 6px;color:#181819;font-size:11px;font-weight:800;line-height:1.45;white-space:nowrap;">
+              <span style="display:block;margin-bottom:4px;color:#8a8a8d;font-size:7px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;">Subtotal</span>
+              ${escapeEmailHtml(money(item.quantity * item.unitPrice))}
             </td>
           </tr>
         </table>
@@ -71,79 +71,104 @@ function itemCards(quotation: QuotationMetadata) {
 export function buildQuotationEmail(quotation: QuotationMetadata) {
   const project = quotation.projectName || "Propuesta comercial";
   const subject = `Cotización ${quotation.number} · ${project}`;
+  const conditions = quotation.notes.trim()
+    ? `
+      <div style="margin-top:32px;padding-top:22px;border-top:1px solid #181819;">
+        <div style="margin-bottom:10px;color:#77777a;font-size:8px;font-weight:800;letter-spacing:1.35px;text-transform:uppercase;">Condiciones comerciales</div>
+        <div style="color:#555558;font-size:12px;line-height:1.68;">${escapeEmailHtml(quotation.notes).replaceAll("\n", "<br />")}</div>
+      </div>
+    `
+    : "";
 
   const content = `
-    <p style="margin:0 0 8px;color:#1d1d1f;font-size:15px;font-weight:700;line-height:1.55;">
+    <p style="margin:0 0 8px;color:#181819;font-size:15px;font-weight:760;line-height:1.55;">
       Estimado/a ${escapeEmailHtml(quotation.contactName || "cliente")}:
     </p>
-    <p style="margin:0 0 25px;color:#636366;font-size:14px;line-height:1.75;">
-      Hemos preparado la siguiente propuesta para
-      <strong style="color:#1d1d1f;">${escapeEmailHtml(quotation.clientName)}</strong>.
-      El documento formal también se encuentra adjunto en PDF.
+    <p style="max-width:565px;margin:0 0 29px;color:#5f5f62;font-size:14px;line-height:1.75;">
+      Presentamos nuestra propuesta para <strong style="color:#181819;">${escapeEmailHtml(quotation.clientName)}</strong>.
+      A continuación encontrará el alcance económico resumido; la versión formal y completa se adjunta en PDF.
     </p>
 
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 13px;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid #dedee3;border-radius:16px;background:#f7f7f8;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 31px;border-collapse:collapse;border-top:1px solid #181819;border-bottom:1px solid #181819;">
       <tr>
-        <td style="padding:18px 20px;">
-          <div style="color:#8e8e93;font-size:9px;font-weight:800;letter-spacing:1.25px;text-transform:uppercase;">Proyecto / propuesta</div>
-          <div style="margin-top:7px;color:#1d1d1f;font-size:18px;font-weight:800;letter-spacing:-.35px;line-height:1.35;">${escapeEmailHtml(project)}</div>
+        <td class="quotation-meta-cell" width="50%" valign="top" style="width:50%;padding:15px 16px 17px 0;">
+          <div style="color:#858588;font-size:7px;font-weight:800;letter-spacing:1.05px;text-transform:uppercase;">Cliente / proyecto</div>
+          <div style="margin-top:6px;color:#181819;font-size:13px;font-weight:780;line-height:1.42;">${escapeEmailHtml(quotation.clientName)}</div>
+          <div style="margin-top:3px;color:#66666a;font-size:11px;line-height:1.45;">${escapeEmailHtml(project)}</div>
+        </td>
+        <td class="quotation-meta-cell" width="25%" valign="top" style="width:25%;padding:15px 14px 17px;border-left:1px solid #d8d8d4;">
+          <div style="color:#858588;font-size:7px;font-weight:800;letter-spacing:1.05px;text-transform:uppercase;">Emisión</div>
+          <div style="margin-top:7px;color:#181819;font-size:11px;font-weight:750;line-height:1.45;">${escapeEmailHtml(date(quotation.issuedAt))}</div>
+        </td>
+        <td class="quotation-meta-cell" width="25%" valign="top" style="width:25%;padding:15px 0 17px 14px;border-left:1px solid #d8d8d4;">
+          <div style="color:#858588;font-size:7px;font-weight:800;letter-spacing:1.05px;text-transform:uppercase;">Vigencia</div>
+          <div style="margin-top:7px;color:#181819;font-size:11px;font-weight:750;line-height:1.45;">Hasta ${escapeEmailHtml(date(quotation.validUntil))}</div>
         </td>
       </tr>
     </table>
 
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 28px;border-collapse:separate;border-spacing:8px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0;border-collapse:collapse;">
       <tr>
-        <td width="50%" style="padding:14px 16px;border:1px solid #e5e5e9;border-radius:14px;background:#ffffff;">
-          <div style="color:#8e8e93;font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Fecha de emisión</div>
-          <div style="margin-top:6px;color:#1d1d1f;font-size:12px;font-weight:800;">${escapeEmailHtml(date(quotation.issuedAt))}</div>
-        </td>
-        <td width="50%" style="padding:14px 16px;border:1px solid #e5e5e9;border-radius:14px;background:#ffffff;">
-          <div style="color:#8e8e93;font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Vigencia</div>
-          <div style="margin-top:6px;color:#1d1d1f;font-size:12px;font-weight:800;">Hasta ${escapeEmailHtml(date(quotation.validUntil))}</div>
-        </td>
+        <td style="padding:0 0 11px;color:#77777a;font-size:8px;font-weight:800;letter-spacing:1.35px;text-transform:uppercase;">Servicios y alcance</td>
+        <td align="right" style="padding:0 0 11px;color:#858588;font-size:9px;font-weight:700;">${quotation.items.length} ${quotation.items.length === 1 ? "ítem" : "ítems"}</td>
       </tr>
     </table>
 
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 11px;border-collapse:collapse;">
+    <div style="border-bottom:1px solid #181819;">
+      ${serviceRows(quotation)}
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:28px 0 0;border-collapse:collapse;border-top:2px solid #181819;border-bottom:1px solid #181819;">
       <tr>
-        <td style="color:#8e8e93;font-size:9px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;">Servicios y valores</td>
-        <td align="right" style="color:#8e8e93;font-size:9px;font-weight:700;">${quotation.items.length} ${quotation.items.length === 1 ? "ítem" : "ítems"}</td>
+        <td style="padding:14px 0 5px;color:#77777a;font-size:11px;">Neto</td>
+        <td align="right" style="padding:14px 0 5px;color:#3d3d40;font-size:12px;font-weight:700;">${escapeEmailHtml(money(quotation.netAmount))}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0 13px;color:#77777a;font-size:11px;">IVA 19%</td>
+        <td align="right" style="padding:4px 0 13px;color:#3d3d40;font-size:12px;font-weight:700;">${escapeEmailHtml(money(quotation.taxAmount))}</td>
+      </tr>
+      <tr>
+        <td class="quotation-total-label" style="padding:15px 0 18px;border-top:1px solid #d8d8d4;color:#181819;font-size:12px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;">Inversión total</td>
+        <td class="quotation-total-value" align="right" style="padding:10px 0 16px;border-top:1px solid #d8d8d4;color:#111113;font-size:27px;font-weight:820;letter-spacing:-.75px;">${escapeEmailHtml(money(quotation.totalAmount))}</td>
       </tr>
     </table>
 
-    ${itemCards(quotation)}
-
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:22px 0 0;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:18px;background:#0b0b0d;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:28px 0 0;border-collapse:collapse;">
       <tr>
-        <td style="padding:20px 22px 8px;color:#a1a1a6;font-size:11px;">Neto</td>
-        <td align="right" style="padding:20px 22px 8px;color:#f5f5f7;font-size:12px;font-weight:700;">${escapeEmailHtml(money(quotation.netAmount))}</td>
-      </tr>
-      <tr>
-        <td style="padding:5px 22px 17px;color:#a1a1a6;font-size:11px;">IVA 19%</td>
-        <td align="right" style="padding:5px 22px 17px;color:#f5f5f7;font-size:12px;font-weight:700;">${escapeEmailHtml(money(quotation.taxAmount))}</td>
-      </tr>
-      <tr>
-        <td style="padding:18px 22px 21px;border-top:1px solid #343436;color:#ffffff;font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;">Total</td>
-        <td align="right" style="padding:15px 22px 21px;border-top:1px solid #343436;color:#ffffff;font-size:23px;font-weight:800;letter-spacing:-.55px;">${escapeEmailHtml(money(quotation.totalAmount))}</td>
-      </tr>
-    </table>
-
-    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:14px 0 0;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid #e1e1e6;border-radius:15px;background:#f7f7f8;">
-      <tr>
-        <td style="padding:17px 19px;color:#636366;font-size:12px;line-height:1.65;">
-          <strong style="display:block;margin-bottom:4px;color:#1d1d1f;font-size:12px;">Próximo paso</strong>
-          Esta propuesta se mantiene vigente hasta el
-          <strong style="color:#1d1d1f;">${escapeEmailHtml(date(quotation.validUntil))}</strong>.
-          Para aprobarla, solicitar ajustes o resolver dudas, puede responder directamente a este correo.
+        <td width="3" style="width:3px;background:#181819;font-size:0;line-height:0;">&nbsp;</td>
+        <td style="padding:1px 0 2px 17px;color:#5f5f62;font-size:12.5px;line-height:1.7;">
+          <strong style="display:block;margin-bottom:3px;color:#181819;font-size:12px;">Siguiente paso</strong>
+          Esta propuesta se mantiene vigente hasta el <strong style="color:#181819;">${escapeEmailHtml(date(quotation.validUntil))}</strong>.
+          Para aprobarla, solicitar ajustes o resolver dudas, responda directamente a este correo.
         </td>
       </tr>
     </table>
 
-    <div style="margin-top:29px;padding-top:23px;border-top:1px solid #e5e5e9;color:#2c2c2e;font-size:13px;line-height:1.7;">
-      Saludos cordiales,<br /><br />
-      <strong style="font-size:14px;">${escapeEmailHtml(quotation.senderName)}</strong><br />
-      <span style="color:#636366;">${escapeEmailHtml(quotation.senderRole)}</span><br />
-      <a href="mailto:${escapeEmailHtml(quotation.senderEmail)}" style="color:#1d1d1f;text-decoration:underline;text-underline-offset:3px;">${escapeEmailHtml(quotation.senderEmail)}</a>
+    ${conditions}
+
+    <div style="margin-top:32px;padding-top:22px;border-top:1px solid #181819;">
+      <div style="margin-bottom:10px;color:#77777a;font-size:8px;font-weight:800;letter-spacing:1.35px;text-transform:uppercase;">Datos para pago</div>
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;border-top:1px solid #d8d8d4;border-bottom:1px solid #181819;">
+        <tr>
+          <td class="quotation-payment-label" style="padding:11px 0;color:#77777a;font-size:10.5px;">Titular</td>
+          <td class="quotation-payment-value" align="right" style="padding:11px 0;color:#181819;font-size:11px;font-weight:760;">${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.holder)} · RUT ${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.taxId)}</td>
+        </tr>
+        <tr>
+          <td class="quotation-payment-label" style="padding:11px 0;border-top:1px solid #e7e7e3;color:#77777a;font-size:10.5px;">Institución / tipo</td>
+          <td class="quotation-payment-value" align="right" style="padding:11px 0;border-top:1px solid #e7e7e3;color:#181819;font-size:11px;font-weight:760;">${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.institution)} · ${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.accountType)}</td>
+        </tr>
+        <tr>
+          <td class="quotation-payment-label" style="padding:11px 0;border-top:1px solid #e7e7e3;color:#77777a;font-size:10.5px;">Cuenta / comprobante</td>
+          <td class="quotation-payment-value" align="right" style="padding:11px 0;border-top:1px solid #e7e7e3;color:#181819;font-size:11px;font-weight:760;">${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.accountNumber)} · ${escapeEmailHtml(VIALOOP_PAYMENT_DETAILS.email)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin-top:32px;padding-top:22px;border-top:1px solid #d8d8d4;color:#303033;font-size:12.5px;line-height:1.68;">
+      Atentamente,<br /><br />
+      <strong style="color:#181819;font-size:14px;">${escapeEmailHtml(quotation.senderName)}</strong><br />
+      <span style="color:#66666a;">${escapeEmailHtml(quotation.senderRole)}</span><br />
+      <a href="mailto:${escapeEmailHtml(quotation.senderEmail)}" style="color:#181819;text-decoration:underline;text-underline-offset:3px;">${escapeEmailHtml(quotation.senderEmail)}</a>
     </div>
   `;
 
@@ -163,10 +188,19 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
     `IVA 19%: ${money(quotation.taxAmount)}`,
     `Total: ${money(quotation.totalAmount)}`,
     `Vigencia: hasta el ${date(quotation.validUntil)}.`,
+    quotation.notes.trim() ? "" : null,
+    quotation.notes.trim() ? "Condiciones comerciales:" : null,
+    quotation.notes.trim() || null,
+    "",
+    "Datos para pago:",
+    `${VIALOOP_PAYMENT_DETAILS.holder} · RUT ${VIALOOP_PAYMENT_DETAILS.taxId}`,
+    `${VIALOOP_PAYMENT_DETAILS.institution} · ${VIALOOP_PAYMENT_DETAILS.accountType}`,
+    `N.º de cuenta: ${VIALOOP_PAYMENT_DETAILS.accountNumber}`,
+    `Comprobantes: ${VIALOOP_PAYMENT_DETAILS.email}`,
     "",
     "El PDF formal se encuentra adjunto a este correo.",
     "",
-    "Saludos cordiales,",
+    "Atentamente,",
     quotation.senderName,
     quotation.senderRole,
     "Vialoop Studio SpA",
