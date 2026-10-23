@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { login } from "./actions";
 import styles from "./login.module.css";
 
@@ -72,7 +73,14 @@ export default async function LoginPage({
       <section className={styles.panel}>
         <div className={styles.brand}>
           <div className={styles.brandMark}>
-            V
+            <Image
+              alt="Vialoop"
+              className={styles.brandLogo}
+              height={56}
+              priority
+              src="/logo-negro-vialoop-transparente.webp"
+              width={56}
+            />
           </div>
 
           <div>
@@ -81,7 +89,7 @@ export default async function LoginPage({
             </strong>
 
             <span>
-              Gestión administrativa
+              Gestión integral
             </span>
           </div>
         </div>
@@ -178,7 +186,7 @@ export default async function LoginPage({
       </section>
 
       <aside className={styles.visual}>
-        <div>
+        <div className={styles.visualContent}>
           <span>
             Portal administrativo
           </span>
@@ -193,6 +201,11 @@ export default async function LoginPage({
             solicitudes, suscripciones,
             renovaciones y pagos.
           </p>
+
+          <div className={styles.visualIndex}>
+            <span>Vialoop</span>
+            <span>Operación · Comercial · Finanzas</span>
+          </div>
         </div>
       </aside>
     </main>

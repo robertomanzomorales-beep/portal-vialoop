@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
 
 type SupportAcknowledgementInput = {
   to: string;
@@ -122,61 +123,41 @@ export async function sendSupportAcknowledgement({
     "Atención: lunes a viernes, de 08:00 a 20:00 horas.",
   ].join("\n");
 
-  const html = `
-    <!doctype html>
-    <html lang="es">
-      <body style="margin:0;padding:0;background-color:#eef3f8;font-family:Arial,Helvetica,sans-serif;color:#17304f;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background-color:#eef3f8;">
-          <tr>
-            <td align="center" style="padding:34px 16px;">
-              <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;border-collapse:separate;border-spacing:0;background-color:#ffffff;border:1px solid #d8e2ee;border-radius:18px;overflow:hidden;">
-                <tr>
-                  <td bgcolor="#0b2b50" style="padding:30px 34px;background-color:#0b2b50;color:#ffffff;">
-                    <p style="margin:0 0 21px;color:#ffffff;font-size:15px;font-weight:800;letter-spacing:2.2px;line-height:1;">VIALOOP STUDIO</p>
-                    <p style="margin:0 0 8px;color:#8bc4ff;font-size:10px;font-weight:700;letter-spacing:1.7px;line-height:1.4;">SOPORTE HOSTING</p>
-                    <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-0.4px;">Recibimos su solicitud</h1>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:32px 34px 34px;">
-                    <p style="margin:0 0 18px;color:#17304f;font-size:14px;line-height:1.7;">Estimado/a <strong>${safeName}</strong>:</p>
-                    <p style="margin:0 0 24px;color:#405873;font-size:14px;line-height:1.75;">Hemos recibido correctamente su solicitud. Nuestro equipo revisará los antecedentes y se comunicará con usted por este mismo medio.</p>
-
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;border-top:1px solid #d9e3ed;border-bottom:1px solid #d9e3ed;">
-                      <tr>
-                        <td style="padding:15px 0;color:#6b7f96;font-size:12px;">Número de atención</td>
-                        <td align="right" style="padding:15px 0;color:#0d3f73;font-size:16px;font-weight:800;">${requestCode}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:15px 0;border-top:1px solid #e4ebf2;color:#6b7f96;font-size:12px;">Asunto</td>
-                        <td align="right" style="padding:15px 0;border-top:1px solid #e4ebf2;color:#17304f;font-size:12px;font-weight:700;">${safeSubject}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:15px 0;border-top:1px solid #e4ebf2;color:#6b7f96;font-size:12px;">Estado</td>
-                        <td align="right" style="padding:15px 0;border-top:1px solid #e4ebf2;color:#176b45;font-size:12px;font-weight:800;">Recibida</td>
-                      </tr>
-                    </table>
-
-                    <p style="margin:24px 0 10px;color:#405873;font-size:13px;line-height:1.7;">Para mantener el seguimiento, conserve <strong>${requestCode}</strong> en el asunto de sus respuestas.</p>
-                    <p style="margin:0 0 24px;color:#6b7f96;font-size:12px;line-height:1.7;">Por seguridad, no envíe contraseñas, claves bancarias ni credenciales de acceso por correo electrónico.</p>
-
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background-color:#f4f7fa;border-radius:10px;">
-                      <tr>
-                        <td style="padding:18px 20px;">
-                          <p style="margin:0 0 5px;color:#17304f;font-size:13px;font-weight:800;">Soporte Hosting Vialoop</p>
-                          <p style="margin:0;color:#6b7f96;font-size:11px;line-height:1.6;">${escapeHtml(supportEmail)} · Lunes a viernes, de 08:00 a 20:00 horas.</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+  const html = buildVialoopEmailLayout({
+    eyebrow: "Soporte Hosting",
+    title: "Recibimos su solicitud",
+    reference: requestCode,
+    preheader: `${requestCode} · ${requestSubject} · Solicitud recibida`,
+    content: `
+      <p style="margin:0 0 18px;color:#2c2c2e;font-size:14px;line-height:1.7;">
+        Estimado/a <strong>${safeName}</strong>:
+      </p>
+      <p style="margin:0 0 24px;color:#636366;font-size:14px;line-height:1.75;">
+        Hemos recibido correctamente su solicitud. Nuestro equipo revisará los antecedentes y se comunicará con usted por este mismo medio.
+      </p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;border-top:1px solid #dedee3;border-bottom:1px solid #dedee3;">
+        <tr>
+          <td style="padding:14px 0;color:#8e8e93;font-size:12px;">Número de atención</td>
+          <td align="right" style="padding:14px 0;color:#1d1d1f;font-size:15px;font-weight:800;">${requestCode}</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 0;border-top:1px solid #ececf0;color:#8e8e93;font-size:12px;">Asunto</td>
+          <td align="right" style="padding:14px 0;border-top:1px solid #ececf0;color:#1d1d1f;font-size:12px;font-weight:700;">${safeSubject}</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 0;border-top:1px solid #ececf0;color:#8e8e93;font-size:12px;">Estado</td>
+          <td align="right" style="padding:14px 0;border-top:1px solid #ececf0;color:#1d1d1f;font-size:12px;font-weight:800;">Recibida</td>
+        </tr>
+      </table>
+      <p style="margin:23px 0 10px;color:#636366;font-size:13px;line-height:1.7;">
+        Para mantener el seguimiento, conserve <strong>${requestCode}</strong> en el asunto de sus respuestas.
+      </p>
+      <p style="margin:0;color:#8e8e93;font-size:12px;line-height:1.7;">
+        Por seguridad, no envíe contraseñas, claves bancarias ni credenciales de acceso por correo electrónico.
+      </p>
+    `,
+    footer: `<strong style="color:#1d1d1f;">Soporte Hosting Vialoop</strong><br />${escapeHtml(supportEmail)} · Lunes a viernes, de 08:00 a 20:00 horas.`,
+  });
 
   return getTransporter().sendMail({
     from: `Vialoop Soporte <${supportEmail}>`,

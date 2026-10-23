@@ -9,6 +9,7 @@ import {
   type QuotationItem,
   type QuotationMetadata,
 } from "@/lib/quotation";
+import { buildQuotationEmail } from "@/lib/quotation-email";
 
 export type QuotationActionState = {
   ok: boolean;
@@ -51,7 +52,11 @@ function parseItems(
     .map((item) => ({
       description:
         typeof item.description === "string"
-          ? item.description.trim()
+          ? item.description.trim().slice(0, 160)
+          : "",
+      detail:
+        typeof item.detail === "string"
+          ? item.detail.trim().slice(0, 1000)
           : "",
       quantity:
         Math.max(
@@ -89,14 +94,6 @@ function addDays(
 
 function dateKey(date: Date) {
   return date.toISOString().slice(0, 10);
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 function getSender(value: string) {
@@ -140,17 +137,17 @@ export async function createAndSendQuotation(
   const contactName = text(
     formData,
     "contactName",
-  );
+  ).slice(0, 120);
 
   const projectName = text(
     formData,
     "projectName",
-  );
+  ).slice(0, 160);
 
   const notes = text(
     formData,
     "notes",
-  );
+  ).slice(0, 2000);
 
   const items = parseItems(
     text(formData, "items"),
@@ -259,6 +256,7 @@ export async function createAndSendQuotation(
     netAmount,
     taxAmount,
     totalAmount,
+    issuedAt: dateKey(now),
     validUntil: dateKey(
       addDays(now, validDays),
     ),
@@ -290,39 +288,13 @@ export async function createAndSendQuotation(
         metadata,
       );
 
-    const subject =
-      `Cotización ${number} · ${projectName || metadata.clientName}`;
-
-    const emailText = [
-      `Estimado/a ${contactName || "cliente"}:`,
-      "",
-      `Junto con saludar, adjunto enviamos la cotización ${number} preparada para ${metadata.clientName}.`,
-      "",
-      projectName
-        ? `Proyecto: ${projectName}`
-        : null,
-      `Neto: ${formatCurrency(netAmount)}`,
-      `IVA 19%: ${formatCurrency(taxAmount)}`,
-      `Total: ${formatCurrency(totalAmount)}`,
-      `Vigencia: hasta el ${metadata.validUntil}.`,
-      "",
-      "En Vialoop nos especializamos en diseño web, desarrollo de software y servicios de hosting, con soluciones adaptadas a cada operación.",
-      "",
-      "Quedamos atentos a sus comentarios.",
-      "",
-      sender.name,
-      sender.role,
-      "Vialoop Studio SpA",
-      sender.email,
-      "vialoop.cl",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const email = buildQuotationEmail(metadata);
 
     const result = await sendEmail({
       to: recipientEmail,
-      subject,
-      text: emailText,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
       fromEmail: sender.email,
       fromName: sender.name,
       replyTo: sender.email,

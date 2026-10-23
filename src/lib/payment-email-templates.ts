@@ -132,116 +132,14 @@ function layout({
   content: string;
   area: string;
 }) {
-  return `
-    <!doctype html>
-    <html lang="es">
-      <head>
-        <meta charset="utf-8" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
-        <title>${escapeHtml(title)}</title>
-      </head>
-      <body
-        style="
-          margin:0;
-          padding:0;
-          background:#f2f4f7;
-          font-family:Arial,Helvetica,sans-serif;
-          color:#101828;
-        "
-      >
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          role="presentation"
-          style="
-            width:100%;
-            padding:28px 14px;
-            background:#f2f4f7;
-          "
-        >
-          <tr>
-            <td align="center">
-              <table
-                width="100%"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                style="
-                  width:100%;
-                  max-width:680px;
-                  overflow:hidden;
-                  border:1px solid #e4e7ec;
-                  border-radius:14px;
-                  background:#ffffff;
-                "
-              >
-                <tr>
-                  <td
-                    style="
-                      padding:25px 30px;
-                      background:#111827;
-                      color:#ffffff;
-                    "
-                  >
-                    <div
-                      style="
-                        color:#b2ccff;
-                        font-size:11px;
-                        font-weight:700;
-                        letter-spacing:.1em;
-                        text-transform:uppercase;
-                      "
-                    >
-                      ${escapeHtml(area)}
-                    </div>
-                    <div
-                      style="
-                        margin-top:7px;
-                        font-size:22px;
-                        font-weight:700;
-                      "
-                    >
-                      ${escapeHtml(title)}
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style="
-                      padding:30px;
-                      font-size:14px;
-                      line-height:1.6;
-                    "
-                  >
-                    ${content}
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style="
-                      padding:20px 30px 26px;
-                      border-top:1px solid #eaecf0;
-                      color:#667085;
-                      font-size:12px;
-                      line-height:1.6;
-                    "
-                  >
-                    Este correo fue generado
-                    automáticamente por el
-                    sistema de Vialoop.
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+  return buildVialoopEmailLayout({
+    eyebrow: area,
+    title,
+    preheader: `${area} · ${title}`,
+    content,
+    footer:
+      "Vialoop Studio SpA · vialoop.cl<br />Documento generado desde el Portal Vialoop.",
+  });
 }
 
 export function buildPaymentReceiptEmail(
@@ -489,3 +387,5 @@ export function buildInvoiceEmail(
     }),
   };
 }
+import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
+

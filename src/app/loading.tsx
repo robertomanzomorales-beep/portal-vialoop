@@ -6,9 +6,9 @@ export default function Loading() {
       role="status"
     >
       <div>
-        <span aria-hidden="true">V</span>
+        <span aria-hidden="true">Vialoop</span>
         <i aria-hidden="true" />
-        <strong>Cargando información</strong>
+        <strong>Preparando información</strong>
       </div>
     </main>
   );

@@ -22,6 +22,7 @@ type ClientOption = {
 type EditableItem = {
   id: number;
   description: string;
+  detail: string;
   quantity: string;
   unitPrice: string;
 };
@@ -59,6 +60,8 @@ export default function QuotationForm({
     useState("");
   const [recipientEmail, setRecipientEmail] =
     useState("");
+  const [projectName, setProjectName] =
+    useState("");
   const [nextItemId, setNextItemId] =
     useState(2);
   const [items, setItems] =
@@ -66,6 +69,7 @@ export default function QuotationForm({
       {
         id: 1,
         description: "",
+        detail: "",
         quantity: "1",
         unitPrice: "",
       },
@@ -100,6 +104,7 @@ export default function QuotationForm({
       JSON.stringify(
         items.map((item) => ({
           description: item.description,
+          detail: item.detail,
           quantity: Number(item.quantity),
           unitPrice: Number(item.unitPrice),
         })),
@@ -111,6 +116,7 @@ export default function QuotationForm({
     id: number,
     field:
       | "description"
+      | "detail"
       | "quantity"
       | "unitPrice",
     value: string,
@@ -133,6 +139,7 @@ export default function QuotationForm({
       {
         id: nextItemId,
         description: "",
+        detail: "",
         quantity: "1",
         unitPrice: "",
       },
@@ -157,6 +164,10 @@ export default function QuotationForm({
     }
   };
 
+  const selectedClient = clients.find(
+    (client) => client.id === clientId,
+  );
+
   return (
     <form
       action={formAction}
@@ -168,7 +179,9 @@ export default function QuotationForm({
         value={serializedItems}
       />
 
-      <div className={styles.formSection}>
+      <div className={styles.quotationWorkspace}>
+        <div className={styles.quotationEditor}>
+          <div className={styles.formSection}>
         <div className={styles.sectionHeading}>
           <span>01</span>
           <div>
@@ -210,6 +223,7 @@ export default function QuotationForm({
           <label className={styles.field}>
             <span>Nombre de contacto</span>
             <input
+              maxLength={120}
               name="contactName"
               onChange={(event) =>
                 setContactName(
@@ -223,6 +237,7 @@ export default function QuotationForm({
           <label className={styles.field}>
             <span>Correo de destino *</span>
             <input
+              maxLength={254}
               name="recipientEmail"
               onChange={(event) =>
                 setRecipientEmail(
@@ -256,14 +271,19 @@ export default function QuotationForm({
           >
             <span>Proyecto o propuesta</span>
             <input
+              maxLength={160}
               name="projectName"
+              onChange={(event) =>
+                setProjectName(event.target.value)
+              }
               placeholder="Ej.: Desarrollo sitio web corporativo"
+              value={projectName}
             />
           </label>
         </div>
-      </div>
+          </div>
 
-      <div className={styles.formSection}>
+          <div className={styles.formSection}>
         <div className={styles.sectionHeading}>
           <span>02</span>
           <div>
@@ -274,29 +294,63 @@ export default function QuotationForm({
           </div>
         </div>
 
-        <div className={styles.itemsList}>
+        <div className={styles.itemsTable}>
+          <div aria-hidden="true" className={styles.itemsHeader}>
+            <span>Ítem</span>
+            <span>Servicio y detalle</span>
+            <span>Cant.</span>
+            <span>Valor unitario</span>
+            <span>Subtotal</span>
+            <span />
+          </div>
+
+          <div className={styles.itemsList}>
           {items.map((item, index) => (
             <div
               className={styles.itemRow}
               key={item.id}
             >
-              <label className={styles.itemDescription}>
-                <span>Servicio {index + 1}</span>
-                <input
-                  onChange={(event) =>
-                    updateItem(
-                      item.id,
-                      "description",
-                      event.target.value,
-                    )
-                  }
-                  placeholder="Descripción del servicio"
-                  required
-                  value={item.description}
-                />
-              </label>
+              <span className={styles.itemNumber}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
 
-              <label>
+              <div className={styles.itemDescription}>
+                <label>
+                  <span>Nombre del servicio *</span>
+                  <input
+                    maxLength={160}
+                    onChange={(event) =>
+                      updateItem(
+                        item.id,
+                        "description",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Ej.: Desarrollo de sitio web corporativo"
+                    required
+                    value={item.description}
+                  />
+                </label>
+
+                <label className={styles.itemDetail}>
+                  <span>Detalle del ítem</span>
+                  <textarea
+                    maxLength={1000}
+                    onChange={(event) =>
+                      updateItem(
+                        item.id,
+                        "detail",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Describe alcance, entregables, características o lo que incluye este ítem."
+                    rows={3}
+                    value={item.detail}
+                  />
+                </label>
+              </div>
+
+              <label className={styles.compactField}>
                 <span>Cantidad</span>
                 <input
                   min="1"
@@ -314,7 +368,7 @@ export default function QuotationForm({
                 />
               </label>
 
-              <label>
+              <label className={styles.compactField}>
                 <span>Valor neto</span>
                 <input
                   min="1"
@@ -333,6 +387,16 @@ export default function QuotationForm({
                 />
               </label>
 
+              <div className={styles.itemSubtotal}>
+                <span>Subtotal</span>
+                <strong>
+                  {currency(
+                    Math.max(0, Number(item.quantity) || 0) *
+                      Math.max(0, Number(item.unitPrice) || 0),
+                  )}
+                </strong>
+              </div>
+
               <button
                 aria-label={`Eliminar servicio ${index + 1}`}
                 disabled={items.length === 1}
@@ -346,10 +410,11 @@ export default function QuotationForm({
                 }
                 type="button"
               >
-                ×
+                <span aria-hidden="true">×</span>
               </button>
             </div>
           ))}
+          </div>
         </div>
 
         <button
@@ -375,9 +440,9 @@ export default function QuotationForm({
             <strong>{currency(totals.total)}</strong>
           </div>
         </div>
-      </div>
+          </div>
 
-      <div className={styles.formSection}>
+          <div className={styles.formSection}>
         <div className={styles.sectionHeading}>
           <span>03</span>
           <div>
@@ -405,12 +470,53 @@ export default function QuotationForm({
           >
             <span>Condiciones y observaciones</span>
             <textarea
+              maxLength={2000}
               name="notes"
               placeholder="Forma de pago, plazos, alcance o información adicional."
               rows={5}
             />
           </label>
         </div>
+          </div>
+        </div>
+
+        <aside className={styles.documentPreview}>
+          <div className={styles.previewBrand}>
+            <strong>Vialoop</strong>
+            <span>Propuesta comercial</span>
+          </div>
+
+          <div className={styles.previewReference}>
+            <span>Cotización</span>
+            <strong>Borrador</strong>
+          </div>
+
+          <div className={styles.previewClient}>
+            <span>Preparada para</span>
+            <strong>{selectedClient?.name || "Selecciona un cliente"}</strong>
+            <small>{projectName || "Proyecto o propuesta por definir"}</small>
+          </div>
+
+          <div className={styles.previewSummary}>
+            <div>
+              <span>Ítems</span>
+              <strong>{items.length}</strong>
+            </div>
+            <div>
+              <span>Neto</span>
+              <strong>{currency(totals.net)}</strong>
+            </div>
+            <div className={styles.previewTotal}>
+              <span>Total con IVA</span>
+              <strong>{currency(totals.total)}</strong>
+            </div>
+          </div>
+
+          <p>
+            El correo y el PDF conservarán esta misma jerarquía visual, tabla de
+            servicios y resumen comercial.
+          </p>
+        </aside>
       </div>
 
       {state.message && (

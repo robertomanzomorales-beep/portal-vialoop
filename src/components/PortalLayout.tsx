@@ -343,8 +343,8 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
         />
       </span>
       <span className={styles.brandText}>
-        <strong>Portal Vialoop</strong>
-        <small>Centro de operaciones</small>
+        <strong>Vialoop</strong>
+        <small>Gestión integral</small>
       </span>
     </>
   );
@@ -406,29 +406,40 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
         </div>
 
         <nav aria-label="Navegación principal" className={styles.navigation}>
-          {visibleNavigationGroups.map((group) => (
-            <div className={styles.navigationGroup} key={group.label}>
-              <p className={styles.navigationLabel}>{group.label}</p>
+          {visibleNavigationGroups.map((group) => {
+            const groupIsActive = group.items.some((item) =>
+              isCurrentRoute(pathname, item.href),
+            );
 
-              {group.items.map((item) => {
-                const isActive = isCurrentRoute(pathname, item.href);
+            return (
+              <div
+                className={`${styles.navigationGroup} ${
+                  groupIsActive ? styles.navigationGroupActive : ""
+                }`}
+                key={group.label}
+              >
+                <p className={styles.navigationLabel}>{group.label}</p>
 
-                return (
-                  <Link
-                    aria-current={isActive ? "page" : undefined}
-                    className={isActive ? styles.activeLink : undefined}
-                    href={item.href}
-                    key={item.href}
-                    onClick={(event) => handleNavigation(event, item.href)}
-                  >
-                    <NavigationIcon name={item.icon} />
-                    <span>{item.label}</span>
-                    <i aria-hidden="true" />
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                {group.items.map((item) => {
+                  const isActive = isCurrentRoute(pathname, item.href);
+
+                  return (
+                    <Link
+                      aria-current={isActive ? "page" : undefined}
+                      className={isActive ? styles.activeLink : undefined}
+                      href={item.href}
+                      key={item.href}
+                      onClick={(event) => handleNavigation(event, item.href)}
+                    >
+                      <NavigationIcon name={item.icon} />
+                      <span>{item.label}</span>
+                      <i aria-hidden="true" />
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
 
         <div className={styles.sidebarFooter}>
@@ -475,7 +486,8 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
 
       {navigating && (
         <div aria-live="polite" className={styles.routeProgress} role="status">
-          <span aria-hidden="true" />
+          <span>Vialoop</span>
+          <i aria-hidden="true" />
           <strong>Abriendo módulo…</strong>
         </div>
       )}

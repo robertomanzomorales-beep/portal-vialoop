@@ -1,4 +1,9 @@
 import nodemailer from "nodemailer";
+import {
+  buildVialoopEmailLayout,
+  normalizeVialoopEmailHtml,
+  plainTextEmailContent,
+} from "@/lib/vialoop-email";
 
 export type EmailAccount =
   | "default"
@@ -259,184 +264,18 @@ function resolveMailAccount(
   return "default";
 }
 
-function escapeHtml(
-  value: string,
-) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll(
-      '"',
-      "&quot;",
-    )
-    .replaceAll(
-      "'",
-      "&#039;",
-    );
-}
-
-function convertPlainTextToHtml(
-  text: string,
-) {
-  const escapedText =
-    escapeHtml(text);
-
-  return escapedText
-    .split(/\r?\n/)
-    .map((line) => {
-      if (
-        line.trim().length === 0
-      ) {
-        return `
-          <div
-            style="
-              height:8px;
-            "
-          ></div>
-        `;
-      }
-
-      return `
-        <p
-          style="
-            margin:0 0 16px;
-            line-height:1.65;
-          "
-        >
-          ${line}
-        </p>
-      `;
-    })
-    .join("");
-}
-
 function buildEmailHtml(
   text: string,
+  subject: string,
 ) {
-  const content =
-    convertPlainTextToHtml(
-      text,
-    );
-
-  return `
-    <!doctype html>
-    <html lang="es">
-      <head>
-        <meta charset="utf-8" />
-
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
-
-        <title>
-          Vialoop
-        </title>
-      </head>
-
-      <body
-        style="
-          margin:0;
-          padding:0;
-          background:#f2f4f7;
-          font-family:Arial,Helvetica,sans-serif;
-          color:#18212f;
-        "
-      >
-        <table
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          role="presentation"
-          style="
-            width:100%;
-            background:#f2f4f7;
-            padding:32px 16px;
-          "
-        >
-          <tr>
-            <td align="center">
-              <table
-                width="100%"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                style="
-                  width:100%;
-                  max-width:640px;
-                  background:#ffffff;
-                  border-radius:14px;
-                  overflow:hidden;
-                  border:1px solid #e3e7ed;
-                "
-              >
-                <tr>
-                  <td
-                    style="
-                      padding:26px 32px;
-                      background:#111827;
-                      color:#ffffff;
-                    "
-                  >
-                    <div
-                      style="
-                        font-size:22px;
-                        font-weight:700;
-                        letter-spacing:-0.3px;
-                      "
-                    >
-                      Vialoop
-                    </div>
-
-                    <div
-                      style="
-                        margin-top:6px;
-                        font-size:13px;
-                        color:#cbd5e1;
-                      "
-                    >
-                      Administración de servicios, pagos y facturación
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:34px 32px 18px;
-                      font-size:15px;
-                    "
-                  >
-                    ${content}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:22px 32px 30px;
-                      font-size:13px;
-                      line-height:1.6;
-                      color:#667085;
-                      border-top:1px solid #edf0f4;
-                    "
-                  >
-                    Este correo fue enviado desde el sistema de
-                    administración de Vialoop.
-
-                    <br />
-
-                    Para consultas, responde directamente a este mensaje.
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+  return buildVialoopEmailLayout({
+    eyebrow: "Comunicación Vialoop",
+    title: subject,
+    preheader: text.replace(/\s+/g, " ").trim().slice(0, 140),
+    content: plainTextEmailContent(text),
+    footer:
+      "Vialoop Studio SpA · vialoop.cl<br />Para consultas, responde directamente a este mensaje.",
+  });
 }
 
 function createTransporter(
@@ -560,11 +399,13 @@ export async function sendEmail({
 
       text,
 
-      html:
+      html: normalizeVialoopEmailHtml(
         html ??
-        buildEmailHtml(
-          text,
-        ),
+          buildEmailHtml(
+            text,
+            subject,
+          ),
+      ),
 
       attachments:
         preparedAttachments,

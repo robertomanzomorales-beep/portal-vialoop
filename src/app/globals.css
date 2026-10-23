@@ -176,37 +176,51 @@ main h2 {
 .portal-route-loading > div {
   display: grid;
   place-items: center;
-  gap: 12px;
+  gap: 14px;
   color: var(--portal-muted);
 }
 
 .portal-route-loading span {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--portal-text);
-  color: var(--portal-bg);
-  font-weight: 800;
+  color: var(--portal-text);
+  font-size: 27px;
+  font-weight: 820;
+  letter-spacing: -0.065em;
+  line-height: 1;
 }
 
 .portal-route-loading i {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--portal-border-strong);
-  border-top-color: var(--portal-text);
-  border-radius: 50%;
-  animation: portalRouteSpin 680ms linear infinite;
+  position: relative;
+  width: 92px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--portal-border-strong);
+}
+
+.portal-route-loading i::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: var(--portal-text);
+  content: "";
+  animation: portalRouteProgress 980ms ease-in-out infinite;
 }
 
 .portal-route-loading strong {
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-@keyframes portalRouteSpin {
+@keyframes portalRouteProgress {
+  from {
+    transform: translateX(-120%);
+  }
+
   to {
-    transform: rotate(360deg);
+    transform: translateX(340%);
   }
 }
 
@@ -218,7 +232,7 @@ main h2 {
     transition-duration: 0.01ms !important;
   }
 
-  .portal-route-loading i {
+  .portal-route-loading i::after {
     animation: none;
   }
 }
