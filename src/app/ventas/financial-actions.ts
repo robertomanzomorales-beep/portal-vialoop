@@ -179,6 +179,8 @@ export async function registerSalePayment(
   _previousState: FinancialActionState = EMPTY_STATE,
   formData: FormData,
 ): Promise<FinancialActionState> {
+  void _previousState;
+
   try {
     const amount = parseMoney(text(formData, "amount"));
     const paidAt = parseDate(text(formData, "paidAt"));
@@ -471,6 +473,8 @@ export async function sendSalePaymentReceipt(
   _previousState: FinancialActionState = EMPTY_STATE,
   formData: FormData,
 ): Promise<FinancialActionState> {
+  void _previousState;
+
   try {
     const receipt = await createOrUpdateReceipt(salePaymentId, formData);
     await deliverReceipt(receipt.id);
@@ -673,6 +677,8 @@ export async function uploadAndSendSalePaymentInvoice(
   _previousState: FinancialActionState = EMPTY_STATE,
   formData: FormData,
 ): Promise<FinancialActionState> {
+  void _previousState;
+
   try {
     const invoice = await createInvoice(salePaymentId, formData);
 
@@ -705,6 +711,9 @@ export async function resendSalePaymentInvoice(
   _previousState: FinancialActionState = EMPTY_STATE,
   _formData: FormData,
 ): Promise<FinancialActionState> {
+  void _previousState;
+  void _formData;
+
   try {
     const invoice = await prisma.salePaymentInvoice.findUnique({
       where: { salePaymentId },

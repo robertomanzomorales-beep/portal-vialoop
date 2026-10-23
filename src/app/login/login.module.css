@@ -4,8 +4,8 @@
   grid-template-columns:
     minmax(420px, 0.88fr)
     minmax(480px, 1.12fr);
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
 }
 
 .panel {
@@ -31,8 +31,8 @@
   height: 44px;
   place-items: center;
   border-radius: 12px;
-  background: #0b1739;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
   font-size: 18px;
   font-weight: 800;
 }
@@ -45,13 +45,13 @@
 .brand span {
   display: block;
   margin-top: 3px;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
 }
 
 .heading > span,
 .visual span {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.09em;
@@ -66,7 +66,7 @@
 
 .heading p {
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.65;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .field span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -92,10 +92,10 @@
 .field input {
   width: 100%;
   min-height: 48px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 10px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 0 14px;
   outline: none;
   transition:
@@ -104,27 +104,27 @@
 }
 
 .field input:focus {
-  border-color: #175cd3;
+  border-color: var(--portal-accent);
   box-shadow:
     0 0 0 4px
-    rgb(23 92 211 / 10%);
+    var(--portal-focus);
 }
 
 .submitButton {
   min-height: 48px;
-  border: 1px solid #175cd3;
+  border: 1px solid var(--portal-accent);
   border-radius: 10px;
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
   font-weight: 750;
   cursor: pointer;
   box-shadow:
     0 10px 24px
-    rgb(23 92 211 / 18%);
+    var(--portal-focus);
 }
 
 .submitButton:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .errorMessage,
@@ -138,20 +138,20 @@
 }
 
 .errorMessage {
-  border: 1px solid #fecdca;
-  background: #fef3f2;
-  color: #b42318;
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .successMessage {
-  border: 1px solid #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .securityText {
   margin: 26px 0 0;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 11px;
   line-height: 1.6;
 }
@@ -163,17 +163,12 @@
   background:
     radial-gradient(
       circle at 75% 20%,
-      rgb(83 131 255 / 26%),
+      color-mix(in srgb, var(--portal-contrast-text) 18%, transparent),
       transparent 32%
     ),
-    linear-gradient(
-      145deg,
-      #0b1739 0%,
-      #102a67 55%,
-      #175cd3 100%
-    );
+    var(--portal-contrast-bg);
   padding: 72px;
-  color: #ffffff;
+  color: var(--portal-contrast-text);
 }
 
 .visual > div {
@@ -181,7 +176,7 @@
 }
 
 .visual span {
-  color: #b2ccff;
+  color: var(--portal-contrast-muted);
 }
 
 .visual h2 {
@@ -198,7 +193,7 @@
 .visual p {
   max-width: 510px;
   margin: 0;
-  color: rgb(255 255 255 / 72%);
+  color: var(--portal-contrast-muted);
   font-size: 16px;
   line-height: 1.7;
 }

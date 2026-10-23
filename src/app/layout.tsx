@@ -19,6 +19,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const themeInitializationScript = `
+  try {
+    const savedTheme = window.localStorage.getItem("portal-vialoop-theme");
+    const theme = savedTheme === "light" || savedTheme === "dark"
+      ? savedTheme
+      : window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    document.documentElement.dataset.theme = theme;
+  } catch {
+    document.documentElement.dataset.theme = "light";
+  }
+`;
+
 export const metadata: Metadata = {
   title: {
     default: "Portal Vialoop",
@@ -101,6 +115,14 @@ export default async function RootLayout({
       lang="es"
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeInitializationScript,
+          }}
+        />
+      </head>
+
       <body>
         {isLoginPage ? (
           children

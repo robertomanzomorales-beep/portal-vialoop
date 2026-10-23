@@ -1,8 +1,11 @@
 .content {
   box-sizing: border-box;
   display: grid;
+  max-width: 1760px;
+  min-height: 100vh;
   gap: 24px;
-  padding: 8px 28px 40px;
+  margin: 0 auto;
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
   width: 100%;
 }
 
@@ -26,7 +29,7 @@
 .listHeader h2,
 .chartHeader h2,
 .modalHeader h2 {
-  color: #111827;
+  color: var(--portal-text);
   margin: 4px 0 6px;
 }
 
@@ -46,7 +49,7 @@
 .chartHeader p,
 .modalHeader p,
 .emptyState p {
-  color: #667085;
+  color: var(--portal-muted);
   margin: 0;
 }
 
@@ -68,29 +71,29 @@
 }
 
 .periodForm label span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.7rem;
   font-weight: 750;
 }
 
 .periodForm input {
   min-height: 38px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 0 10px;
-  color: #101828;
+  color: var(--portal-text);
   font: inherit;
   font-size: 0.78rem;
 }
 
 .periodForm button {
   min-height: 38px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #101828;
+  background: var(--portal-text);
   padding: 0 13px;
-  color: #ffffff;
+  color: var(--portal-on-accent);
   font: inherit;
   font-size: 0.75rem;
   font-weight: 800;
@@ -98,13 +101,13 @@
 }
 
 .hostingTotal {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 1rem;
   white-space: nowrap;
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -121,8 +124,8 @@
 .goalPanel,
 .chartPanel,
 .listPanel {
-  background: #ffffff;
-  border: 1px solid #e4e7ec;
+  background: var(--portal-surface);
+  border: 1px solid var(--portal-border);
   border-radius: 18px;
 }
 
@@ -133,19 +136,19 @@
 }
 
 .metricCard > span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.84rem;
   font-weight: 700;
 }
 
 .metricCard > strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: clamp(1.45rem, 2.6vw, 2rem);
   letter-spacing: -0.04em;
 }
 
 .metricCard > small {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   line-height: 1.45;
 }
 
@@ -165,24 +168,24 @@
 
 .goalTopline span,
 .goalTopline p {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.88rem;
   margin: 0;
 }
 
 .goalTopline strong {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .progressTrack {
-  background: #eaecf0;
+  background: var(--portal-border);
   border-radius: 999px;
   height: 12px;
   overflow: hidden;
 }
 
 .progressValue {
-  background: #175cd3;
+  background: var(--portal-accent);
   border-radius: inherit;
   display: block;
   height: 100%;
@@ -210,7 +213,7 @@
 
 .chartLegend span {
   align-items: center;
-  color: #667085;
+  color: var(--portal-muted);
   display: flex;
   font-size: 0.8rem;
   gap: 7px;
@@ -222,18 +225,18 @@
 }
 
 .legendSales {
-  background: #175cd3;
+  background: var(--portal-accent);
   border-radius: 3px;
   height: 8px;
 }
 
 .legendGoal {
-  border-top: 2px dashed #f79009;
+  border-top: 2px dashed var(--portal-warning);
   height: 0;
 }
 
 .chartScroll {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   overflow-x: auto;
   padding: 30px 24px 20px;
 }
@@ -248,7 +251,7 @@
 }
 
 .goalLine {
-  border-top: 2px dashed #f79009;
+  border-top: 2px dashed var(--portal-warning);
   left: 0;
   pointer-events: none;
   position: absolute;
@@ -257,8 +260,8 @@
 }
 
 .goalLine span {
-  background: #fff7ed;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
   font-size: 0.68rem;
   font-weight: 800;
   padding: 2px 6px;
@@ -275,7 +278,7 @@
 
 .barArea {
   align-items: flex-end;
-  border-bottom: 1px solid #d0d5dd;
+  border-bottom: 1px solid var(--portal-border-strong);
   display: flex;
   height: 250px;
   justify-content: center;
@@ -283,7 +286,7 @@
 }
 
 .bar {
-  background: #175cd3;
+  background: var(--portal-accent);
   border-radius: 7px 7px 0 0;
   display: block;
   max-width: 42px;
@@ -293,7 +296,7 @@
 }
 
 .barValue {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 0.64rem;
   font-weight: 700;
   left: 50%;
@@ -304,7 +307,7 @@
 }
 
 .monthLabel {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.72rem;
   font-weight: 700;
   padding-top: 10px;
@@ -334,24 +337,24 @@
 }
 
 .primaryButton {
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .secondaryButton {
-  background: #f2f4f7;
-  color: #344054;
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
 }
 
 .manageButton {
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   white-space: nowrap;
 }
 
 .deleteButton {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .primaryButton:disabled,
@@ -362,7 +365,7 @@
 }
 
 .tableWrap {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   overflow-x: auto;
 }
 
@@ -374,31 +377,31 @@
 
 .table th,
 .table td {
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   padding: 15px 18px;
   text-align: left;
   vertical-align: middle;
 }
 
 .table th {
-  background: #f9fafb;
-  color: #667085;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .table td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 0.84rem;
 }
 
 .table td strong {
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .table td small {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   display: block;
   line-height: 1.4;
   margin-top: 4px;
@@ -406,7 +409,7 @@
 }
 
 .amountCell {
-  color: #101828 !important;
+  color: var(--portal-text) !important;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -420,28 +423,28 @@
 }
 
 .statusActive {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusCancelled {
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
 }
 
 .statusPaid {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusPartial {
-  background: #fff7ed;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .statusUnpaid {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .balanceLabel {
@@ -466,33 +469,33 @@
 }
 
 .textButton {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .dangerButton {
-  color: #d92d20;
+  color: var(--portal-danger);
 }
 
 .noAction {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 0.75rem;
 }
 
 .emptyState {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   padding: 48px 24px;
   text-align: center;
 }
 
 .emptyState strong {
-  color: #101828;
+  color: var(--portal-text);
   display: block;
   margin-bottom: 8px;
 }
 
 .modalBackdrop {
   align-items: center;
-  background: rgba(16, 24, 40, 0.64);
+  background: var(--portal-overlay);
   display: flex;
   inset: 0;
   justify-content: center;
@@ -502,9 +505,9 @@
 }
 
 .modal {
-  background: #ffffff;
+  background: var(--portal-surface);
   border-radius: 18px;
-  box-shadow: 0 24px 72px rgba(16, 24, 40, 0.26);
+  box-shadow: 0 24px 72px var(--portal-shadow-color);
   max-height: calc(100vh - 40px);
   max-width: 650px;
   overflow-y: auto;
@@ -512,16 +515,16 @@
 }
 
 .modalHeader {
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   gap: 24px;
   padding: 24px;
 }
 
 .closeButton {
   align-items: center;
-  background: #f2f4f7;
+  background: var(--portal-surface-hover);
   border-radius: 999px;
-  color: #475467;
+  color: var(--portal-text-secondary);
   display: flex;
   flex: 0 0 auto;
   font-size: 1.4rem;
@@ -548,7 +551,7 @@
 }
 
 .field > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -556,10 +559,10 @@
 .field input,
 .field select,
 .field textarea {
-  background: #ffffff;
-  border: 1px solid #d0d5dd;
+  background: var(--portal-surface);
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  color: #101828;
+  color: var(--portal-text);
   font: inherit;
   outline: none;
   padding: 11px 12px;
@@ -573,32 +576,32 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgba(23, 92, 211, 0.12);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .formError {
-  background: #fef3f2;
-  border: 1px solid #fecdca;
+  background: var(--portal-danger-soft);
+  border: 1px solid var(--portal-danger-border);
   border-radius: 9px;
-  color: #b42318;
+  color: var(--portal-danger);
   font-size: 0.8rem;
   margin: 0;
   padding: 10px 12px;
 }
 
 .formSuccess {
-  background: #ecfdf3;
-  border: 1px solid #abefc6;
+  background: var(--portal-success-soft);
+  border: 1px solid var(--portal-success-border);
   border-radius: 9px;
-  color: #067647;
+  color: var(--portal-success);
   font-size: 0.8rem;
   margin: 0;
   padding: 10px 12px;
 }
 
 .formActions {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   gap: 12px;
   padding-top: 18px;
 }
@@ -615,28 +618,28 @@
 }
 
 .financeSummary {
-  background: #f9fafb;
-  border-bottom: 1px solid #eaecf0;
+  background: var(--portal-surface-soft);
+  border-bottom: 1px solid var(--portal-border);
   display: grid;
   gap: 1px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .financeSummary article {
-  background: #ffffff;
+  background: var(--portal-surface);
   display: grid;
   gap: 6px;
   padding: 20px 24px;
 }
 
 .financeSummary span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
 
 .financeSummary strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 1.3rem;
 }
 
@@ -646,7 +649,7 @@
 }
 
 .financeForm {
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   display: grid;
   gap: 18px;
 }
@@ -658,7 +661,7 @@
 }
 
 .financeSectionHeader h3 {
-  color: #101828;
+  color: var(--portal-text);
   margin: 4px 0 0;
 }
 
@@ -673,9 +676,9 @@
 }
 
 .paidNotice {
-  background: #ecfdf3;
-  border-bottom: 1px solid #abefc6;
-  color: #067647;
+  background: var(--portal-success-soft);
+  border-bottom: 1px solid var(--portal-success-border);
+  color: var(--portal-success);
   font-weight: 700;
   padding: 18px 24px;
 }
@@ -686,14 +689,14 @@
 }
 
 .paymentCard {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
   overflow: hidden;
 }
 
 .paymentCard > header {
   align-items: center;
-  background: #f9fafb;
+  background: var(--portal-surface-soft);
   display: flex;
   justify-content: space-between;
   padding: 16px 18px;
@@ -705,20 +708,20 @@
 }
 
 .paymentCard > header strong {
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .paymentCard > header span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.76rem;
 }
 
 .documentDisclosure {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
 }
 
 .documentDisclosure > summary {
-  color: #344054;
+  color: var(--portal-text-secondary);
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 800;
@@ -726,8 +729,8 @@
 }
 
 .documentForm {
-  background: #ffffff;
-  border-top: 1px solid #eaecf0;
+  background: var(--portal-surface);
+  border-top: 1px solid var(--portal-border);
   display: grid;
   gap: 16px;
   padding: 18px;
@@ -746,11 +749,11 @@
 }
 
 .documentTitle strong {
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .documentTitle small {
-  color: #667085;
+  color: var(--portal-muted);
 }
 
 .emailStatus {
@@ -761,18 +764,18 @@
 }
 
 .emailSent {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .emailFailed {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .emailPending {
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
 }
 
 .documentSummary {
@@ -783,19 +786,19 @@
 }
 
 .documentSummary div {
-  background: #f9fafb;
+  background: var(--portal-surface-soft);
   border-radius: 9px;
   padding: 12px;
 }
 
 .documentSummary dt {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.7rem;
   font-weight: 700;
 }
 
 .documentSummary dd {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 0.82rem;
   font-weight: 700;
   margin: 5px 0 0;

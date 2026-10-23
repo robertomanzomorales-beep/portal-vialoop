@@ -252,6 +252,8 @@ export async function deleteDocument(
   documentId: string,
   _formData: FormData,
 ) {
+  void _formData;
+
   const existingDocument =
     await prisma.document.findUnique({
       where: {

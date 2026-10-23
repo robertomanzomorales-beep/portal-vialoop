@@ -1,8 +1,11 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   min-height: 100vh;
-  background: #f4f6fa;
-  padding: 46px;
-  color: #101828;
+  background: var(--portal-bg);
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  color: var(--portal-text);
 }
 
 .header {
@@ -29,7 +32,7 @@
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -46,7 +49,7 @@
 .panelHeader p {
   max-width: 760px;
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -74,37 +77,37 @@
 
 .secondaryButton,
 .viewButton {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .primaryAction {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .dangerAction {
-  border: 1px solid #fecdca;
-  background: #ffffff;
-  color: #b42318;
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-surface);
+  color: var(--portal-danger);
 }
 
 .secondaryButton:hover,
 .viewButton:hover {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .primaryAction:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .dangerAction:hover {
-  border-color: #f04438;
-  background: #fef3f2;
+  border-color: var(--portal-danger);
+  background: var(--portal-danger-soft);
 }
 
 .successMessage,
@@ -117,15 +120,15 @@
 }
 
 .successMessage {
-  border: 1px solid #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .noticeMessage {
-  border: 1px solid #fedf89;
-  background: #fffaeb;
-  color: #b54708;
+  border: 1px solid var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .summary {
@@ -136,21 +139,21 @@
 }
 
 .summary article {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 22px;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .summary article.alertCard {
-  border-color: #fecdca;
-  background: #fffbfa;
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
 }
 
 .summary span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   font-weight: 650;
 }
@@ -163,18 +166,18 @@
 }
 
 .summary .amount {
-  color: #b42318;
+  color: var(--portal-danger);
   font-size: 24px;
 }
 
 .summary .paidAmount {
-  color: #027a48;
+  color: var(--portal-success);
   font-size: 24px;
 }
 
 .summary p {
   margin: 0;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 12px;
 }
 
@@ -192,10 +195,10 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #475467;
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
   padding: 0 14px;
   font-size: 12px;
   font-weight: 650;
@@ -208,33 +211,33 @@
   height: 22px;
   place-items: center;
   border-radius: 999px;
-  background: #f2f4f7;
+  background: var(--portal-surface-hover);
   padding: 0 6px;
   font-size: 11px;
 }
 
 .activeFilter {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .activeFilter span {
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .panel {
   overflow: hidden;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .panelHeader {
   padding: 24px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .panelHeader h2 {
@@ -255,14 +258,14 @@
 .table th,
 .table td {
   padding: 16px 18px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   text-align: left;
   vertical-align: middle;
 }
 
 .table th {
-  background: #fcfcfd;
-  color: #667085;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -270,7 +273,7 @@
 }
 
 .table td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 13px;
 }
 
@@ -279,7 +282,7 @@
 }
 
 .table tbody tr:hover {
-  background: #f9fbff;
+  background: var(--portal-surface-soft);
 }
 
 .table tbody tr:last-child td {
@@ -295,24 +298,24 @@
 .clientLink strong,
 .description {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .clientLink:hover strong {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .clientLink span,
 .secondaryText {
   display: block;
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 11px;
   line-height: 1.45;
 }
 
 .price {
-  color: #101828;
+  color: var(--portal-text);
   white-space: nowrap;
 }
 
@@ -329,34 +332,34 @@
 }
 
 .statusPending {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .statusOverdue {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .statusPaid {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusCancelled,
 .statusRefunded {
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
 }
 
 .recordReal {
-  background: #eef4ff;
-  color: #3538cd;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .recordTest {
-  background: #f4f3ff;
-  color: #5925dc;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .viewButton,
@@ -382,8 +385,8 @@
   height: 48px;
   place-items: center;
   border-radius: 50%;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-size: 20px;
   font-weight: 800;
 }
@@ -395,7 +398,7 @@
 .emptyState p {
   max-width: 470px;
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -406,7 +409,7 @@
   display: grid;
   place-items: center;
   overflow-y: auto;
-  background: rgb(16 24 40 / 58%);
+  background: var(--portal-overlay);
   padding: 24px;
   backdrop-filter: blur(4px);
 }
@@ -415,11 +418,11 @@
   width: min(720px, 100%);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 28px;
-  box-shadow: 0 30px 90px rgb(16 24 40 / 28%);
+  box-shadow: 0 30px 90px var(--portal-shadow-color);
 }
 
 .modalHeader {
@@ -430,7 +433,7 @@
 }
 
 .modalEyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -439,7 +442,7 @@
 
 .modalHeader h2 {
   margin: 7px 0 0;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 28px;
   letter-spacing: -0.03em;
 }
@@ -450,10 +453,10 @@
   height: 38px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #475467;
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
   font-family: inherit;
   font-size: 24px;
   line-height: 1;
@@ -461,13 +464,13 @@
 }
 
 .modalClose:hover {
-  border-color: #98a2b3;
-  background: #f9fafb;
+  border-color: var(--portal-text-tertiary);
+  background: var(--portal-surface-soft);
 }
 
 .modalIntro {
   margin: 14px 0 20px;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -476,9 +479,9 @@
   grid-template-columns: 1fr 1.4fr 1fr;
   gap: 12px;
   margin-bottom: 24px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 12px;
-  background: #f9fafb;
+  background: var(--portal-surface-soft);
   padding: 16px;
 }
 
@@ -489,7 +492,7 @@
 .paymentSummary span {
   display: block;
   margin-bottom: 5px;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
   font-weight: 650;
 }
@@ -497,7 +500,7 @@
 .paymentSummary strong {
   display: block;
   overflow: hidden;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
   text-overflow: ellipsis;
 }
@@ -527,7 +530,7 @@
 }
 
 .field > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -536,10 +539,10 @@
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 11px 12px;
   font-family: inherit;
   font-size: 13px;
@@ -561,8 +564,8 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .fullWidth {
@@ -578,16 +581,16 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 11px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 15px;
   cursor: pointer;
 }
 
 .checkboxField:hover {
-  border-color: #b2ccff;
-  background: #f9fbff;
+  border-color: var(--portal-accent-border);
+  background: var(--portal-surface-soft);
 }
 
 .checkboxField input {
@@ -595,7 +598,7 @@
   height: 17px;
   flex: 0 0 auto;
   margin-top: 2px;
-  accent-color: #175cd3;
+  accent-color: var(--portal-accent);
 }
 
 .checkboxField span {
@@ -605,20 +608,20 @@
 .checkboxField strong {
   display: block;
   margin-bottom: 4px;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
 }
 
 .checkboxField small {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .testOption {
-  border-color: #e9d7fe;
-  background: #fcfaff;
+  border-color: var(--portal-accent-border);
+  background: var(--portal-accent-soft);
 }
 
 .modalFooter {
@@ -643,23 +646,23 @@
 }
 
 .cancelModalButton {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .submitButton {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .cancelModalButton:hover {
-  background: #f9fafb;
+  background: var(--portal-surface-soft);
 }
 
 .submitButton:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .submitButton:disabled {
@@ -678,10 +681,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid #b2ccff;
+  border: 1px solid var(--portal-accent-border);
   border-radius: 9px;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   padding: 0 12px;
   font-family: inherit;
   font-size: 12px;
@@ -706,8 +709,8 @@
   height: 18px;
   place-items: center;
   border-radius: 50%;
-  background: #d1e0ff;
-  color: #175cd3;
+  background: var(--portal-accent-border);
+  color: var(--portal-accent);
   font-size: 14px;
   font-weight: 750;
   line-height: 1;
@@ -718,34 +721,34 @@
 }
 
 .documents[open] .documentToggle {
-  border-color: #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .documents[open] .documentToggle::after {
-  background: rgb(255 255 255 / 18%);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--portal-on-accent) 18%, transparent);
+  color: var(--portal-on-accent);
   transform: rotate(45deg);
 }
 
 .documentToggle:hover {
-  border-color: #175cd3;
-  background: #dbe8ff;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-border);
 }
 
 .documents[open] .documentToggle:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .documentsPanel {
   width: 390px;
   margin-top: 10px;
   overflow: hidden;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 14px 34px rgb(16 24 40 / 13%);
+  background: var(--portal-surface);
+  box-shadow: 0 14px 34px var(--portal-shadow-color);
 }
 
 .documentSection {
@@ -753,8 +756,8 @@
 }
 
 .documentSection + .documentSection {
-  border-top: 1px solid #eaecf0;
-  background: #fcfcfd;
+  border-top: 1px solid var(--portal-border);
+  background: var(--portal-surface-soft);
 }
 
 .documentHeading {
@@ -770,7 +773,7 @@
 
 .documentHeading strong {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
 }
 
@@ -778,7 +781,7 @@
   display: block;
   margin-top: 4px;
   overflow: hidden;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -798,24 +801,24 @@
 }
 
 .emailSent {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .emailFailed {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .emailPending {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .documentMeta {
   margin: 12px 0;
   overflow-wrap: anywhere;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -825,10 +828,10 @@
   min-height: 36px;
   align-items: center;
   justify-content: center;
-  border: 1px solid #175cd3;
+  border: 1px solid var(--portal-accent);
   border-radius: 8px;
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
   padding: 0 13px;
   font-family: inherit;
   font-size: 11px;
@@ -840,8 +843,8 @@
 }
 
 .documentButton:hover {
-  border-color: #1849a9;
-  background: #1849a9;
+  border-color: var(--portal-accent-hover);
+  background: var(--portal-accent-hover);
 }
 
 .invoiceForm {
@@ -865,7 +868,7 @@
 }
 
 .invoiceForm label > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 10px;
   font-weight: 700;
 }
@@ -874,10 +877,10 @@
 .documentFile {
   width: 100%;
   min-width: 0;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 8px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   font-family: inherit;
   font-size: 11px;
   outline: none;
@@ -900,8 +903,8 @@
   margin-right: 9px;
   border: 0;
   border-radius: 6px;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   padding: 0 10px;
   font-family: inherit;
   font-size: 10px;
@@ -911,13 +914,13 @@
 
 .documentInput:focus,
 .documentFile:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .invoiceForm small {
   margin-top: -4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 10px;
 }
 
@@ -930,10 +933,10 @@
   min-height: 35px;
   align-items: center;
   justify-content: center;
-  border: 1px solid #b2ccff;
+  border: 1px solid var(--portal-accent-border);
   border-radius: 9px;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   padding: 0 13px;
   font-family: inherit;
   font-size: 12px;
@@ -947,9 +950,9 @@
 }
 
 .emailManager[open] .emailManagerToggle {
-  border-color: #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .emailManagerPanel {
@@ -962,17 +965,17 @@
   max-height: min(760px, 82vh);
   gap: 16px;
   overflow-y: auto;
-  border: 1px solid #d0d5dd;
-  border-radius: 14px;
-  background: #f8fafc;
-  box-shadow: 0 22px 54px rgb(16 24 40 / 20%);
+  border: 1px solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-soft);
+  box-shadow: 0 22px 54px var(--portal-shadow-color);
   padding: 18px;
 }
 
 .emailCard {
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 18px;
 }
 
@@ -983,11 +986,11 @@
   gap: 14px;
   margin-bottom: 17px;
   padding-bottom: 14px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .emailCardHeader span {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.06em;
@@ -995,7 +998,7 @@
 
 .emailCardHeader h3 {
   margin: 5px 0 0;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 17px;
   letter-spacing: -0.02em;
 }
@@ -1019,7 +1022,7 @@
 }
 
 .emailFormGrid label > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 10px;
   font-weight: 750;
 }
@@ -1029,10 +1032,10 @@
   width: 100%;
   min-width: 0;
   min-height: 39px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 8px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 8px 10px;
   font-family: inherit;
   font-size: 11px;
@@ -1041,8 +1044,8 @@
 
 .emailFormGrid input:focus,
 .emailFormGrid select:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .emailFullWidth {
@@ -1069,14 +1072,14 @@
 }
 
 .emailSubmitButton {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .emailSubmitButton:hover {
-  border-color: #1849a9;
-  background: #1849a9;
+  border-color: var(--portal-accent-hover);
+  background: var(--portal-accent-hover);
 }
 
 .emailSubmitButton:disabled {
@@ -1086,17 +1089,17 @@
 
 .emailSecondaryButton {
   margin-top: 10px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .emailError {
   margin: 0;
-  border: 1px solid #fecdca;
+  border: 1px solid var(--portal-danger-border);
   border-radius: 8px;
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
   padding: 10px 12px;
   font-size: 10px;
   line-height: 1.5;
@@ -1109,12 +1112,12 @@
 }
 
 .invoiceExisting strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
 }
 
 .invoiceExisting > span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
 }
 

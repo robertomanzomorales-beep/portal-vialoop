@@ -1,8 +1,11 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   min-height: 100vh;
-  background: #f4f6fa;
-  padding: 46px;
-  color: #101828;
+  background: var(--portal-bg);
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  color: var(--portal-text);
 }
 
 .header {
@@ -20,7 +23,7 @@
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -38,7 +41,7 @@
 .sectionHeader p {
   max-width: 760px;
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -66,28 +69,28 @@
 }
 
 .primaryButton {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
-  box-shadow: 0 8px 18px rgb(23 92 211 / 15%);
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
+  box-shadow: 0 8px 18px var(--portal-focus);
 }
 
 .primaryButton:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .secondaryButton,
 .editButton {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .secondaryButton:hover,
 .editButton:hover {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .successMessage,
@@ -100,15 +103,15 @@
 }
 
 .successMessage {
-  border: 1px solid #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .warningMessage {
-  border: 1px solid #fedf89;
-  background: #fffaeb;
-  color: #b54708;
+  border: 1px solid var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .summary {
@@ -120,16 +123,16 @@
 
 .summary article {
   min-width: 0;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 22px;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .summary span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   font-weight: 650;
 }
@@ -142,13 +145,13 @@
 }
 
 .summary .amount {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 24px;
 }
 
 .summary p {
   margin: 0;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -168,7 +171,7 @@
 }
 
 .searchField > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -182,10 +185,10 @@
 .searchRow input {
   width: min(560px, 100%);
   min-height: 42px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 0 13px;
   font-family: inherit;
   font-size: 13px;
@@ -193,8 +196,8 @@
 }
 
 .searchRow input:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .searchRow button,
@@ -213,15 +216,15 @@
 }
 
 .searchRow button {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .searchRow a {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #475467;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .filters {
@@ -237,10 +240,10 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #475467;
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
   padding: 0 14px;
   font-size: 12px;
   font-weight: 650;
@@ -253,35 +256,35 @@
   height: 22px;
   place-items: center;
   border-radius: 999px;
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
   padding: 0 6px;
   font-size: 11px;
 }
 
 .activeFilter {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .activeFilter span {
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .panel,
 .formPanel {
   overflow: hidden;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .panelHeader {
   padding: 24px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .panelHeader h2,
@@ -303,14 +306,14 @@
 .table th,
 .table td {
   padding: 16px 18px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   text-align: left;
   vertical-align: middle;
 }
 
 .table th {
-  background: #fcfcfd;
-  color: #667085;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -318,7 +321,7 @@
 }
 
 .table td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 13px;
 }
 
@@ -327,7 +330,7 @@
 }
 
 .table tbody tr:hover {
-  background: #f9fbff;
+  background: var(--portal-surface-soft);
 }
 
 .table tbody tr:last-child td {
@@ -340,7 +343,7 @@
 
 .planCell strong {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
 }
 
@@ -348,7 +351,7 @@
   display: -webkit-box;
   margin-top: 5px;
   overflow: hidden;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 11px;
   line-height: 1.5;
   -webkit-box-orient: vertical;
@@ -368,38 +371,38 @@
 }
 
 .typeEssential {
-  background: #eef4ff;
-  color: #3538cd;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .typeManagement {
-  background: #f4f3ff;
-  color: #5925dc;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .typeActive {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .typeCustom {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .statusActive {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusInactive {
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
 }
 
 .price {
   display: block;
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 15px;
   white-space: nowrap;
 }
@@ -407,20 +410,20 @@
 .priceTax {
   display: block;
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 10px;
 }
 
 .metricValue {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 14px;
 }
 
 .secondaryText {
   display: block;
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 10px;
   white-space: nowrap;
 }
@@ -440,24 +443,24 @@
 }
 
 .activateButton {
-  border: 1px solid #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .activateButton:hover {
-  border-color: #079455;
-  background: #d1fadf;
+  border-color: var(--portal-success);
+  background: var(--portal-success-soft);
 }
 
 .deactivateButton {
-  border: 1px solid #fecdca;
-  background: #ffffff;
-  color: #b42318;
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-surface);
+  color: var(--portal-danger);
 }
 
 .deactivateButton:hover {
-  background: #fef3f2;
+  background: var(--portal-danger-soft);
 }
 
 .emptyState {
@@ -476,8 +479,8 @@
   height: 48px;
   place-items: center;
   border-radius: 50%;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-size: 22px;
   font-weight: 800;
 }
@@ -489,16 +492,16 @@
 .emptyState p {
   max-width: 490px;
   margin: 0 0 20px;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
 .informationBox {
   margin-top: 18px;
-  border: 1px solid #b2ccff;
+  border: 1px solid var(--portal-accent-border);
   border-radius: 12px;
-  background: #f5f8ff;
-  color: #344054;
+  background: var(--portal-accent-soft);
+  color: var(--portal-text-secondary);
   padding: 16px 18px;
   font-size: 12px;
   line-height: 1.6;
@@ -506,7 +509,7 @@
 
 .formSection {
   padding: 28px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .sectionHeader {
@@ -531,7 +534,7 @@
 }
 
 .field > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -540,10 +543,10 @@
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 11px 12px;
   font-family: inherit;
   font-size: 13px;
@@ -563,12 +566,12 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .field small {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -578,16 +581,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 12px;
-  background: #fcfcfd;
+  background: var(--portal-surface-soft);
   padding: 20px;
   cursor: pointer;
 }
 
 .switchText strong {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 14px;
 }
 
@@ -595,7 +598,7 @@
   display: block;
   max-width: 650px;
   margin-top: 5px;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -618,7 +621,7 @@
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: #d0d5dd;
+  background: var(--portal-border-strong);
   transition: background-color 180ms ease;
 }
 
@@ -629,14 +632,14 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgb(16 24 40 / 20%);
+  background: var(--portal-surface);
+  box-shadow: 0 2px 6px var(--portal-shadow-color);
   content: "";
   transition: transform 180ms ease;
 }
 
 .switch input:checked + .switchSlider {
-  background: #175cd3;
+  background: var(--portal-accent);
 }
 
 .switch input:checked + .switchSlider::after {
@@ -648,7 +651,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 22px 28px;
-  background: #fcfcfd;
+  background: var(--portal-surface-soft);
 }
 
 .formFooter button {
@@ -663,16 +666,16 @@
 }
 
 .detailBanner > div {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 20px;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .detailBanner span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 12px;
   font-weight: 650;
 }
@@ -680,22 +683,22 @@
 .detailBanner strong {
   display: block;
   margin-top: 10px;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 22px;
 }
 
 .detailBanner small {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
   font-weight: 500;
 }
 
 .activeText {
-  color: #027a48 !important;
+  color: var(--portal-success) !important;
 }
 
 .inactiveText {
-  color: #667085 !important;
+  color: var(--portal-muted) !important;
 }
 
 @media (max-width: 1100px) {

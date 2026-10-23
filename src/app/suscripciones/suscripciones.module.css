@@ -1,8 +1,11 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   min-height: 100vh;
-  background: #f4f6fa;
-  padding: 46px;
-  color: #101828;
+  background: var(--portal-bg);
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  color: var(--portal-text);
 }
 
 .header {
@@ -21,7 +24,7 @@
 
 .eyebrow,
 .panelEyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -40,7 +43,7 @@
 .renewalActionInfo p {
   max-width: 760px;
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -72,25 +75,25 @@
 .primaryButton,
 .createRenewalButton,
 .confirmModalButton {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
   box-shadow:
     0 8px 18px
-    rgb(23 92 211 / 15%);
+    var(--portal-focus);
 }
 
 .primaryButton:hover,
 .createRenewalButton:hover,
 .confirmModalButton:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
 }
 
 .primaryButton:disabled,
 .createRenewalButton:disabled,
 .confirmModalButton:disabled {
-  border-color: #98a2b3;
-  background: #98a2b3;
+  border-color: var(--portal-text-tertiary);
+  background: var(--portal-text-tertiary);
   cursor: not-allowed;
   box-shadow: none;
   opacity: 0.75;
@@ -99,17 +102,17 @@
 .secondaryButton,
 .editButton,
 .cancelModalButton {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .secondaryButton:hover,
 .editButton:hover,
 .cancelModalButton:hover {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .successMessage,
@@ -122,15 +125,15 @@
 }
 
 .successMessage {
-  border: 1px solid #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .warningMessage {
-  border: 1px solid #fedf89;
-  background: #fffaeb;
-  color: #b54708;
+  border: 1px solid var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .summary {
@@ -143,18 +146,18 @@
 
 .summary article {
   min-width: 0;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 22px;
   box-shadow:
     0 8px 24px
-    rgb(16 24 40 / 4%);
+    var(--portal-shadow-color);
 }
 
 .summary span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   font-weight: 650;
 }
@@ -168,7 +171,7 @@
 
 .summary p {
   margin: 0;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -188,7 +191,7 @@
 }
 
 .searchField > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -202,10 +205,10 @@
 .searchRow input {
   width: min(560px, 100%);
   min-height: 42px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 0 13px;
   font-family: inherit;
   font-size: 13px;
@@ -213,10 +216,10 @@
 }
 
 .searchRow input:focus {
-  border-color: #175cd3;
+  border-color: var(--portal-accent);
   box-shadow:
     0 0 0 3px
-    rgb(23 92 211 / 10%);
+    var(--portal-focus);
 }
 
 .searchRow button,
@@ -235,15 +238,15 @@
 }
 
 .searchRow button {
-  border: 1px solid #175cd3;
-  background: #175cd3;
-  color: #ffffff;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .searchRow a {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #475467;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .filters {
@@ -259,10 +262,10 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #475467;
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
   padding: 0 14px;
   font-size: 12px;
   font-weight: 650;
@@ -275,38 +278,38 @@
   height: 22px;
   place-items: center;
   border-radius: 999px;
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
   padding: 0 6px;
   font-size: 11px;
 }
 
 .activeFilter {
-  border-color: #175cd3;
-  background: #eef3ff;
-  color: #175cd3;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .activeFilter span {
-  background: #175cd3;
-  color: #ffffff;
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
 }
 
 .panel,
 .formPanel,
 .renewalActionPanel {
   overflow: hidden;
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   box-shadow:
     0 8px 24px
-    rgb(16 24 40 / 4%);
+    var(--portal-shadow-color);
 }
 
 .panelHeader {
   padding: 24px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .panelHeader h2,
@@ -330,14 +333,14 @@
 .table td {
   padding: 16px 18px;
   border-bottom:
-    1px solid #eaecf0;
+    1px solid var(--portal-border);
   text-align: left;
   vertical-align: middle;
 }
 
 .table th {
-  background: #fcfcfd;
-  color: #667085;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -345,12 +348,12 @@
 }
 
 .table td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 13px;
 }
 
 .table tbody tr:hover {
-  background: #f9fbff;
+  background: var(--portal-surface-soft);
 }
 
 .table tbody tr:last-child td {
@@ -367,12 +370,12 @@
 .projectName,
 .planCell strong {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
 }
 
 .clientLink:hover strong {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .clientLink span,
@@ -380,7 +383,7 @@
 .secondaryText {
   display: block;
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 10px;
   line-height: 1.45;
 }
@@ -398,46 +401,46 @@
 }
 
 .cycleBadge {
-  background: #eef4ff;
-  color: #3538cd;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .statusActive {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusPending {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .statusSuspended {
-  background: #f4f3ff;
-  color: #5925dc;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .statusCancelled {
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
 }
 
 .statusExpired {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .price,
 .usage,
 .dateValue {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
   white-space: nowrap;
 }
 
 .price {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 15px;
 }
 
@@ -448,7 +451,7 @@
 }
 
 .recordList span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 10px;
   white-space: nowrap;
 }
@@ -474,8 +477,8 @@
   height: 48px;
   place-items: center;
   border-radius: 50%;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-size: 22px;
   font-weight: 800;
 }
@@ -487,16 +490,16 @@
 .emptyState p {
   max-width: 490px;
   margin: 0 0 20px;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
 .informationBox {
   margin-top: 18px;
-  border: 1px solid #b2ccff;
+  border: 1px solid var(--portal-accent-border);
   border-radius: 12px;
-  background: #f5f8ff;
-  color: #344054;
+  background: var(--portal-accent-soft);
+  color: var(--portal-text-secondary);
   padding: 16px 18px;
   font-size: 12px;
   line-height: 1.6;
@@ -504,7 +507,7 @@
 
 .formSection {
   padding: 28px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .sectionHeader {
@@ -531,7 +534,7 @@
 }
 
 .field > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -540,10 +543,10 @@
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #101828;
+  background: var(--portal-surface);
+  color: var(--portal-text);
   padding: 11px 12px;
   font-family: inherit;
   font-size: 13px;
@@ -563,41 +566,41 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #175cd3;
+  border-color: var(--portal-accent);
   box-shadow:
     0 0 0 3px
-    rgb(23 92 211 / 10%);
+    var(--portal-focus);
 }
 
 .field select:disabled {
-  background: #f2f4f7;
-  color: #98a2b3;
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-tertiary);
   cursor: not-allowed;
 }
 
 .field small {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 11px;
   line-height: 1.5;
 }
 
 .safetyNotice {
   margin: 24px 28px 0;
-  border: 1px solid #fedf89;
+  border: 1px solid var(--portal-warning-border);
   border-radius: 10px;
-  background: #fffaeb;
+  background: var(--portal-warning-soft);
   padding: 18px;
 }
 
 .safetyNotice strong {
   display: block;
-  color: #b54708;
+  color: var(--portal-warning);
   font-size: 13px;
 }
 
 .safetyNotice p {
   margin: 7px 0 0;
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -607,7 +610,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 22px 28px;
-  background: #fcfcfd;
+  background: var(--portal-surface-soft);
 }
 
 .formFooter button {
@@ -623,18 +626,18 @@
 }
 
 .detailBanner > div {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 20px;
   box-shadow:
     0 8px 24px
-    rgb(16 24 40 / 4%);
+    var(--portal-shadow-color);
 }
 
 .detailBanner span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 12px;
   font-weight: 650;
 }
@@ -642,12 +645,12 @@
 .detailBanner strong {
   display: block;
   margin-top: 10px;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 20px;
 }
 
 .detailBanner .bannerPrice {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .renewalActionPanel {
@@ -657,12 +660,12 @@
   gap: 30px;
   margin-bottom: 18px;
   padding: 24px;
-  border-color: #b2ccff;
+  border-color: var(--portal-accent-border);
   background:
     linear-gradient(
       135deg,
-      #ffffff 0%,
-      #f5f8ff 100%
+      var(--portal-surface) 0%,
+      var(--portal-accent-soft) 100%
     );
 }
 
@@ -682,12 +685,12 @@
 }
 
 .renewalMeta span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 11px;
 }
 
 .renewalMeta strong {
-  color: #344054;
+  color: var(--portal-text-secondary);
 }
 
 .renewalButtonArea {
@@ -700,7 +703,7 @@
 
 .disabledHint {
   max-width: 240px;
-  color: #b42318;
+  color: var(--portal-danger);
   font-size: 10px;
   text-align: right;
 }
@@ -713,7 +716,7 @@
   place-items: center;
   overflow-y: auto;
   background:
-    rgb(16 24 40 / 58%);
+    var(--portal-overlay);
   padding: 24px;
   backdrop-filter: blur(4px);
 }
@@ -722,12 +725,12 @@
   width: min(720px, 100%);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--portal-surface);
   box-shadow:
     0 24px 70px
-    rgb(16 24 40 / 24%);
+    var(--portal-shadow-color);
 }
 
 .modalHeader {
@@ -736,11 +739,11 @@
   justify-content: space-between;
   gap: 20px;
   padding: 24px 24px 18px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .modalEyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -749,7 +752,7 @@
 
 .modalHeader h2 {
   margin: 7px 0 0;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 24px;
   letter-spacing: -0.03em;
 }
@@ -760,10 +763,10 @@
   height: 36px;
   flex: 0 0 36px;
   place-items: center;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
-  color: #475467;
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
   font-family: inherit;
   font-size: 22px;
   line-height: 1;
@@ -771,14 +774,14 @@
 }
 
 .modalClose:hover {
-  border-color: #98a2b3;
-  background: #f9fafb;
+  border-color: var(--portal-text-tertiary);
+  background: var(--portal-surface-soft);
 }
 
 .modalIntro {
   margin: 0;
   padding: 18px 24px;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -789,15 +792,15 @@
     repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin: 0 24px 20px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 12px;
-  background: #fcfcfd;
+  background: var(--portal-surface-soft);
   padding: 17px;
 }
 
 .renewalSummary span {
   display: block;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 10px;
   font-weight: 650;
   text-transform: uppercase;
@@ -806,7 +809,7 @@
 .renewalSummary strong {
   display: block;
   margin-top: 6px;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -818,9 +821,9 @@
 .amountBreakdown {
   margin-top: 20px;
   overflow: hidden;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--portal-surface);
 }
 
 .amountBreakdown > div {
@@ -829,7 +832,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 14px 16px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .amountBreakdown > div:last-child {
@@ -837,26 +840,26 @@
 }
 
 .amountBreakdown span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 12px;
 }
 
 .amountBreakdown strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 14px;
 }
 
 .amountBreakdown .totalRow {
-  background: #eef4ff;
+  background: var(--portal-accent-soft);
 }
 
 .amountBreakdown .totalRow span {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-weight: 700;
 }
 
 .amountBreakdown .totalRow strong {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 18px;
 }
 
@@ -865,9 +868,9 @@
   align-items: flex-start;
   gap: 11px;
   margin-top: 20px;
-  border: 1px solid #fedf89;
+  border: 1px solid var(--portal-warning-border);
   border-radius: 10px;
-  background: #fffaeb;
+  background: var(--portal-warning-soft);
   padding: 15px;
   cursor: pointer;
 }
@@ -877,11 +880,11 @@
   height: 17px;
   flex: 0 0 17px;
   margin: 1px 0 0;
-  accent-color: #175cd3;
+  accent-color: var(--portal-accent);
 }
 
 .confirmationBox span {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 11px;
   line-height: 1.55;
 }
@@ -892,7 +895,7 @@
   gap: 10px;
   margin-top: 22px;
   padding-top: 20px;
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
 }
 
 @media (max-width: 1100px) {

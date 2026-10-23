@@ -1,8 +1,11 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   min-height: 100vh;
-  background: #f4f6fa;
-  padding: 46px;
-  color: #101828;
+  background: var(--portal-bg);
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  color: var(--portal-text);
 }
 
 .header {
@@ -20,7 +23,7 @@
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -37,7 +40,7 @@
 .panelHeader p,
 .sectionHeader p {
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -64,61 +67,61 @@
 
 .primaryButton {
   border: 0;
-  background: #175cd3;
-  color: #ffffff;
-  box-shadow: 0 8px 18px rgb(23 92 211 / 16%);
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
+  box-shadow: 0 8px 18px var(--portal-focus);
 }
 
 .primaryButton:hover {
-  background: #1849a9;
+  background: var(--portal-accent-hover);
   transform: translateY(-1px);
 }
 
 .secondaryButton {
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #344054;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .secondaryButton:hover {
-  border-color: #98a2b3;
-  background: #f9fafb;
+  border-color: var(--portal-text-tertiary);
+  background: var(--portal-surface-soft);
 }
 
 .viewButton {
   min-height: 36px;
-  border: 1px solid #d0d5dd;
-  background: #ffffff;
-  color: #175cd3;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-accent);
   padding: 0 13px;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .viewButton:hover {
-  border-color: #175cd3;
-  background: #eef3ff;
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
 }
 
 .dangerButton {
   min-height: 44px;
-  border: 1px solid #fecdca;
-  background: #fff5f4;
-  color: #b42318;
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .dangerButton:hover {
-  border-color: #f97066;
-  background: #fef3f2;
+  border-color: var(--portal-danger);
+  background: var(--portal-danger-soft);
 }
 
 .successMessage {
   margin-bottom: 18px;
-  border: 1px solid #abefc6;
+  border: 1px solid var(--portal-success-border);
   border-radius: 11px;
-  background: #ecfdf3;
+  background: var(--portal-success-soft);
   padding: 13px 16px;
-  color: #067647;
+  color: var(--portal-success);
   font-size: 13px;
   font-weight: 700;
 }
@@ -131,15 +134,15 @@
 }
 
 .summary article {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
   padding: 22px;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .summary span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   font-weight: 650;
 }
@@ -153,10 +156,10 @@
 .panel,
 .formPanel,
 .detailPanel {
-  border: 1px solid #e4e7ec;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 4%);
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .panelHeader {
@@ -165,7 +168,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 24px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .searchForm {
@@ -182,17 +185,17 @@
 .searchForm input {
   width: 100%;
   min-height: 40px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 0 12px;
-  color: #101828;
+  color: var(--portal-text);
   outline: none;
 }
 
 .searchForm input:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .searchForm button,
@@ -210,16 +213,16 @@
 
 .searchForm button {
   border: 0;
-  background: #101828;
+  background: var(--portal-text);
   padding: 0 15px;
-  color: #ffffff;
+  color: var(--portal-on-accent);
   cursor: pointer;
 }
 
 .clearSearch {
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   padding: 0 12px;
-  color: #475467;
+  color: var(--portal-text-secondary);
 }
 
 .srOnly {
@@ -253,8 +256,8 @@
   height: 48px;
   place-items: center;
   border-radius: 50%;
-  background: #eef3ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-size: 22px;
   font-weight: 700;
 }
@@ -266,7 +269,7 @@
 .emptyState p {
   max-width: 470px;
   margin: 0 0 22px;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.6;
 }
 
@@ -282,14 +285,14 @@
 .table th,
 .table td {
   padding: 17px 20px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   text-align: left;
   vertical-align: middle;
 }
 
 .table th {
-  color: #667085;
-  background: #fcfcfd;
+  color: var(--portal-muted);
+  background: var(--portal-surface-soft);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -297,7 +300,7 @@
 }
 
 .table td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 13px;
 }
 
@@ -306,7 +309,7 @@
 }
 
 .table tbody tr:hover {
-  background: #f9fbff;
+  background: var(--portal-surface-soft);
 }
 
 .table tbody tr:last-child td {
@@ -332,26 +335,26 @@
   flex: 0 0 auto;
   place-items: center;
   border-radius: 10px;
-  background: #eef3ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-weight: 800;
 }
 
 .companyCell strong,
 .contactName {
   display: block;
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .companyLink:hover .companyCell strong {
-  color: #175cd3;
+  color: var(--portal-accent);
 }
 
 .companyCell span,
 .secondaryText {
   display: block;
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
   font-size: 12px;
 }
 
@@ -364,13 +367,13 @@
 }
 
 .statusActive {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusInactive {
-  background: #f2f4f7;
-  color: #667085;
+  background: var(--portal-surface-hover);
+  color: var(--portal-muted);
 }
 
 .formPanel {
@@ -379,7 +382,7 @@
 
 .formSection {
   padding: 28px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .formSection:last-of-type {
@@ -403,7 +406,7 @@
 }
 
 .field span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 13px;
   font-weight: 650;
 }
@@ -412,11 +415,11 @@
 .field textarea,
 .field select {
   width: 100%;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 12px 14px;
-  color: #101828;
+  color: var(--portal-text);
   outline: none;
   transition:
     border-color 160ms ease,
@@ -425,14 +428,14 @@
 
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
 }
 
 .field input:focus,
 .field textarea:focus,
 .field select:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 4px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 4px var(--portal-focus);
 }
 
 .field textarea {
@@ -448,7 +451,7 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 22px 28px;
-  background: #fcfcfd;
+  background: var(--portal-surface-soft);
 }
 
 /* Ficha individual del cliente */
@@ -475,7 +478,7 @@
   grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.2fr);
   gap: 20px;
   padding: 15px 0;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .detailList > div:last-child {
@@ -483,14 +486,14 @@
 }
 
 .detailList dt {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   font-weight: 650;
 }
 
 .detailList dd {
   margin: 0;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 14px;
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -498,9 +501,9 @@
 
 .inlineEmpty {
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--portal-surface-soft);
   padding: 22px;
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -508,9 +511,9 @@
 .notesBox {
   min-height: 150px;
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--portal-surface-soft);
   padding: 18px;
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;

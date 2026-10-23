@@ -68,6 +68,17 @@ function formatLongDate(
   );
 }
 
+function formatMonthLabel(date: Date) {
+  const label = new Intl.DateTimeFormat("es-CL", {
+    month: "short",
+    timeZone: "UTC",
+  })
+    .format(date)
+    .replace(".", "");
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function getChileDateKey(
   date: Date,
 ) {
@@ -252,6 +263,14 @@ export default async function Home() {
       currentDate,
     );
 
+  const trendStart = new Date(
+    Date.UTC(
+      currentMonth.start.getUTCFullYear(),
+      currentMonth.start.getUTCMonth() - 5,
+      1,
+    ),
+  );
+
   const [
     clientCount,
     projectCount,
@@ -270,6 +289,8 @@ export default async function Home() {
     monthlySalesTarget,
     recentSales,
     recentManualCharges,
+    trendSales,
+    trendHostingPayments,
   ] = await Promise.all([
     prisma.client.count({
       where: {
@@ -519,6 +540,34 @@ export default async function Home() {
         },
       },
     }),
+
+    prisma.sale.findMany({
+      where: {
+        status: "ACTIVE",
+        saleDate: {
+          gte: trendStart,
+          lt: currentMonth.end,
+        },
+      },
+      select: {
+        saleDate: true,
+        netAmount: true,
+      },
+    }),
+
+    prisma.payment.findMany({
+      where: {
+        status: "PAID",
+        paidAt: {
+          gte: trendStart,
+          lt: currentMonth.end,
+        },
+      },
+      select: {
+        paidAt: true,
+        amount: true,
+      },
+    }),
   ]);
 
   const pendingPaymentAmount =
@@ -578,6 +627,53 @@ export default async function Home() {
       0,
     );
 
+  const salesTrend = Array.from(
+    { length: 6 },
+    (_, index) => {
+      const monthDate = new Date(
+        Date.UTC(
+          trendStart.getUTCFullYear(),
+          trendStart.getUTCMonth() + index,
+          1,
+        ),
+      );
+      const year = monthDate.getUTCFullYear();
+      const month = monthDate.getUTCMonth();
+      const directSales = trendSales
+        .filter(
+          (sale) =>
+            sale.saleDate.getUTCFullYear() === year &&
+            sale.saleDate.getUTCMonth() === month,
+        )
+        .reduce(
+          (total, sale) => total + Number(sale.netAmount),
+          0,
+        );
+      const hostingSales = trendHostingPayments
+        .filter(
+          (payment) =>
+            payment.paidAt?.getUTCFullYear() === year &&
+            payment.paidAt?.getUTCMonth() === month,
+        )
+        .reduce(
+          (total, payment) =>
+            total + Math.round(Number(payment.amount) / 1.19),
+          0,
+        );
+
+      return {
+        key: `${year}-${String(month + 1).padStart(2, "0")}`,
+        label: formatMonthLabel(monthDate),
+        total: directSales + hostingSales,
+      };
+    },
+  );
+
+  const salesTrendMaximum = Math.max(
+    1,
+    ...salesTrend.map((item) => item.total),
+  );
+
   const metrics = [
     {
       label: "Clientes activos",
@@ -615,6 +711,37 @@ export default async function Home() {
     },
   ];
 
+  const businessFlow = [
+    {
+      step: "01",
+      title: "Captar",
+      module: "Seguimiento comercial",
+      detail: "Prospectos y próximo contacto",
+      href: "/seguimiento",
+    },
+    {
+      step: "02",
+      title: "Cotizar",
+      module: "Cotizaciones",
+      detail: "Propuesta, envío y aprobación",
+      href: "/cotizaciones",
+    },
+    {
+      step: "03",
+      title: "Activar",
+      module: "Ventas y clientes",
+      detail: "Venta, alta y proyecto",
+      href: "/ventas",
+    },
+    {
+      step: "04",
+      title: "Retener",
+      module: "Servicio recurrente",
+      detail: "Soporte, pago y renovación",
+      href: "/renovaciones",
+    },
+  ];
+
   return (
     <main className={styles.content}>
       <header className={styles.header}>
@@ -644,41 +771,7 @@ export default async function Home() {
           </span>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Link
-            className={
-              styles.secondaryButton
-            }
-            href="/seguimiento"
-          >
-            Seguimiento
-          </Link>
-
-          <Link
-            className={
-              styles.secondaryButton
-            }
-            href="/cotizaciones"
-          >
-            Cotizar
-          </Link>
-
-          <Link
-            className={
-              styles.secondaryButton
-            }
-            href="/cobros"
-          >
-            Cobros manuales
-          </Link>
-
+        <div className={styles.headerActions}>
           <Link
             className={
               styles.secondaryButton
@@ -698,6 +791,43 @@ export default async function Home() {
           </Link>
         </div>
       </header>
+
+      <section
+        aria-labelledby="business-flow-title"
+        className={styles.processPanel}
+      >
+        <div className={styles.processHeader}>
+          <div>
+            <span className={styles.panelEyebrow}>Flujo operativo</span>
+            <h2 id="business-flow-title">Del prospecto a la renovación</h2>
+          </div>
+
+          <p>
+            Cada módulo ocupa una etapa definida para evitar duplicidad y
+            mantener la trazabilidad comercial.
+          </p>
+        </div>
+
+        <div className={styles.processGrid}>
+          {businessFlow.map((stage, index) => (
+            <Link className={styles.processStep} href={stage.href} key={stage.step}>
+              <span className={styles.processNumber}>{stage.step}</span>
+
+              <span className={styles.processCopy}>
+                <strong>{stage.title}</strong>
+                <span>{stage.module}</span>
+                <small>{stage.detail}</small>
+              </span>
+
+              {index < businessFlow.length - 1 && (
+                <span aria-hidden="true" className={styles.processArrow}>
+                  →
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section className={styles.metrics}>
         {metrics.map((metric) => (
@@ -721,83 +851,96 @@ export default async function Home() {
         ))}
       </section>
 
-      <section
-        className={styles.metrics}
-        style={{
-          marginTop: "18px",
-        }}
-      >
-        <Link
-          className={styles.metricCard}
-          href="/ventas"
+      <section className={styles.goalPanel}>
+        <div className={styles.goalHeader}>
+          <div>
+            <span className={styles.panelEyebrow}>Rendimiento comercial</span>
+            <h2>Meta mensual</h2>
+          </div>
+
+          <div className={styles.goalSummary}>
+            <strong>{monthlySalesProgress}%</strong>
+            <span>{monthlyCommercialCount} movimientos confirmados</span>
+          </div>
+        </div>
+
+        <div className={styles.salesOverview}>
+          <div>
+            <span>Vendido</span>
+            <strong>{formatCurrency(monthlySalesAmount)}</strong>
+          </div>
+
+          <div>
+            <span>Objetivo neto</span>
+            <strong>{formatCurrency(monthlySalesTarget)}</strong>
+          </div>
+
+          <div>
+            <span>{monthlySalesRemaining > 0 ? "Pendiente" : "Resultado"}</span>
+            <strong>
+              {monthlySalesRemaining > 0
+                ? formatCurrency(monthlySalesRemaining)
+                : "Meta cumplida"}
+            </strong>
+          </div>
+        </div>
+
+        <div
+          aria-label={`${monthlySalesProgress}% de la meta mensual alcanzada`}
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={Math.min(monthlySalesProgress, 100)}
+          className={styles.progressTrack}
+          role="progressbar"
         >
-          <span>Vendido este mes</span>
+          <span
+            className={styles.progressValue}
+            style={{ width: `${Math.min(monthlySalesProgress, 100)}%` }}
+          />
+        </div>
 
-          <strong>
-            {formatCurrency(
-              monthlySalesAmount,
-            )}
-          </strong>
+        <div className={styles.progressLabels}>
+          <span>{monthlySalesCount} ventas</span>
+          <span>{monthlyHostingCount} pagos de hosting</span>
+        </div>
+      </section>
 
-          <p>
-            {monthlyCommercialCount} movimientos: {monthlySalesCount} ventas y {monthlyHostingCount} pagos de hosting
-          </p>
-        </Link>
+      <section aria-labelledby="sales-trend-title" className={styles.trendPanel}>
+        <div className={styles.trendHeader}>
+          <div>
+            <span className={styles.panelEyebrow}>Evolución comercial</span>
+            <h2 id="sales-trend-title">Ventas de los últimos 6 meses</h2>
+            <p>Ventas directas y pagos de hosting confirmados, expresados en valores netos.</p>
+          </div>
 
-        <article
-          className={styles.metricCard}
-        >
-          <span>Meta mensual</span>
+          <Link className={styles.secondaryButton} href="/ventas">
+            Ver análisis completo
+          </Link>
+        </div>
 
-          <strong>
-            {formatCurrency(
-              monthlySalesTarget,
-            )}
-          </strong>
+        <div className={styles.trendChart}>
+          {salesTrend.map((item) => {
+            const height = item.total > 0
+              ? Math.max(6, (item.total / salesTrendMaximum) * 100)
+              : 0;
 
-          <p>Monto neto, sin IVA</p>
-        </article>
+            return (
+              <div
+                aria-label={`${item.label}: ${formatCurrency(item.total)}`}
+                className={styles.trendColumn}
+                key={item.key}
+              >
+                <span>{formatCurrency(item.total)}</span>
 
-        <article
-          className={styles.metricCard}
-        >
-          <span>Avance alcanzado</span>
+                <div className={styles.trendTrack}>
+                  <i style={{ height: `${height}%` }} />
+                </div>
 
-          <strong>
-            {monthlySalesProgress}%
-          </strong>
-
-          <p>
-            Cumplimiento de la meta
-            comercial
-          </p>
-        </article>
-
-        <article
-          className={`${styles.metricCard} ${
-            monthlySalesRemaining === 0
-              ? styles.metricCardAlert
-              : ""
-          }`}
-        >
-          <span>
-            {monthlySalesRemaining > 0
-              ? "Falta por vender"
-              : "Meta cumplida"}
-          </span>
-
-          <strong>
-            {formatCurrency(
-              monthlySalesRemaining,
-            )}
-          </strong>
-
-          <p>
-            {monthlySalesRemaining > 0
-              ? "Monto pendiente para alcanzar la meta"
-              : "Objetivo comercial alcanzado"}
-          </p>
-        </article>
+                <strong>{item.label}</strong>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section

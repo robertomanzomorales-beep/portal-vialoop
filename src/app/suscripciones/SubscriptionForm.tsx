@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -102,11 +101,6 @@ export default function SubscriptionForm({
     initialValues.agreedPrice,
   );
 
-  const [
-    priceWasEdited,
-    setPriceWasEdited,
-  ] = useState(mode === "edit");
-
   const selectedClient = useMemo(
     () =>
       clients.find(
@@ -120,59 +114,26 @@ export default function SubscriptionForm({
   const availableProjects =
     selectedClient?.projects ?? [];
 
-  const selectedPlan = useMemo(
-    () =>
-      plans.find(
-        (plan) =>
-          plan.id === selectedPlanId,
-      ) ?? null,
-    [plans, selectedPlanId],
-  );
-
-  useEffect(() => {
-    if (!selectedProjectId) {
-      return;
-    }
-
-    const projectIsValid =
-      availableProjects.some(
-        (project) =>
-          project.id ===
-          selectedProjectId,
-      );
-
-    if (!projectIsValid) {
-      setSelectedProjectId("");
-    }
-  }, [
-    availableProjects,
-    selectedProjectId,
-  ]);
-
-  useEffect(() => {
-    if (
-      priceWasEdited ||
-      !selectedPlan
-    ) {
-      return;
-    }
-
-    const suggestedPrice =
-      Math.round(
-        selectedPlan.monthlyPrice *
-          getCycleFactor(
-            billingCycle,
-          ),
-      );
-
-    setAgreedPrice(
-      String(suggestedPrice),
+  function getSuggestedPrice(
+    planId: string,
+    cycle: string,
+  ) {
+    const plan = plans.find(
+      (candidate) =>
+        candidate.id === planId,
     );
-  }, [
-    selectedPlan,
-    billingCycle,
-    priceWasEdited,
-  ]);
+
+    if (!plan) {
+      return "";
+    }
+
+    return String(
+      Math.round(
+        plan.monthlyPrice *
+          getCycleFactor(cycle),
+      ),
+    );
+  }
 
   return (
     <div className={styles.formGrid}>
@@ -182,9 +143,28 @@ export default function SubscriptionForm({
         <select
           name="clientId"
           onChange={(event) => {
-            setSelectedClientId(
-              event.target.value,
-            );
+            const nextClientId =
+              event.target.value;
+
+            setSelectedClientId(nextClientId);
+
+            const nextClient =
+              clients.find(
+                (client) =>
+                  client.id ===
+                  nextClientId,
+              );
+
+            if (
+              selectedProjectId &&
+              !nextClient?.projects.some(
+                (project) =>
+                  project.id ===
+                  selectedProjectId,
+              )
+            ) {
+              setSelectedProjectId("");
+            }
           }}
           required
           value={selectedClientId}
@@ -246,12 +226,18 @@ export default function SubscriptionForm({
         <select
           name="planId"
           onChange={(event) => {
-            setSelectedPlanId(
-              event.target.value,
-            );
+            const nextPlanId =
+              event.target.value;
+
+            setSelectedPlanId(nextPlanId);
 
             if (mode === "create") {
-              setPriceWasEdited(false);
+              setAgreedPrice(
+                getSuggestedPrice(
+                  nextPlanId,
+                  billingCycle,
+                ),
+              );
             }
           }}
           required
@@ -281,12 +267,18 @@ export default function SubscriptionForm({
         <select
           name="billingCycle"
           onChange={(event) => {
-            setBillingCycle(
-              event.target.value,
-            );
+            const nextBillingCycle =
+              event.target.value;
+
+            setBillingCycle(nextBillingCycle);
 
             if (mode === "create") {
-              setPriceWasEdited(false);
+              setAgreedPrice(
+                getSuggestedPrice(
+                  selectedPlanId,
+                  nextBillingCycle,
+                ),
+              );
             }
           }}
           required
@@ -319,7 +311,6 @@ export default function SubscriptionForm({
             setAgreedPrice(
               event.target.value,
             );
-            setPriceWasEdited(true);
           }}
           required
           step="1"

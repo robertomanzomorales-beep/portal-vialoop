@@ -304,6 +304,7 @@ export async function createAndSendManualCharge(
   _previousState: ChargeActionState = EMPTY_STATE,
   formData: FormData,
 ): Promise<ChargeActionState> {
+  void _previousState;
   let chargeId: string | null = null;
 
   try {
@@ -411,6 +412,9 @@ export async function resendManualCharge(
   _previousState: ChargeActionState = EMPTY_STATE,
   _formData: FormData,
 ): Promise<ChargeActionState> {
+  void _previousState;
+  void _formData;
+
   try {
     await ensureFlowOrderForCharge(chargeId);
     await deliverCharge(chargeId);

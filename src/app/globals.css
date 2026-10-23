@@ -6,22 +6,86 @@
 
 :root {
   color-scheme: light;
-  --portal-bg: #f4f6fa;
+  --portal-bg: #f5f5f7;
   --portal-surface: #ffffff;
-  --portal-surface-soft: #f8fafc;
-  --portal-border: #e4e7ec;
-  --portal-text: #101828;
-  --portal-muted: #667085;
+  --portal-surface-elevated: #ffffff;
+  --portal-surface-soft: #f7f7f8;
+  --portal-surface-hover: #ededf0;
+  --portal-border: rgb(29 29 31 / 9%);
+  --portal-border-strong: rgb(29 29 31 / 16%);
+  --portal-text: #1d1d1f;
+  --portal-text-secondary: #4f4f53;
+  --portal-muted: #6e6e73;
+  --portal-text-tertiary: #8e8e93;
+  --portal-accent: #1d1d1f;
+  --portal-accent-hover: #000000;
+  --portal-accent-soft: rgb(29 29 31 / 6%);
+  --portal-accent-border: rgb(29 29 31 / 16%);
+  --portal-on-accent: #ffffff;
+  --portal-contrast-bg: #0b0b0c;
+  --portal-contrast-text: #f5f5f7;
+  --portal-contrast-muted: rgb(245 245 247 / 70%);
+  --portal-focus: rgb(0 0 0 / 18%);
+  --portal-overlay: rgb(0 0 0 / 38%);
+  --portal-shadow-color: rgb(0 0 0 / 8%);
+  --portal-shadow-sm: 0 1px 2px rgb(0 0 0 / 4%), 0 8px 24px rgb(0 0 0 / 4%);
+  --portal-shadow-md: 0 18px 50px rgb(0 0 0 / 10%);
+  --portal-success: #177245;
+  --portal-success-soft: #edf8f1;
+  --portal-success-border: #c8e8d3;
+  --portal-warning: #9a5a00;
+  --portal-warning-soft: #fff8e8;
+  --portal-warning-border: #f0d9a4;
+  --portal-danger: #b42318;
+  --portal-danger-soft: #fff1f0;
+  --portal-danger-border: #f2c6c2;
+  --portal-info: #4f4f53;
+  --portal-info-soft: #f1f1f3;
+  --portal-info-border: #d7d7dc;
+  --portal-radius-sm: 9px;
+  --portal-radius-md: 14px;
+  --portal-radius-lg: 20px;
+  --portal-radius-xl: 26px;
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --portal-bg: #0b0d12;
-  --portal-surface: #141820;
-  --portal-surface-soft: #191e27;
-  --portal-border: #2a303b;
-  --portal-text: #f2f4f7;
-  --portal-muted: #a6afbf;
+  --portal-bg: #000000;
+  --portal-surface: #1c1c1e;
+  --portal-surface-elevated: #242426;
+  --portal-surface-soft: #111113;
+  --portal-surface-hover: #2c2c2e;
+  --portal-border: rgb(255 255 255 / 10%);
+  --portal-border-strong: rgb(255 255 255 / 18%);
+  --portal-text: #f5f5f7;
+  --portal-text-secondary: #d1d1d6;
+  --portal-muted: #a1a1a6;
+  --portal-text-tertiary: #7c7c80;
+  --portal-accent: #f5f5f7;
+  --portal-accent-hover: #ffffff;
+  --portal-accent-soft: rgb(255 255 255 / 9%);
+  --portal-accent-border: rgb(255 255 255 / 20%);
+  --portal-on-accent: #111113;
+  --portal-contrast-bg: #111113;
+  --portal-contrast-text: #f5f5f7;
+  --portal-contrast-muted: rgb(245 245 247 / 70%);
+  --portal-focus: rgb(255 255 255 / 24%);
+  --portal-overlay: rgb(0 0 0 / 68%);
+  --portal-shadow-color: rgb(0 0 0 / 42%);
+  --portal-shadow-sm: 0 1px 0 rgb(255 255 255 / 3%), 0 12px 32px rgb(0 0 0 / 22%);
+  --portal-shadow-md: 0 22px 70px rgb(0 0 0 / 46%);
+  --portal-success: #73c991;
+  --portal-success-soft: rgb(52 199 89 / 12%);
+  --portal-success-border: rgb(52 199 89 / 28%);
+  --portal-warning: #f0ba62;
+  --portal-warning-soft: rgb(255 159 10 / 13%);
+  --portal-warning-border: rgb(255 159 10 / 30%);
+  --portal-danger: #ff8a80;
+  --portal-danger-soft: rgb(255 69 58 / 14%);
+  --portal-danger-border: rgb(255 69 58 / 30%);
+  --portal-info: #d1d1d6;
+  --portal-info-soft: rgb(255 255 255 / 8%);
+  --portal-info-border: rgb(255 255 255 / 16%);
 }
 
 html,
@@ -41,9 +105,15 @@ body {
   color: var(--portal-text);
   font-family:
     var(--font-geist-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
     Arial,
     Helvetica,
     sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -56,6 +126,24 @@ select {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea,
+select,
+a {
+  outline-color: var(--portal-focus);
+}
+
+:focus-visible {
+  outline: 3px solid var(--portal-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--portal-text);
+  color: var(--portal-bg);
 }
 
 body,
@@ -71,77 +159,11 @@ select {
 
 main h1 {
   font-size: clamp(1.8rem, 3.2vw, 2.55rem) !important;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
 }
 
 main h2 {
   font-size: clamp(1rem, 1.8vw, 1.3rem);
-}
-
-html[data-theme="dark"] body,
-html[data-theme="dark"] main {
-  background: var(--portal-bg) !important;
-  color: var(--portal-text) !important;
-}
-
-html[data-theme="dark"] main section,
-html[data-theme="dark"] main article,
-html[data-theme="dark"] main form,
-html[data-theme="dark"] main aside > div {
-  border-color: var(--portal-border) !important;
-}
-
-html[data-theme="dark"] main article,
-html[data-theme="dark"] main section[class*="panel"],
-html[data-theme="dark"] main div[class*="modal"],
-html[data-theme="dark"] main div[class*="Panel"] {
-  background-color: var(--portal-surface) !important;
-}
-
-html[data-theme="dark"] main h1,
-html[data-theme="dark"] main h2,
-html[data-theme="dark"] main h3,
-html[data-theme="dark"] main strong,
-html[data-theme="dark"] main dt,
-html[data-theme="dark"] main label,
-html[data-theme="dark"] main td {
-  color: var(--portal-text) !important;
-}
-
-html[data-theme="dark"] main p,
-html[data-theme="dark"] main small,
-html[data-theme="dark"] main dd,
-html[data-theme="dark"] main time {
-  color: var(--portal-muted) !important;
-  border-color: var(--portal-border);
-}
-
-html[data-theme="dark"] main input,
-html[data-theme="dark"] main textarea,
-html[data-theme="dark"] main select {
-  border-color: #3a414e !important;
-  background: #10141b !important;
-  color: #f2f4f7 !important;
-}
-
-html[data-theme="dark"] main table,
-html[data-theme="dark"] main th,
-html[data-theme="dark"] main td {
-  border-color: var(--portal-border) !important;
-}
-
-html[data-theme="dark"] main th {
-  background: #191e27 !important;
-  color: #a6afbf !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 .portal-route-loading {
@@ -163,17 +185,17 @@ html[data-theme="dark"] main th {
   width: 38px;
   height: 38px;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 12px;
   background: var(--portal-text);
   color: var(--portal-bg);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .portal-route-loading i {
   width: 24px;
   height: 24px;
-  border: 2px solid var(--portal-border);
-  border-top-color: #175cd3;
+  border: 2px solid var(--portal-border-strong);
+  border-top-color: var(--portal-text);
   border-radius: 50%;
   animation: portalRouteSpin 680ms linear infinite;
 }
@@ -189,6 +211,13 @@ html[data-theme="dark"] main th {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
   .portal-route-loading i {
     animation: none;
   }

@@ -1,10 +1,13 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   display: grid;
   min-height: 100vh;
   gap: 22px;
-  background: #f4f6fa;
-  padding: 36px 38px 48px;
-  color: #101828;
+  background: var(--portal-bg);
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  color: var(--portal-text);
 }
 
 .header {
@@ -23,12 +26,12 @@
 .sectionHeading p,
 .emptyState p {
   margin: 0;
-  color: #667085;
+  color: var(--portal-muted);
   line-height: 1.55;
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.09em;
@@ -44,10 +47,10 @@
 .metrics article,
 .quotationForm,
 .historyPanel {
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgb(16 24 40 / 4%);
+  background: var(--portal-surface);
+  box-shadow: 0 10px 30px var(--portal-shadow-color);
 }
 
 .metrics article {
@@ -57,13 +60,13 @@
 }
 
 .metrics span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.78rem;
   font-weight: 700;
 }
 
 .metrics strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 1.6rem;
   letter-spacing: -0.035em;
 }
@@ -75,7 +78,7 @@
 .formSection {
   display: grid;
   gap: 22px;
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   padding: 26px;
 }
 
@@ -92,15 +95,15 @@
   flex: 0 0 31px;
   place-items: center;
   border-radius: 9px;
-  background: #eef4ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
   font-size: 0.7rem;
   font-weight: 850;
 }
 
 .sectionHeading h2 {
   margin: 1px 0 5px;
-  color: #101828;
+  color: var(--portal-text);
   font-size: 1.06rem;
 }
 
@@ -122,7 +125,7 @@
 
 .field > span,
 .itemRow label > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 0.75rem;
   font-weight: 750;
 }
@@ -133,11 +136,11 @@
 .itemRow input {
   width: 100%;
   min-height: 41px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 10px 12px;
-  color: #101828;
+  color: var(--portal-text);
   font: inherit;
   font-size: 0.82rem;
   outline: none;
@@ -151,8 +154,8 @@
 .field select:focus,
 .field textarea:focus,
 .itemRow input:focus {
-  border-color: #175cd3;
-  box-shadow: 0 0 0 3px rgb(23 92 211 / 10%);
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .fullWidth {
@@ -176,18 +179,18 @@
   width: 38px;
   height: 41px;
   place-items: center;
-  border: 1px solid #fecdca;
+  border: 1px solid var(--portal-danger-border);
   border-radius: 9px;
-  background: #fff5f4;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
   font-size: 1.25rem;
   cursor: pointer;
 }
 
 .itemRow > button:disabled {
-  border-color: #e4e7ec;
-  background: #f9fafb;
-  color: #b7bec8;
+  border-color: var(--portal-border);
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-tertiary);
   cursor: not-allowed;
 }
 
@@ -195,7 +198,7 @@
   justify-self: start;
   border: 0;
   background: transparent;
-  color: #175cd3;
+  color: var(--portal-accent);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;
@@ -207,10 +210,10 @@
   justify-self: end;
   min-width: min(100%, 340px);
   gap: 1px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--portal-border);
   border-radius: 12px;
   overflow: hidden;
-  background: #e4e7ec;
+  background: var(--portal-border);
 }
 
 .totalPanel > div {
@@ -218,26 +221,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  background: #ffffff;
+  background: var(--portal-surface);
   padding: 12px 15px;
 }
 
 .totalPanel span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.78rem;
 }
 
 .totalPanel strong {
-  color: #101828;
+  color: var(--portal-text);
   font-size: 0.9rem;
 }
 
 .totalPanel .grandTotal {
-  background: #eef4ff;
+  background: var(--portal-accent-soft);
 }
 
 .grandTotal strong {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 1.12rem;
 }
 
@@ -256,15 +259,15 @@
 }
 
 .successMessage {
-  border-color: #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border-color: var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .errorMessage {
-  border-color: #fecdca;
-  background: #fef3f2;
-  color: #b42318;
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .successMessage a,
@@ -281,7 +284,7 @@
 }
 
 .formFooter > span {
-  color: #667085;
+  color: var(--portal-muted);
   font-size: 0.76rem;
 }
 
@@ -289,9 +292,9 @@
   min-height: 42px;
   border: 0;
   border-radius: 9px;
-  background: #175cd3;
+  background: var(--portal-accent);
   padding: 0 18px;
-  color: #ffffff;
+  color: var(--portal-on-accent);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 800;
@@ -316,7 +319,7 @@
 }
 
 .tableWrap {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   overflow-x: auto;
 }
 
@@ -328,22 +331,22 @@
 
 .tableWrap th,
 .tableWrap td {
-  border-bottom: 1px solid #eaecf0;
+  border-bottom: 1px solid var(--portal-border);
   padding: 14px 17px;
   text-align: left;
   vertical-align: middle;
 }
 
 .tableWrap th {
-  background: #f9fafb;
-  color: #667085;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .tableWrap td {
-  color: #475467;
+  color: var(--portal-text-secondary);
   font-size: 0.79rem;
 }
 
@@ -353,12 +356,12 @@
 }
 
 .tableWrap td strong {
-  color: #101828;
+  color: var(--portal-text);
 }
 
 .tableWrap td small {
   margin-top: 4px;
-  color: #98a2b3;
+  color: var(--portal-text-tertiary);
 }
 
 .status {
@@ -370,29 +373,29 @@
 }
 
 .statusSent {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusFailed {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .statusPending {
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
 }
 
 .pdfLink {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.75rem;
   font-weight: 800;
   text-decoration: none;
 }
 
 .emptyState {
-  border-top: 1px solid #eaecf0;
+  border-top: 1px solid var(--portal-border);
   padding: 46px 24px;
   text-align: center;
 }

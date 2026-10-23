@@ -25,6 +25,19 @@ function addDays(
   return date.toISOString().slice(0, 10);
 }
 
+function formatAgendaDate(value: string) {
+  const date = new Date(`${value}T12:00:00Z`);
+
+  return new Intl.DateTimeFormat("es-CL", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+  })
+    .format(date)
+    .replaceAll(".", "");
+}
+
 export default async function FollowUpPage() {
   const logs =
     await prisma.activityLog.findMany({
@@ -97,6 +110,13 @@ export default async function FollowUpPage() {
     ({ metadata }) =>
       metadata.status === "WON",
   ).length;
+
+  const agendaProspects = openProspects
+    .filter(
+      ({ metadata }) =>
+        Boolean(metadata.nextFollowUp),
+    )
+    .slice(0, 8);
 
   const industryCounts = Array.from(
     prospects.reduce((counts, item) => {
@@ -187,6 +207,47 @@ export default async function FollowUpPage() {
           </small>
         </article>
       </section>
+
+      {agendaProspects.length > 0 && (
+        <section className={styles.agendaPanel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <span className={styles.eyebrow}>Agenda comercial</span>
+              <h2>Próximos seguimientos</h2>
+            </div>
+
+            <span>{agendaProspects.length} contactos priorizados</span>
+          </div>
+
+          <div className={styles.agendaList}>
+            {agendaProspects.map(({ id, metadata }) => {
+              const tone = metadata.nextFollowUp < today
+                ? styles.agendaOverdue
+                : metadata.nextFollowUp === today
+                  ? styles.agendaToday
+                  : styles.agendaUpcoming;
+
+              return (
+                <article className={tone} key={id}>
+                  <time dateTime={metadata.nextFollowUp}>
+                    {formatAgendaDate(metadata.nextFollowUp)}
+                  </time>
+
+                  <div>
+                    <strong>{metadata.company}</strong>
+                    <span>
+                      {metadata.contactName || "Contacto por definir"}
+                      {metadata.assignedTo ? ` · ${metadata.assignedTo}` : ""}
+                    </span>
+                  </div>
+
+                  <small>{getProspectStatusLabel(metadata.status)}</small>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {prospects.length > 0 && (
         <section

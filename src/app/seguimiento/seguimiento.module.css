@@ -1,8 +1,11 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  margin: 0 auto;
   display: grid;
   min-height: 100vh;
   gap: 22px;
-  padding: 36px 38px 48px;
+  padding: 38px clamp(24px, 4vw, 48px) 54px;
   background: var(--portal-bg);
   color: var(--portal-text);
 }
@@ -31,7 +34,7 @@
 }
 
 .eyebrow {
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.72rem;
   font-weight: 850;
   letter-spacing: 0.09em;
@@ -46,12 +49,13 @@
 
 .metrics article,
 .insightsGrid > article,
+.agendaPanel,
 .editorPanel,
 .pipelinePanel {
   border: 1px solid var(--portal-border);
   border-radius: 18px;
   background: var(--portal-surface);
-  box-shadow: 0 16px 42px rgb(16 24 40 / 5%);
+  box-shadow: 0 16px 42px var(--portal-shadow-color);
 }
 
 .metrics article {
@@ -73,12 +77,90 @@
 }
 
 .metrics .metricAlert {
-  border-color: #fecdca;
-  background: #fff8f7;
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
 }
 
 .metricAlert strong {
-  color: #b42318;
+  color: var(--portal-danger);
+}
+
+.agendaPanel {
+  padding: 22px;
+}
+
+.agendaPanel .panelHeader > span {
+  color: var(--portal-text-tertiary);
+  font-size: 0.72rem;
+}
+
+.agendaList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.agendaList article {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  background: var(--portal-surface-soft);
+  padding: 14px;
+}
+
+.agendaList time {
+  color: var(--portal-text-tertiary);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 680;
+  text-transform: uppercase;
+}
+
+.agendaList strong,
+.agendaList span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agendaList strong {
+  color: var(--portal-text);
+  font-size: 0.82rem;
+}
+
+.agendaList span {
+  margin-top: 3px;
+  color: var(--portal-muted);
+  font-size: 0.7rem;
+}
+
+.agendaList small {
+  color: var(--portal-text-tertiary);
+  font-size: 0.66rem;
+}
+
+.agendaOverdue {
+  border-color: var(--portal-danger-border) !important;
+}
+
+.agendaOverdue time {
+  color: var(--portal-danger);
+}
+
+.agendaToday {
+  border-color: var(--portal-warning-border) !important;
+}
+
+.agendaToday time {
+  color: var(--portal-warning);
+}
+
+.agendaUpcoming time {
+  color: var(--portal-success);
 }
 
 .insightsGrid {
@@ -122,7 +204,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #175cd3, #84adff);
+  background: linear-gradient(90deg, var(--portal-accent), var(--portal-accent-border));
 }
 
 .industryList {
@@ -168,7 +250,7 @@
 }
 
 .prospectForm label > span {
-  color: #344054;
+  color: var(--portal-text-secondary);
   font-size: 0.77rem;
   font-weight: 750;
 }
@@ -205,8 +287,8 @@
 .prospectForm textarea:focus,
 .filters input:focus,
 .filters select:focus {
-  border-color: #84adff;
-  box-shadow: 0 0 0 3px rgb(47 107 234 / 10%);
+  border-color: var(--portal-accent-border);
+  box-shadow: 0 0 0 3px var(--portal-focus);
 }
 
 .wideField,
@@ -237,10 +319,10 @@
 .primaryButton,
 .exportButton {
   min-height: 40px;
-  border: 1px solid #101828;
+  border: 1px solid var(--portal-text);
   padding: 0 16px;
-  background: #101828;
-  color: #fff;
+  background: var(--portal-text);
+  color: var(--portal-on-accent);
 }
 
 .primaryButton:disabled {
@@ -265,11 +347,11 @@
 }
 
 .successMessage {
-  color: #027a48;
+  color: var(--portal-success);
 }
 
 .errorMessage {
-  color: #b42318;
+  color: var(--portal-danger);
 }
 
 .pipelinePanel {
@@ -325,33 +407,33 @@
 }
 
 .statusNEW {
-  background: #eff8ff;
-  color: #175cd3;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .statusCONTACTED {
-  background: #f4f3ff;
-  color: #5925dc;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
 }
 
 .statusFOLLOW_UP {
-  background: #fffaeb;
-  color: #b54708;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .statusLATER {
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
 }
 
 .statusWON {
-  background: #ecfdf3;
-  color: #027a48;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusLOST {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .cardDetails {
@@ -399,21 +481,21 @@
 }
 
 .dateOverdue {
-  border-color: #fecdca;
-  background: #fff8f7;
-  color: #b42318;
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .dateToday {
-  border-color: #fedf89;
-  background: #fffcf5;
-  color: #b54708;
+  border-color: var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
 }
 
 .dateUpcoming {
-  border-color: #abefc6;
-  background: #f6fef9;
-  color: #027a48;
+  border-color: var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .dateNeutral {
@@ -421,7 +503,7 @@
 }
 
 .cardNotes {
-  border-left: 2px solid #84adff;
+  border-left: 2px solid var(--portal-accent-border);
   padding-left: 11px;
 }
 
@@ -433,24 +515,62 @@
 
 .messageSuggestion summary {
   padding: 11px 12px;
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.76rem;
   font-weight: 800;
   cursor: pointer;
 }
 
-.messageSuggestion p {
+.messageSuggestion[open] summary {
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface-soft);
+}
+
+.messageVariant {
+  display: grid;
+  gap: 9px;
+  padding: 13px 12px;
+}
+
+.messageVariant + .messageVariant {
+  border-top: 1px solid var(--portal-border);
+}
+
+.messageMeta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.messageMeta strong {
+  color: var(--portal-text);
+  font-size: 0.74rem;
+}
+
+.messageMeta span {
+  overflow: hidden;
+  color: var(--portal-text-tertiary);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messageVariant p {
+  max-height: 180px;
+  overflow-y: auto;
   margin: 0;
-  padding: 0 12px 12px;
+  padding: 0;
   color: var(--portal-muted);
   font-size: 0.78rem;
   line-height: 1.55;
+  white-space: pre-wrap;
 }
 
-.messageSuggestion > div {
+.messageActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 0 12px 12px;
 }
 
 .messageSuggestion button,
@@ -458,7 +578,7 @@
 .cardFooter button {
   border: 0;
   background: transparent;
-  color: #175cd3;
+  color: var(--portal-accent);
   font-size: 0.72rem;
   font-weight: 800;
   text-decoration: none;
@@ -479,7 +599,7 @@
 }
 
 .cardFooter button {
-  color: #b42318;
+  color: var(--portal-danger);
 }
 
 .emptyState {
@@ -488,7 +608,7 @@
   min-height: 180px;
   gap: 7px;
   border: 1px dashed var(--portal-border);
-  border-radius: 14px;
+  border-radius: var(--portal-radius-lg);
   padding: 30px;
   text-align: center;
 }
@@ -514,6 +634,10 @@
   }
 
   .prospectForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .agendaList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -544,13 +668,15 @@
 
   .metrics,
   .prospectForm,
-  .filters {
+  .filters,
+  .agendaList {
     grid-template-columns: 1fr;
   }
 
   .editorPanel,
   .pipelinePanel,
-  .insightsGrid > article {
+  .insightsGrid > article,
+  .agendaPanel {
     padding: 18px;
   }
 

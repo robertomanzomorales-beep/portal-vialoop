@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import {
-  buildProspectMessage,
+  buildProspectMessages,
   getProspectStatusLabel,
   prospectStatuses,
   type ProspectMetadata,
@@ -100,14 +100,14 @@ function whatsappUrl(
 
 function emailUrl(
   email: string,
-  company: string,
+  subject: string,
   message: string,
 ) {
   if (!email) {
     return "";
   }
 
-  return `mailto:${email}?subject=${encodeURIComponent(`Seguimiento Vialoop · ${company}`)}&body=${encodeURIComponent(message)}`;
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
 }
 
 export default function ProspectManager({
@@ -515,20 +515,21 @@ export default function ProspectManager({
                   id,
                   metadata,
                 } = prospect;
-                const message =
-                  buildProspectMessage(
+                const messages =
+                  buildProspectMessages(
                     metadata,
                   );
                 const whatsapp =
                   whatsappUrl(
                     metadata.phone,
-                    message,
+                    messages.whatsapp,
                   );
                 const mail = emailUrl(
                   metadata.email,
-                  metadata.company,
-                  message,
+                  messages.emailSubject,
+                  messages.emailBody,
                 );
+                const emailCopy = `Asunto: ${messages.emailSubject}\n\n${messages.emailBody}`;
 
                 return (
                   <article
@@ -634,37 +635,73 @@ export default function ProspectManager({
                       }
                     >
                       <summary>
-                        Mensaje sugerido
+                        2 mensajes sugeridos
                       </summary>
-                      <p>{message}</p>
-                      <div>
-                        <button
-                          onClick={() =>
-                            copyMessage(
-                              id,
-                              message,
-                            )
-                          }
-                          type="button"
-                        >
-                          {copiedId === id
-                            ? "Copiado"
-                            : "Copiar"}
-                        </button>
-                        {whatsapp && (
-                          <a
-                            href={whatsapp}
-                            rel="noreferrer"
-                            target="_blank"
+
+                      <div className={styles.messageVariant}>
+                        <div className={styles.messageMeta}>
+                          <strong>WhatsApp</strong>
+                          <span>Breve y conversacional</span>
+                        </div>
+
+                        <p>{messages.whatsapp}</p>
+
+                        <div className={styles.messageActions}>
+                          <button
+                            onClick={() =>
+                              copyMessage(
+                                `${id}-whatsapp`,
+                                messages.whatsapp,
+                              )
+                            }
+                            type="button"
                           >
-                            WhatsApp
-                          </a>
-                        )}
-                        {mail && (
-                          <a href={mail}>
-                            Correo
-                          </a>
-                        )}
+                            {copiedId === `${id}-whatsapp`
+                              ? "Copiado"
+                              : "Copiar texto"}
+                          </button>
+
+                          {whatsapp && (
+                            <a
+                              href={whatsapp}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              Abrir WhatsApp
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className={styles.messageVariant}>
+                        <div className={styles.messageMeta}>
+                          <strong>Correo</strong>
+                          <span>{messages.emailSubject}</span>
+                        </div>
+
+                        <p>{messages.emailBody}</p>
+
+                        <div className={styles.messageActions}>
+                          <button
+                            onClick={() =>
+                              copyMessage(
+                                `${id}-email`,
+                                emailCopy,
+                              )
+                            }
+                            type="button"
+                          >
+                            {copiedId === `${id}-email`
+                              ? "Copiado"
+                              : "Copiar correo"}
+                          </button>
+
+                          {mail && (
+                            <a href={mail}>
+                              Abrir correo
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </details>
 
