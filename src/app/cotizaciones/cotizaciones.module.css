@@ -79,9 +79,13 @@
 .historyPanel {
   overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 2px;
+  border-radius: 0;
   background: var(--portal-surface);
   box-shadow: none;
+}
+
+.quotationForm {
+  border-top: 5px solid #df4825;
 }
 
 .quotationWorkspace {
@@ -120,7 +124,7 @@
   border-radius: 0;
   background: transparent;
   padding: 3px 0 8px;
-  color: var(--portal-text-tertiary);
+  color: #df4825;
   font-size: 0.6rem;
   font-weight: 820;
 }
@@ -190,8 +194,8 @@
 .field textarea:focus,
 .itemRow input:focus,
 .itemRow textarea:focus {
-  border-color: var(--portal-text);
-  box-shadow: 0 1px 0 var(--portal-text);
+  border-color: #df4825;
+  box-shadow: 0 1px 0 #df4825;
 }
 
 .fullWidth {
@@ -264,7 +268,7 @@
 
 .itemNumber {
   padding-top: 11px;
-  color: var(--portal-text-tertiary);
+  color: #df4825;
   font-size: 0.66rem;
   font-weight: 760;
 }
@@ -347,7 +351,7 @@
   justify-self: start;
   min-height: 36px;
   border: 0;
-  border-bottom: 1px solid var(--portal-text);
+  border-bottom: 1px solid #df4825;
   border-radius: 0;
   background: transparent;
   padding: 0 1px;
@@ -403,19 +407,19 @@
   min-height: 56px;
   margin-top: 8px;
   border-top: 2px solid var(--portal-text);
-  border-bottom: 1px solid var(--portal-text);
+  border-bottom: 0;
   border-radius: 0;
-  background: transparent;
-  padding: 0 3px;
+  background: var(--portal-text);
+  padding: 0 14px;
 }
 
 .grandTotal span {
-  color: var(--portal-text);
+  color: var(--portal-bg);
   font-weight: 760;
 }
 
 .grandTotal strong {
-  color: var(--portal-text);
+  color: var(--portal-bg);
   font-size: 1.3rem;
   font-weight: 800;
 }
@@ -424,13 +428,14 @@
   position: sticky;
   top: 0;
   display: flex;
-  min-height: 620px;
+  min-height: 670px;
   flex-direction: column;
   align-self: start;
-  border-top: 5px solid #151517;
-  background: #f3f2ed;
-  padding: 29px 26px;
-  color: #171719;
+  border-top: 6px solid #df4825;
+  background: #f7f3e9;
+  box-shadow: inset 8px 0 0 #151411;
+  padding: 31px 27px 29px 35px;
+  color: #151411;
   contain: layout paint;
 }
 
@@ -438,13 +443,14 @@
   display: grid;
   gap: 5px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #171719;
+  border-bottom: 1px solid #151411;
 }
 
 .previewBrand strong {
   font-size: 1.26rem;
-  font-weight: 800;
-  letter-spacing: -0.045em;
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
 }
 
 .previewBrand span,
@@ -465,8 +471,9 @@
 }
 
 .previewReference strong {
+  color: #df4825;
   font-size: 0.69rem;
-  font-weight: 680;
+  font-weight: 800;
 }
 
 .previewClient {
@@ -476,9 +483,9 @@
 }
 
 .previewClient strong {
-  font-size: 1.32rem;
-  line-height: 1.16;
-  letter-spacing: -0.04em;
+  font-size: 1.47rem;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
 }
 
 .previewClient small {
@@ -513,23 +520,29 @@
 }
 
 .previewSummary .previewTotal {
-  min-height: 58px;
-  border-top: 2px solid #171719;
-  border-bottom: 1px solid #171719;
+  min-height: 65px;
+  margin-top: 9px;
+  border-top: 4px solid #df4825;
+  border-bottom: 0;
+  background: #151411;
+  padding: 0 12px;
 }
 
 .previewTotal span {
-  color: #171719;
+  color: #aaa397;
   font-weight: 750;
 }
 
 .previewTotal strong {
+  color: #f7f3e9;
   font-size: 1.16rem;
 }
 
 .documentPreview > p {
   margin: 20px 0 0;
-  color: #747477;
+  border-left: 3px solid #df4825;
+  padding-left: 12px;
+  color: #69635a;
   font-size: 0.66rem;
   line-height: 1.65;
 }
@@ -583,11 +596,11 @@
 
 .formFooter button {
   min-height: 42px;
-  border: 1px solid var(--portal-accent);
-  border-radius: 2px;
-  background: var(--portal-accent);
-  padding: 0 18px;
-  color: var(--portal-on-accent);
+  border: 1px solid #df4825;
+  border-radius: 0;
+  background: #df4825;
+  padding: 0 19px;
+  color: #151411;
   font: inherit;
   font-size: 0.76rem;
   font-weight: 780;
@@ -596,6 +609,11 @@
     background-color var(--portal-motion-fast) var(--portal-ease),
     color var(--portal-motion-fast) var(--portal-ease),
     transform var(--portal-motion-fast) var(--portal-ease);
+}
+
+.formFooter button:hover:not(:disabled) {
+  border-color: #ef5a35;
+  background: #ef5a35;
 }
 
 .formFooter button:disabled {

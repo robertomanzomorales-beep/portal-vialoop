@@ -513,8 +513,9 @@ export default function QuotationForm({
           </div>
 
           <p>
-            El correo y el PDF conservarán esta misma jerarquía visual, tabla de
-            servicios y resumen comercial.
+            El correo resume la decisión comercial y el PDF presenta el alcance,
+            la inversión, las condiciones y el siguiente paso con esta misma
+            dirección editorial.
           </p>
         </aside>
       </div>

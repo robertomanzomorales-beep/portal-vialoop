@@ -301,7 +301,7 @@ export async function createAndSendQuotation(
       mailAccount: "default",
       attachments: [
         {
-          filename: `${number}.pdf`,
+          filename: `Cotizacion-${number}-Vialoop.pdf`,
           content: pdf,
           contentType: "application/pdf",
         },
