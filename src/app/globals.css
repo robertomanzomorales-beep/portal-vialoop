@@ -6,11 +6,11 @@
 
 :root {
   color-scheme: light;
-  --portal-bg: #f5f5f7;
+  --portal-bg: #f4f4f6;
   --portal-surface: #ffffff;
   --portal-surface-elevated: #ffffff;
-  --portal-surface-soft: #f7f7f8;
-  --portal-surface-hover: #ededf0;
+  --portal-surface-soft: #f7f7f9;
+  --portal-surface-hover: #ececef;
   --portal-border: rgb(29 29 31 / 9%);
   --portal-border-strong: rgb(29 29 31 / 16%);
   --portal-text: #1d1d1f;
@@ -46,15 +46,18 @@
   --portal-radius-md: 14px;
   --portal-radius-lg: 20px;
   --portal-radius-xl: 26px;
+  --portal-motion-fast: 140ms;
+  --portal-motion-base: 200ms;
+  --portal-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --portal-bg: #000000;
-  --portal-surface: #1c1c1e;
-  --portal-surface-elevated: #242426;
-  --portal-surface-soft: #111113;
-  --portal-surface-hover: #2c2c2e;
+  --portal-bg: #09090b;
+  --portal-surface: #18181b;
+  --portal-surface-elevated: #222225;
+  --portal-surface-soft: #121214;
+  --portal-surface-hover: #29292c;
   --portal-border: rgb(255 255 255 / 10%);
   --portal-border-strong: rgb(255 255 255 / 18%);
   --portal-text: #f5f5f7;
@@ -114,6 +117,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color var(--portal-motion-base) var(--portal-ease),
+    color var(--portal-motion-base) var(--portal-ease);
 }
 
 button,
@@ -144,17 +150,6 @@ a {
 ::selection {
   background: var(--portal-text);
   color: var(--portal-bg);
-}
-
-body,
-button,
-input,
-textarea,
-select {
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
 }
 
 main h1 {

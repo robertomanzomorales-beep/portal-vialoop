@@ -14,9 +14,9 @@
   flex-direction: column;
   overflow-y: auto;
   border-right: 1px solid var(--portal-border);
-  background: color-mix(in srgb, var(--portal-surface) 92%, transparent);
+  background: var(--portal-surface);
   padding: 20px 16px 16px;
-  backdrop-filter: blur(24px) saturate(150%);
+  contain: paint;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -145,9 +145,9 @@
   line-height: 1.25;
   text-decoration: none;
   transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    transform 140ms ease;
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease),
+    transform var(--portal-motion-fast) var(--portal-ease);
 }
 
 .navigation a:hover {
@@ -194,7 +194,6 @@
   color: var(--portal-text-tertiary);
 }
 
-.navigation a:hover .navigationIcon,
 .navigation a:hover .navigationIcon {
   color: var(--portal-text);
 }
@@ -299,6 +298,10 @@
   font-size: 9px;
   font-weight: 650;
   cursor: pointer;
+  transition:
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease),
+    box-shadow var(--portal-motion-fast) var(--portal-ease);
 }
 
 .themeControl button:hover {
@@ -328,6 +331,10 @@
   font-size: 9px;
   font-weight: 650;
   cursor: pointer;
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease);
 }
 
 .logoutButton:hover {
@@ -351,12 +358,11 @@
   gap: 10px;
   border: 1px solid var(--portal-border-strong);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--portal-surface-elevated) 92%, transparent);
+  background: var(--portal-surface-elevated);
   box-shadow: var(--portal-shadow-md);
   padding: 9px 12px;
   color: var(--portal-text);
-  backdrop-filter: blur(18px) saturate(150%);
-  animation: routeProgressIn 160ms ease both;
+  animation: routeProgressIn var(--portal-motion-base) var(--portal-ease) both;
 }
 
 .routeProgress span {
@@ -421,9 +427,8 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--portal-border);
-    background: color-mix(in srgb, var(--portal-surface) 90%, transparent);
+    background: var(--portal-surface);
     padding: 0 16px;
-    backdrop-filter: blur(22px) saturate(150%);
   }
 
   .mobileBrand .brandMark {
@@ -445,6 +450,10 @@
     border-radius: 10px;
     background: var(--portal-surface-soft);
     cursor: pointer;
+    transition:
+      border-color var(--portal-motion-fast) var(--portal-ease),
+      background-color var(--portal-motion-fast) var(--portal-ease),
+      transform var(--portal-motion-fast) var(--portal-ease);
   }
 
   .menuButton span {
@@ -459,7 +468,8 @@
     padding: 18px 14px 14px;
     box-shadow: 24px 0 70px var(--portal-shadow-color);
     transform: translateX(-105%);
-    transition: transform 220ms ease;
+    transition: transform 240ms var(--portal-ease);
+    will-change: transform;
   }
 
   .sidebarOpen {
@@ -498,7 +508,6 @@
     background: var(--portal-overlay);
     padding: 0;
     cursor: pointer;
-    backdrop-filter: blur(3px);
   }
 
   .main {

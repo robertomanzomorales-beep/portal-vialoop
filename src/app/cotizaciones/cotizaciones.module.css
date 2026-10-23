@@ -79,7 +79,7 @@
 .historyPanel {
   overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--portal-surface);
   box-shadow: var(--portal-shadow-sm);
 }
@@ -164,7 +164,7 @@
   width: 100%;
   min-height: 42px;
   border: 1px solid var(--portal-border-strong);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--portal-surface);
   padding: 10px 12px;
   color: var(--portal-text);
@@ -172,6 +172,10 @@
   font-size: 0.79rem;
   line-height: 1.5;
   outline: none;
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    box-shadow var(--portal-motion-fast) var(--portal-ease);
 }
 
 .field textarea,
@@ -195,7 +199,7 @@
 .itemsTable {
   overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 13px;
+  border-radius: 16px;
 }
 
 .itemsHeader,
@@ -243,6 +247,7 @@
   gap: 0;
   padding: 16px 12px;
   background: var(--portal-surface);
+  transition: background-color var(--portal-motion-fast) var(--portal-ease);
 }
 
 .itemRow:not(:last-child) {
@@ -315,6 +320,11 @@
   color: var(--portal-text-tertiary);
   font-size: 1.05rem;
   cursor: pointer;
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease),
+    transform var(--portal-motion-fast) var(--portal-ease);
 }
 
 .itemRow > button:hover:not(:disabled) {
@@ -340,10 +350,20 @@
   font-size: 0.72rem;
   font-weight: 750;
   cursor: pointer;
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    transform var(--portal-motion-fast) var(--portal-ease);
 }
 
 .addItemButton:hover {
   background: var(--portal-surface-hover);
+}
+
+.addItemButton:active,
+.itemRow > button:active:not(:disabled),
+.formFooter button:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .totalPanel {
@@ -373,17 +393,21 @@
 }
 
 .totalPanel .grandTotal {
-  min-height: 54px;
+  min-height: 56px;
+  margin-top: 8px;
   border-bottom: 0;
-  border-top: 1px solid var(--portal-text);
+  border-radius: 13px;
+  background: var(--portal-accent);
+  padding: 0 15px;
 }
 
 .grandTotal span {
-  color: var(--portal-text);
+  color: var(--portal-on-accent);
   font-weight: 760;
 }
 
 .grandTotal strong {
+  color: var(--portal-on-accent);
   font-size: 1.15rem;
   font-weight: 800;
 }
@@ -404,6 +428,7 @@
     var(--portal-contrast-bg);
   padding: 29px 26px;
   color: var(--portal-contrast-text);
+  contain: layout paint;
 }
 
 .previewBrand {
@@ -514,7 +539,7 @@
   gap: 16px;
   margin: 22px 26px 0;
   border: 1px solid;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 12px 14px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -564,6 +589,10 @@
   font-size: 0.76rem;
   font-weight: 780;
   cursor: pointer;
+  transition:
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease),
+    transform var(--portal-motion-fast) var(--portal-ease);
 }
 
 .formFooter button:disabled {
@@ -573,6 +602,8 @@
 
 .historyPanel {
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 520px;
 }
 
 .historyHeader {
