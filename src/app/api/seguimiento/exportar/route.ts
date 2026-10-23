@@ -43,6 +43,9 @@ export async function GET() {
       return [];
     }
 
+    const latestQuotation =
+      prospect.quotations[0];
+
     return [
       [
         prospect.company,
@@ -58,6 +61,15 @@ export async function GET() {
         prospect.nextFollowUp,
         prospect.assignedTo,
         prospect.notes,
+        latestQuotation?.number ?? "",
+        latestQuotation?.projectName ?? "",
+        latestQuotation?.items
+          .map((item) =>
+            `${item.description}${item.quantity > 1 ? ` x ${item.quantity}` : ""}`,
+          )
+          .join(" | ") ?? "",
+        latestQuotation?.totalAmount ?? "",
+        latestQuotation?.validUntil ?? "",
         log.createdAt
           .toISOString()
           .slice(0, 10),
@@ -79,6 +91,11 @@ export async function GET() {
     "Próximo seguimiento",
     "Responsable",
     "Notas",
+    "Cotización",
+    "Proyecto cotizado",
+    "Servicios cotizados",
+    "Total cotizado",
+    "Vigencia cotización",
     "Fecha de creación",
   ]
     .map(csvCell)

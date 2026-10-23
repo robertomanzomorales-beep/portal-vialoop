@@ -10,6 +10,23 @@ export const prospectStatuses = [
 export type ProspectStatus =
   (typeof prospectStatuses)[number];
 
+export type ProspectQuotationItem = {
+  description: string;
+  quantity: number;
+};
+
+export type ProspectQuotation = {
+  id: string;
+  number: string;
+  projectName: string;
+  recipientEmail: string;
+  items: ProspectQuotationItem[];
+  totalAmount: number;
+  issuedAt: string;
+  validUntil: string;
+  pdfPath: string;
+};
+
 export type ProspectMetadata = {
   company: string;
   contactName: string;
@@ -23,6 +40,7 @@ export type ProspectMetadata = {
   assignedTo: string;
   notes: string;
   updatedAt: string;
+  quotations: ProspectQuotation[];
 };
 
 function isObject(
@@ -41,6 +59,69 @@ function stringValue(
   return typeof value === "string"
     ? value
     : "";
+}
+
+function parseProspectQuotation(
+  value: unknown,
+): ProspectQuotation | null {
+  if (!isObject(value)) {
+    return null;
+  }
+
+  const id = stringValue(value.id).trim();
+  const number = stringValue(
+    value.number,
+  ).trim();
+
+  if (!id || !number) {
+    return null;
+  }
+
+  const items = Array.isArray(value.items)
+    ? value.items
+        .filter(isObject)
+        .map((item) => ({
+          description: stringValue(
+            item.description,
+          ).trim(),
+          quantity: Math.max(
+            1,
+            Math.round(
+              Number(item.quantity) || 1,
+            ),
+          ),
+        }))
+        .filter(
+          (item) =>
+            item.description.length > 0,
+        )
+        .slice(0, 20)
+    : [];
+
+  return {
+    id,
+    number,
+    projectName: stringValue(
+      value.projectName,
+    ),
+    recipientEmail: stringValue(
+      value.recipientEmail,
+    ),
+    items,
+    totalAmount: Math.max(
+      0,
+      Number(value.totalAmount) || 0,
+    ),
+    issuedAt: stringValue(
+      value.issuedAt,
+    ),
+    validUntil: stringValue(
+      value.validUntil,
+    ),
+    pdfPath:
+      stringValue(value.pdfPath) ||
+      `/api/cotizaciones/${id}/pdf`,
+  };
 }
 
 export function isProspectStatus(
@@ -95,6 +176,19 @@ export function parseProspectMetadata(
     updatedAt: stringValue(
       value.updatedAt,
     ),
+    quotations: Array.isArray(
+      value.quotations,
+    )
+      ? value.quotations
+          .map(parseProspectQuotation)
+          .filter(
+            (
+              quotation,
+            ): quotation is ProspectQuotation =>
+              Boolean(quotation),
+          )
+          .slice(0, 20)
+      : [],
   };
 }
 
@@ -131,6 +225,36 @@ export function buildProspectMessages(
     "Equipo Vialoop",
     "Diseño web · Sistemas · Hosting",
   ].join("\n");
+
+  const latestQuotation =
+    prospect.quotations[0];
+
+  if (
+    prospect.status === "FOLLOW_UP" &&
+    latestQuotation
+  ) {
+    const quotationContext =
+      latestQuotation.projectName.trim() ||
+      latestQuotation.items
+        .map((item) => item.description)
+        .slice(0, 2)
+        .join(" y ") ||
+      "el proyecto conversado";
+
+    return {
+      whatsapp: `${greeting}, ¿cómo estás? Quería saber si pudiste revisar la cotización ${latestQuotation.number} para ${quotationContext}. Si tienes dudas o comentarios, con gusto los revisamos. Si está conforme, coordinamos los próximos pasos.`,
+      emailSubject: `Seguimiento cotización ${latestQuotation.number} · ${prospect.company}`,
+      emailBody: [
+        `${greeting},`,
+        "",
+        `Quería saber si pudiste revisar la cotización ${latestQuotation.number} que preparamos para ${quotationContext}.`,
+        "",
+        "Quedo disponible para resolver dudas, revisar comentarios o ajustar algún punto del alcance. Si la propuesta está conforme, podemos coordinar los próximos pasos para comenzar.",
+        "",
+        signature,
+      ].join("\n"),
+    };
+  }
 
   if (prospect.status === "CONTACTED") {
     return {

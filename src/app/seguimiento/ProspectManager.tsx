@@ -54,6 +54,17 @@ function formatDate(value: string) {
   ).format(date);
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat(
+    "es-CL",
+    {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    },
+  ).format(value);
+}
+
 function normalize(value: string) {
   return value
     .normalize("NFD")
@@ -83,6 +94,64 @@ function dateTone(dateKey: string) {
   }
 
   return styles.dateUpcoming;
+}
+
+function quotationValidity(
+  validUntil: string,
+) {
+  if (!validUntil) {
+    return {
+      label: "Sin vigencia informada",
+      tone: styles.quotationNeutral,
+    };
+  }
+
+  const today =
+    new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "America/Santiago",
+    }).format(new Date());
+  const difference = Math.round(
+    (new Date(
+      `${validUntil}T12:00:00Z`,
+    ).getTime() -
+      new Date(
+        `${today}T12:00:00Z`,
+      ).getTime()) /
+      86_400_000,
+  );
+
+  if (difference < 0) {
+    const days = Math.abs(difference);
+
+    return {
+      label:
+        days === 1
+          ? "Venció hace 1 día"
+          : `Venció hace ${days} días`,
+      tone: styles.quotationExpired,
+    };
+  }
+
+  if (difference === 0) {
+    return {
+      label: "Vence hoy · contactar",
+      tone: styles.quotationToday,
+    };
+  }
+
+  return {
+    label:
+      difference === 1
+        ? "Vence mañana"
+        : `Vence en ${difference} días`,
+    tone:
+      difference <= 3
+        ? styles.quotationSoon
+        : styles.quotationActive,
+  };
 }
 
 function whatsappUrl(
@@ -160,6 +229,16 @@ export default function ProspectManager({
             metadata.email,
             metadata.industry,
             metadata.interest,
+            ...metadata.quotations.flatMap(
+              (quotation) => [
+                quotation.number,
+                quotation.projectName,
+                ...quotation.items.map(
+                  (item) =>
+                    item.description,
+                ),
+              ],
+            ),
           ].join(" "),
         );
 
@@ -530,6 +609,14 @@ export default function ProspectManager({
                   messages.emailBody,
                 );
                 const emailCopy = `Asunto: ${messages.emailSubject}\n\n${messages.emailBody}`;
+                const latestQuotation =
+                  metadata.quotations[0];
+                const validity =
+                  latestQuotation
+                    ? quotationValidity(
+                        latestQuotation.validUntil,
+                      )
+                    : null;
 
                 return (
                   <article
@@ -618,6 +705,94 @@ export default function ProspectManager({
                         )}
                       </strong>
                     </div>
+
+                    {latestQuotation &&
+                      validity && (
+                        <div
+                          className={
+                            styles.linkedQuotation
+                          }
+                        >
+                          <div
+                            className={
+                              styles.quotationHeading
+                            }
+                          >
+                            <div>
+                              <span>
+                                Cotización vinculada
+                              </span>
+                              <strong>
+                                {
+                                  latestQuotation.number
+                                }
+                              </strong>
+                            </div>
+
+                            <span
+                              className={`${styles.quotationValidity} ${validity.tone}`}
+                            >
+                              {validity.label}
+                            </span>
+                          </div>
+
+                          <dl
+                            className={
+                              styles.quotationDetails
+                            }
+                          >
+                            <div>
+                              <dt>Proyecto</dt>
+                              <dd>
+                                {latestQuotation.projectName ||
+                                  "Propuesta general"}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Total</dt>
+                              <dd>
+                                {formatCurrency(
+                                  latestQuotation.totalAmount,
+                                )}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Vigente hasta</dt>
+                              <dd>
+                                {formatDate(
+                                  latestQuotation.validUntil,
+                                )}
+                              </dd>
+                            </div>
+                          </dl>
+
+                          <p
+                            className={
+                              styles.quotedServices
+                            }
+                          >
+                            {latestQuotation.items
+                              .map(
+                                (item) =>
+                                  `${item.description}${item.quantity > 1 ? ` × ${item.quantity}` : ""}`,
+                              )
+                              .join(" · ")}
+                          </p>
+
+                          <a
+                            className={
+                              styles.quotationPdfLink
+                            }
+                            href={
+                              latestQuotation.pdfPath
+                            }
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            Ver cotización PDF
+                          </a>
+                        </div>
+                      )}
 
                     {metadata.notes && (
                       <p

@@ -10,6 +10,7 @@ import {
   type QuotationMetadata,
 } from "@/lib/quotation";
 import { buildQuotationEmail } from "@/lib/quotation-email";
+import { registerQuotationInFollowUp } from "@/lib/quotation-follow-up";
 
 export type QuotationActionState = {
   ok: boolean;
@@ -188,6 +189,8 @@ export async function createAndSendQuotation(
         businessName: true,
         tradeName: true,
         rut: true,
+        mainContactName: true,
+        phone: true,
       },
     });
 
@@ -285,6 +288,8 @@ export async function createAndSendQuotation(
       },
     });
 
+  let messageId = "";
+
   try {
     const pdf =
       await createQuotationPdf(
@@ -311,30 +316,7 @@ export async function createAndSendQuotation(
       ],
     });
 
-    await prisma.activityLog.update({
-      where: {
-        id: quotationLog.id,
-      },
-      data: {
-        action: "QUOTATION_SENT",
-        description: `${number} enviada a ${recipientEmail}.`,
-        metadata: {
-          ...metadata,
-          emailStatus: "SENT",
-          messageId: result.messageId,
-        },
-      },
-    });
-
-    revalidatePath("/");
-    revalidatePath("/cotizaciones");
-    revalidatePath(`/clientes/${clientId}`);
-
-    return {
-      ok: true,
-      message: `${number} enviada correctamente a ${recipientEmail}.`,
-      quotationId: quotationLog.id,
-    };
+    messageId = result.messageId;
   } catch (error) {
     const message = errorMessage(error);
 
@@ -361,4 +343,85 @@ export async function createAndSendQuotation(
       quotationId: quotationLog.id,
     };
   }
+
+  const sentMetadata: QuotationMetadata = {
+    ...metadata,
+    emailStatus: "SENT",
+    messageId,
+  };
+
+  try {
+    await prisma.activityLog.update({
+      where: {
+        id: quotationLog.id,
+      },
+      data: {
+        action: "QUOTATION_SENT",
+        description: `${number} enviada a ${recipientEmail}.`,
+        metadata: sentMetadata,
+      },
+    });
+  } catch (error) {
+    console.error(
+      `La cotización ${number} fue enviada, pero no se pudo actualizar su registro:`,
+      error,
+    );
+
+    revalidatePath("/cotizaciones");
+
+    return {
+      ok: true,
+      message: `${number} fue enviada a ${recipientEmail}, pero el registro interno quedó pendiente de actualización.`,
+      quotationId: quotationLog.id,
+    };
+  }
+
+  let followUpRegistered = false;
+
+  try {
+    const followUpId =
+      await registerQuotationInFollowUp({
+        quotationId: quotationLog.id,
+        quotation: sentMetadata,
+        userId: user.id,
+        clientId,
+        clientPhone: client.phone,
+        clientContactName:
+          client.mainContactName,
+      });
+
+    await prisma.activityLog.update({
+      where: {
+        id: quotationLog.id,
+      },
+      data: {
+        metadata: {
+          ...sentMetadata,
+          followUpId,
+          followUpRegisteredAt:
+            new Date().toISOString(),
+        },
+      },
+    });
+
+    followUpRegistered = true;
+  } catch (error) {
+    console.error(
+      `No fue posible registrar ${number} en seguimiento:`,
+      error,
+    );
+  }
+
+  revalidatePath("/");
+  revalidatePath("/cotizaciones");
+  revalidatePath("/seguimiento");
+  revalidatePath(`/clientes/${clientId}`);
+
+  return {
+    ok: true,
+    message: followUpRegistered
+      ? `${number} enviada a ${recipientEmail} y registrada en Seguimiento.`
+      : `${number} enviada a ${recipientEmail}; revisa el registro manual en Seguimiento.`,
+    quotationId: quotationLog.id,
+  };
 }

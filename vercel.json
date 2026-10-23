@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/renovaciones",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/cotizaciones-seguimiento",
+      "schedule": "15 12 * * *"
     }
   ]
 }

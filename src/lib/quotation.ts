@@ -39,6 +39,12 @@ export type QuotationMetadata = {
   emailStatus: "PENDING" | "SENT" | "FAILED";
   messageId?: string;
   lastError?: string;
+  followUpId?: string;
+  followUpRegisteredAt?: string;
+  expiryNotificationSentAt?: string;
+  expiryNotificationMessageId?: string;
+  expiryNotificationLastAttemptAt?: string;
+  expiryNotificationLastError?: string;
 };
 
 type PdfFonts = {
@@ -144,6 +150,30 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
         : "PENDING",
     messageId: typeof value.messageId === "string" ? value.messageId : undefined,
     lastError: typeof value.lastError === "string" ? value.lastError : undefined,
+    followUpId:
+      typeof value.followUpId === "string"
+        ? value.followUpId
+        : undefined,
+    followUpRegisteredAt:
+      typeof value.followUpRegisteredAt === "string"
+        ? value.followUpRegisteredAt
+        : undefined,
+    expiryNotificationSentAt:
+      typeof value.expiryNotificationSentAt === "string"
+        ? value.expiryNotificationSentAt
+        : undefined,
+    expiryNotificationMessageId:
+      typeof value.expiryNotificationMessageId === "string"
+        ? value.expiryNotificationMessageId
+        : undefined,
+    expiryNotificationLastAttemptAt:
+      typeof value.expiryNotificationLastAttemptAt === "string"
+        ? value.expiryNotificationLastAttemptAt
+        : undefined,
+    expiryNotificationLastError:
+      typeof value.expiryNotificationLastError === "string"
+        ? value.expiryNotificationLastError
+        : undefined,
   };
 }
 

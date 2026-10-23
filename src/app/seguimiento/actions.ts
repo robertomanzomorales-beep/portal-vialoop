@@ -99,6 +99,7 @@ export async function saveProspect(
     ),
     notes: value(formData, "notes"),
     updatedAt: new Date().toISOString(),
+    quotations: [],
   };
 
   if (id) {
@@ -127,16 +128,22 @@ export async function saveProspect(
         existing.metadata,
       );
 
+    const updatedMetadata: ProspectMetadata = {
+      ...metadata,
+      quotations:
+        previous?.quotations ?? [],
+    };
+
     await prisma.activityLog.update({
       where: { id },
       data: {
         userId: user.id,
         action: "PROSPECT_UPDATED",
         entityId:
-          metadata.email ||
-          metadata.company,
-        description: `${metadata.company} actualizado de ${previous?.status ?? "sin estado"} a ${metadata.status}.`,
-        metadata,
+          updatedMetadata.email ||
+          updatedMetadata.company,
+        description: `${updatedMetadata.company} actualizado de ${previous?.status ?? "sin estado"} a ${updatedMetadata.status}.`,
+        metadata: updatedMetadata,
       },
     });
 
@@ -145,7 +152,7 @@ export async function saveProspect(
 
     return {
       ok: true,
-      message: `${metadata.company} actualizado correctamente.`,
+      message: `${updatedMetadata.company} actualizado correctamente.`,
       savedId: id,
     };
   }

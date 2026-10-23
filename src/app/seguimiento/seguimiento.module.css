@@ -502,6 +502,129 @@
   color: var(--portal-muted);
 }
 
+.linkedQuotation {
+  display: grid;
+  gap: 13px;
+  border: 1px solid var(--portal-border);
+  border-left: 3px solid var(--portal-accent);
+  border-radius: 10px;
+  padding: 14px 15px;
+  background: var(--portal-surface);
+}
+
+.quotationHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.quotationHeading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.quotationHeading > div > span {
+  color: var(--portal-muted);
+  font-size: 0.64rem;
+  font-weight: 780;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.quotationHeading strong {
+  color: var(--portal-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.84rem;
+}
+
+.quotationValidity {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 25px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0 9px;
+  font-size: 0.65rem;
+  font-weight: 820;
+}
+
+.quotationActive {
+  border-color: var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.quotationSoon,
+.quotationToday {
+  border-color: var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
+}
+
+.quotationExpired {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.quotationNeutral {
+  border-color: var(--portal-border);
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
+}
+
+.quotationDetails {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(100px, 0.8fr) minmax(110px, 0.9fr);
+  gap: 12px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--portal-border);
+}
+
+.quotationDetails div {
+  min-width: 0;
+}
+
+.quotationDetails dt {
+  color: var(--portal-muted);
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.quotationDetails dd {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--portal-text);
+  font-size: 0.74rem;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quotedServices {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.quotationPdfLink {
+  width: fit-content;
+  color: var(--portal-accent);
+  font-size: 0.72rem;
+  font-weight: 820;
+  text-decoration: none;
+}
+
+.quotationPdfLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .cardNotes {
   border-left: 2px solid var(--portal-accent-border);
   padding-left: 11px;
@@ -691,6 +814,19 @@
 
   .cardDetails {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .quotationHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quotationValidity {
+    width: fit-content;
+  }
+
+  .quotationDetails {
+    grid-template-columns: 1fr;
   }
 
   .primaryButton,
