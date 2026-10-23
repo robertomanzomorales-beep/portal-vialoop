@@ -16,6 +16,8 @@ function isPublicRoute(
     pathname ===
       "/api/cron/renovaciones" ||
     pathname ===
+      "/api/cron/cotizaciones-seguimiento" ||
+    pathname ===
       "/api/flow/confirmacion" ||
     pathname ===
       "/api/flow/retorno" ||
