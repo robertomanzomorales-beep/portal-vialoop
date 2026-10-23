@@ -339,6 +339,16 @@
   border-color: var(--portal-accent);
 }
 
+.dayEvents .calendarDeadlineEvent {
+  border-color: var(--portal-warning-border);
+  border-left: 3px solid var(--portal-warning);
+  background: var(--portal-warning-soft);
+}
+
+.dayEvents .calendarDeadlineEvent:hover {
+  border-color: var(--portal-warning);
+}
+
 .dayEvents strong,
 .dayEvents span {
   overflow: hidden;

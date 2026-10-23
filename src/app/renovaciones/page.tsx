@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { reconcileRenewalRecords } from "@/lib/renewal-lifecycle";
 import {
   generatePaymentFromRenewal,
 } from "./actions";
+import RenewalCompletionForm from "./RenewalCompletionForm";
 import RenewalEmailComposer from "./RenewalEmailComposer";
 import styles from "./renovaciones.module.css";
 
@@ -14,6 +17,7 @@ type RenewalsPageProps = {
 };
 
 type RenewalFilter =
+  | "pendientes"
   | "todas"
   | "sin-aviso"
   | "vencidas"
@@ -349,17 +353,54 @@ function isOpenRenewalStatus(
   ].includes(status);
 }
 
+function isOperationalRenewal(
+  renewal: {
+    client: { status: string };
+    project: { status: string } | null;
+    subscription: { status: string } | null;
+  },
+) {
+  const activeProjectStatuses = [
+    "DEVELOPMENT",
+    "ACTIVE",
+    "MAINTENANCE",
+  ];
+
+  return (
+    renewal.client.status === "ACTIVE" &&
+    (!renewal.project ||
+      activeProjectStatuses.includes(
+        renewal.project.status,
+      )) &&
+    (!renewal.subscription ||
+      renewal.subscription.status === "ACTIVE")
+  );
+}
+
 function isRenewalVisibleByFilter(
   renewal: {
     dueDate: Date;
     status: string;
     notifications: unknown[];
+    client: { status: string };
+    project: { status: string } | null;
+    subscription: { status: string } | null;
   },
 
   filter: RenewalFilter,
 
   today: Date,
 ) {
+  const operational =
+    isOperationalRenewal(renewal);
+
+  if (filter === "pendientes") {
+    return (
+      operational &&
+      isOpenRenewalStatus(renewal.status)
+    );
+  }
+
   if (
     filter === "todas"
   ) {
@@ -370,6 +411,7 @@ function isRenewalVisibleByFilter(
     filter === "sin-aviso"
   ) {
     return (
+      operational &&
       isOpenRenewalStatus(
         renewal.status,
       ) &&
@@ -381,6 +423,7 @@ function isRenewalVisibleByFilter(
     filter === "vencidas"
   ) {
     return (
+      operational &&
       renewal.dueDate < today &&
       isOpenRenewalStatus(
         renewal.status,
@@ -392,6 +435,7 @@ function isRenewalVisibleByFilter(
     filter === "notificadas"
   ) {
     return (
+      operational &&
       renewal.status ===
       "NOTIFIED"
     );
@@ -430,6 +474,7 @@ function isRenewalVisibleByFilter(
       );
 
     return (
+      operational &&
       renewal.dueDate >= today &&
       renewal.dueDate <= limit &&
       isOpenRenewalStatus(
@@ -447,7 +492,12 @@ export default async function RenewalsPage({
   const resolvedSearchParams =
     await searchParams;
 
+  await requireUser();
+  const reconciliation =
+    await reconcileRenewalRecords();
+
   const allowedFilters: RenewalFilter[] = [
+    "pendientes",
     "todas",
     "sin-aviso",
     "vencidas",
@@ -461,7 +511,7 @@ export default async function RenewalsPage({
 
   const requestedFilter =
     resolvedSearchParams.filtro ??
-    "todas";
+    "pendientes";
 
   const activeFilter =
     allowedFilters.includes(
@@ -470,7 +520,7 @@ export default async function RenewalsPage({
       ? (
           requestedFilter as RenewalFilter
         )
-      : "todas";
+      : "pendientes";
 
   const today =
     getStartOfDay();
@@ -539,15 +589,34 @@ export default async function RenewalsPage({
     }),
   ]);
 
-  const paymentsByReference =
-    new Map(
-      generatedPayments.map(
-        (payment) => [
-          payment.reference,
-          payment.status,
-        ],
-      ),
+  const paymentsByReference = new Map<
+    string | null,
+    string
+  >();
+
+  for (const payment of generatedPayments) {
+    const current = paymentsByReference.get(
+      payment.reference,
     );
+
+    if (
+      !current ||
+      payment.status === "PAID"
+    ) {
+      paymentsByReference.set(
+        payment.reference,
+        payment.status,
+      );
+    }
+  }
+
+  const operationalRenewals = renewals.filter(
+    isOperationalRenewal,
+  );
+  const pendingCount =
+    operationalRenewals.filter((renewal) =>
+      isOpenRenewalStatus(renewal.status),
+    ).length;
 
   const filteredRenewals =
     renewals.filter(
@@ -560,7 +629,7 @@ export default async function RenewalsPage({
     );
 
   const expiredCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         renewal.dueDate <
           today &&
@@ -570,7 +639,7 @@ export default async function RenewalsPage({
     ).length;
 
   const withoutNoticeCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         isOpenRenewalStatus(
           renewal.status,
@@ -580,7 +649,7 @@ export default async function RenewalsPage({
     ).length;
 
   const nextSevenDaysCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         renewal.dueDate >=
           today &&
@@ -592,7 +661,7 @@ export default async function RenewalsPage({
     ).length;
 
   const nextFifteenDaysCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         renewal.dueDate >=
           today &&
@@ -604,7 +673,7 @@ export default async function RenewalsPage({
     ).length;
 
   const nextThirtyDaysCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         renewal.dueDate >=
           today &&
@@ -616,7 +685,7 @@ export default async function RenewalsPage({
     ).length;
 
   const notifiedCount =
-    renewals.filter(
+    operationalRenewals.filter(
       (renewal) =>
         renewal.status ===
         "NOTIFIED",
@@ -637,7 +706,7 @@ export default async function RenewalsPage({
     ).length;
 
   const pendingAmount =
-    renewals
+    operationalRenewals
       .filter((renewal) =>
         isOpenRenewalStatus(
           renewal.status,
@@ -663,13 +732,13 @@ export default async function RenewalsPage({
   }> = [
     {
       label:
-        "Todas",
+        "Pendientes",
 
       value:
-        "todas",
+        "pendientes",
 
       count:
-        renewals.length,
+        pendingCount,
     },
 
     {
@@ -758,6 +827,17 @@ export default async function RenewalsPage({
 
       count:
         renewedCount,
+    },
+
+    {
+      label:
+        "Todas",
+
+      value:
+        "todas",
+
+      count:
+        renewals.length,
     },
   ];
 
@@ -862,6 +942,33 @@ export default async function RenewalsPage({
         </div>
       )}
 
+      {resolvedSearchParams.resultado ===
+        "renovada" && (
+        <div className={styles.successMessage}>
+          El pago quedó confirmado, el ciclo se cerró
+          como renovado y sus avisos pendientes fueron
+          detenidos.
+        </div>
+      )}
+
+      {resolvedSearchParams.resultado ===
+        "ya-cerrada" && (
+        <div className={styles.noticeMessage}>
+          Esta renovación ya estaba cerrada; no se creó
+          un registro duplicado.
+        </div>
+      )}
+
+      {reconciliation.reconciled > 0 && (
+        <div className={styles.successMessage}>
+          Se regularizaron automáticamente{" "}
+          {reconciliation.reconciled} renovación
+          {reconciliation.reconciled === 1 ? "" : "es"}
+          {" "}que ya tenían pago o una fecha vigente
+          confirmada.
+        </div>
+      )}
+
       <section
         className={
           styles.summary
@@ -869,15 +976,15 @@ export default async function RenewalsPage({
       >
         <article>
           <span>
-            Renovaciones registradas
+            Renovaciones pendientes
           </span>
 
           <strong>
-            {renewals.length}
+            {pendingCount}
           </strong>
 
           <p>
-            Total almacenado en el
+            {renewals.length} registros históricos en el
             sistema
           </p>
         </article>
@@ -959,7 +1066,7 @@ export default async function RenewalsPage({
               }`}
               href={
                 filter.value ===
-                "todas"
+                "pendientes"
                   ? "/renovaciones"
                   : `/renovaciones?filtro=${filter.value}`
               }
@@ -1083,6 +1190,14 @@ export default async function RenewalsPage({
               <tbody>
                 {filteredRenewals.map(
                   (renewal) => {
+                    const operational =
+                      isOperationalRenewal(
+                        renewal,
+                      );
+                    const open =
+                      isOpenRenewalStatus(
+                        renewal.status,
+                      );
                     const daysDifference =
                       getDaysDifference(
                         renewal.dueDate,
@@ -1095,20 +1210,18 @@ export default async function RenewalsPage({
                       );
 
                     const isOverdue =
+                      operational &&
                       daysDifference <
                         0 &&
-                      isOpenRenewalStatus(
-                        renewal.status,
-                      );
+                      open;
 
                     const isUpcoming =
+                      operational &&
                       daysDifference >=
                         0 &&
                       daysDifference <=
                         30 &&
-                      isOpenRenewalStatus(
-                        renewal.status,
-                      );
+                      open;
 
                     const paymentReference =
                       `renewal:${renewal.id}`;
@@ -1119,17 +1232,17 @@ export default async function RenewalsPage({
                       );
 
                     const canGeneratePayment =
+                      operational &&
                       renewal.amount !==
                         null &&
-                      isOpenRenewalStatus(
-                        renewal.status,
-                      ) &&
+                      open &&
                       !paymentStatus;
 
                     const canNotify =
-                      isOpenRenewalStatus(
-                        renewal.status,
-                      );
+                      operational && open;
+
+                    const canComplete =
+                      operational && open;
 
                     const generatePaymentWithId =
                       generatePaymentFromRenewal.bind(
@@ -1169,6 +1282,42 @@ export default async function RenewalsPage({
                       renewal
                         .notifications[0] ??
                       null;
+
+                    const deadlineLabel = open
+                      ? operational
+                        ? getDaysLabel(
+                            renewal.dueDate,
+                            today,
+                          )
+                        : "Fuera de operación"
+                      : renewal.status === "RENEWED"
+                        ? renewal.renewedAt
+                          ? `Renovada ${formatDate(
+                              renewal.renewedAt,
+                            )}`
+                          : "Ciclo renovado"
+                        : renewal.status === "PAID"
+                          ? "Pago confirmado"
+                          : "Ciclo cancelado";
+                    const deadlineClass = !open
+                      ? styles.deadlineComplete
+                      : isOverdue
+                        ? styles.deadlineExpired
+                        : isUpcoming
+                          ? styles.deadlineUpcoming
+                          : styles.deadlineNormal;
+                    const followUpLabel = !open
+                      ? renewal.status === "CANCELLED"
+                        ? "Sin seguimiento"
+                        : "Completada"
+                      : operational
+                        ? reminderInfo.label
+                        : "Sin acciones";
+                    const followUpClass = !open
+                      ? styles.reminderComplete
+                      : operational
+                        ? reminderInfo.className
+                        : styles.reminderScheduled;
 
                     const notificationHistory =
                       renewal.notifications.map(
@@ -1231,6 +1380,15 @@ export default async function RenewalsPage({
                                 .email ??
                                 "Sin correo registrado"}
                             </span>
+                            {!operational && (
+                              <span
+                                className={
+                                  styles.inactiveLabel
+                                }
+                              >
+                                Cliente o servicio fuera de operación
+                              </span>
+                            )}
                           </Link>
                         </td>
 
@@ -1288,17 +1446,10 @@ export default async function RenewalsPage({
                             className={`${
                               styles.deadline
                             } ${
-                              isOverdue
-                                ? styles.deadlineExpired
-                                : isUpcoming
-                                  ? styles.deadlineUpcoming
-                                  : styles.deadlineNormal
+                              deadlineClass
                             }`}
                           >
-                            {getDaysLabel(
-                              renewal.dueDate,
-                              today,
-                            )}
+                            {deadlineLabel}
                           </span>
                         </td>
 
@@ -1307,12 +1458,10 @@ export default async function RenewalsPage({
                             className={`${
                               styles.reminder
                             } ${
-                              reminderInfo.className
+                              followUpClass
                             }`}
                           >
-                            {
-                              reminderInfo.label
-                            }
+                            {followUpLabel}
                           </span>
 
                           <div
@@ -1387,6 +1536,24 @@ export default async function RenewalsPage({
                               styles.actions
                             }
                           >
+                            {canComplete && (
+                              <RenewalCompletionForm
+                                amount={formatCurrency(
+                                  renewal.amount,
+                                )}
+                                clientName={
+                                  renewal.client
+                                    .businessName
+                                }
+                                description={
+                                  renewal.description
+                                }
+                                renewalId={
+                                  renewal.id
+                                }
+                              />
+                            )}
+
                             {canNotify && (
                               <RenewalEmailComposer
                                 alreadyNotified={
@@ -1469,7 +1636,7 @@ export default async function RenewalsPage({
                               >
                                 Ver cobro
                               </Link>
-                            ) : (
+                            ) : canComplete ? (
                               <Link
                                 className={
                                   styles.viewButton
@@ -1478,7 +1645,7 @@ export default async function RenewalsPage({
                               >
                                 Completar monto
                               </Link>
-                            )}
+                            ) : null}
 
                             <Link
                               className={

@@ -8,6 +8,8 @@ import styles from "./seguimiento.module.css";
 
 export type FollowUpCalendarEntry = {
   id: string;
+  prospectId: string;
+  kind: "FOLLOW_UP" | "QUOTATION_DEADLINE";
   company: string;
   date: string;
   status: string;
@@ -109,9 +111,9 @@ function buildCalendarDays(monthKey: string) {
   );
 }
 
-function goToProspect(id: string) {
+function goToProspect(prospectId: string) {
   document
-    .getElementById(`prospect-${id}`)
+    .getElementById(`prospect-${prospectId}`)
     ?.scrollIntoView({
       behavior: "smooth",
       block: "center",
@@ -180,7 +182,7 @@ export default function FollowUpCalendar({
           </span>
           <h2>Calendario de seguimientos</h2>
           <p>
-            Revisa fechas, responsables y cotizaciones sin recorrer todo el pipeline.
+            Revisa próximos contactos y vencimientos de cotizaciones sin recorrer todo el pipeline.
           </p>
         </div>
 
@@ -224,8 +226,9 @@ export default function FollowUpCalendar({
         <div className={styles.overdueStrip}>
           <div>
             <strong>
-              {overdue.length} seguimiento
-              {overdue.length === 1 ? "" : "s"} vencido
+              {overdue.length} hito
+              {overdue.length === 1 ? "" : "s"} comercial
+              {overdue.length === 1 ? "" : "es"} vencido
               {overdue.length === 1 ? "" : "s"}
             </strong>
             <span>
@@ -238,7 +241,7 @@ export default function FollowUpCalendar({
               <button
                 key={entry.id}
                 onClick={() =>
-                  goToProspect(entry.id)
+                  goToProspect(entry.prospectId)
                 }
                 type="button"
               >
@@ -254,7 +257,7 @@ export default function FollowUpCalendar({
 
       <div className={styles.calendarMeta}>
         <span>
-          {visibleCount} seguimiento
+          {visibleCount} hito
           {visibleCount === 1 ? "" : "s"} este mes
         </span>
         <span>
@@ -296,17 +299,28 @@ export default function FollowUpCalendar({
                     .slice(0, 3)
                     .map((entry) => (
                       <button
+                        className={
+                          entry.kind ===
+                          "QUOTATION_DEADLINE"
+                            ? styles.calendarDeadlineEvent
+                            : undefined
+                        }
                         key={entry.id}
                         onClick={() =>
-                          goToProspect(entry.id)
+                          goToProspect(
+                            entry.prospectId,
+                          )
                         }
                         title={`${entry.company} · ${entry.assignedTo || "Equipo"}`}
                         type="button"
                       >
                         <strong>{entry.company}</strong>
                         <span>
-                          {entry.quotationNumber ||
-                            entry.status}
+                          {entry.kind ===
+                          "QUOTATION_DEADLINE"
+                            ? `Vence ${entry.quotationNumber}`
+                            : entry.quotationNumber ||
+                              entry.status}
                         </span>
                       </button>
                     ))}

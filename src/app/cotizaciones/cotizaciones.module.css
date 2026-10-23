@@ -726,6 +726,59 @@
   text-underline-offset: 3px;
 }
 
+.historyActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.deleteControl {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.deleteControl small {
+  max-width: 170px;
+  color: var(--portal-danger);
+  font-size: 0.58rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.deleteQuotationButton {
+  border: 0;
+  background: transparent;
+  color: var(--portal-danger);
+  padding: 5px 0;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 760;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition:
+    color var(--portal-motion-fast) var(--portal-ease),
+    text-decoration-color var(--portal-motion-fast) var(--portal-ease);
+}
+
+.deleteQuotationButton:hover:not(:disabled) {
+  text-decoration-color: currentColor;
+}
+
+.deleteQuotationButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.deletedLabel {
+  color: var(--portal-success);
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
 .emptyState {
   border-top: 1px solid var(--portal-border);
   padding: 46px 24px;

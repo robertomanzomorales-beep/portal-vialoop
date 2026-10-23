@@ -55,7 +55,8 @@
 
 .secondaryButton,
 .viewButton,
-.emailAction {
+.emailAction,
+.completeAction {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -84,6 +85,18 @@
 .emailAction {
   border: 1px solid var(--portal-accent);
   background: var(--portal-accent);
+  color: var(--portal-on-accent);
+}
+
+.completeAction {
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.completeAction:hover {
+  border-color: var(--portal-success);
+  background: var(--portal-success);
   color: var(--portal-on-accent);
 }
 
@@ -319,6 +332,11 @@
   line-height: 1.45;
 }
 
+.clientLink .inactiveLabel {
+  color: var(--portal-warning);
+  font-weight: 700;
+}
+
 .price {
   color: var(--portal-text);
   white-space: nowrap;
@@ -350,6 +368,12 @@
 .deadlineNormal {
   background: var(--portal-surface-hover);
   color: var(--portal-text-secondary);
+}
+
+.deadlineComplete,
+.reminderComplete {
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
 }
 
 .statusUpcoming {
@@ -422,7 +446,8 @@
 }
 
 .viewButton,
-.emailAction {
+.emailAction,
+.completeAction {
   min-height: 35px;
   padding: 0 12px;
 }
@@ -617,7 +642,8 @@
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   border: 1px solid var(--portal-border-strong);
   border-radius: 9px;
@@ -636,15 +662,64 @@
   min-height: 43px;
 }
 
+.field select {
+  min-height: 43px;
+}
+
 .field textarea {
   resize: vertical;
   line-height: 1.55;
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: var(--portal-accent);
   box-shadow: 0 0 0 3px var(--portal-focus);
+}
+
+.completionModal {
+  width: min(650px, 100%);
+}
+
+.completionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.completionOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border: 1px solid var(--portal-success-border);
+  border-radius: 11px;
+  background: var(--portal-success-soft);
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.completionOption input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--portal-success);
+}
+
+.completionOption span {
+  display: grid;
+  gap: 4px;
+}
+
+.completionOption strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+.completionOption small {
+  color: var(--portal-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .emailTools {
@@ -853,6 +928,10 @@
     grid-template-columns: 1fr;
   }
 
+  .completionGrid {
+    grid-template-columns: 1fr;
+  }
+
   .reminderNotice {
     align-items: flex-start;
     flex-direction: column;
@@ -868,6 +947,10 @@
   .openMailButton,
   .cancelModalButton,
   .confirmSentButton {
+    width: 100%;
+  }
+
+  .completeAction {
     width: 100%;
   }
 

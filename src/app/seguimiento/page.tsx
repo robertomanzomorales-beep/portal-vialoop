@@ -103,24 +103,55 @@ export default async function FollowUpPage() {
       metadata.status === "WON",
   ).length;
   const calendarEntries: FollowUpCalendarEntry[] =
-    openProspects
-      .filter(({ metadata }) =>
-        Boolean(metadata.nextFollowUp),
-      )
-      .map(({ id, metadata }) => ({
-        id,
-        company: metadata.company,
-        date: metadata.nextFollowUp,
-        status:
+    openProspects.flatMap(
+      ({ id, metadata }) => {
+        const status =
           getProspectStatusLabel(
             metadata.status,
-          ),
-        assignedTo:
-          metadata.assignedTo,
-        quotationNumber:
-          metadata.quotations[0]
-            ?.number || "",
-      }));
+          );
+        const followUpEntry =
+          metadata.nextFollowUp
+            ? [
+                {
+                  id: `${id}-follow-up`,
+                  prospectId: id,
+                  kind: "FOLLOW_UP" as const,
+                  company: metadata.company,
+                  date: metadata.nextFollowUp,
+                  status,
+                  assignedTo:
+                    metadata.assignedTo,
+                  quotationNumber:
+                    metadata.quotations[0]
+                      ?.number || "",
+                },
+              ]
+            : [];
+        const quotationDeadlines =
+          metadata.quotations
+            .filter((quotation) =>
+              Boolean(quotation.validUntil),
+            )
+            .map((quotation) => ({
+              id: `${id}-quotation-${quotation.id}`,
+              prospectId: id,
+              kind:
+                "QUOTATION_DEADLINE" as const,
+              company: metadata.company,
+              date: quotation.validUntil,
+              status,
+              assignedTo:
+                metadata.assignedTo,
+              quotationNumber:
+                quotation.number,
+            }));
+
+        return [
+          ...followUpEntry,
+          ...quotationDeadlines,
+        ];
+      },
+    );
 
   return (
     <main className={styles.page}>

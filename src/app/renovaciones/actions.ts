@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mail";
+import { confirmRenewalPayment } from "@/lib/renewal-lifecycle";
 
 type ReminderType =
   | "FIRST_NOTICE"
@@ -154,6 +156,8 @@ function getSentOnDate(
 export async function generatePaymentFromRenewal(
   renewalId: string,
 ) {
+  await requireUser();
+
   const renewal =
     await prisma.renewal.findUnique({
       where: {
@@ -285,6 +289,8 @@ export async function markRenewalAsNotified(
   renewalId: string,
   formData: FormData,
 ) {
+  await requireUser();
+
   const recipient =
     getRequiredString(
       formData,
@@ -513,5 +519,100 @@ export async function markRenewalAsNotified(
 
   redirect(
     "/renovaciones?resultado=enviada",
+  );
+}
+
+const paymentMethods = [
+  "BANK_TRANSFER",
+  "FLOW",
+  "CREDIT_CARD",
+  "DEBIT_CARD",
+  "CASH",
+  "OTHER",
+] as const;
+
+function getPaymentDate(
+  formData: FormData,
+) {
+  const value = formData.get("paidAt");
+
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    throw new Error(
+      "La fecha de pago ingresada no es válida.",
+    );
+  }
+
+  const paidAt = new Date(
+    `${value}T12:00:00.000Z`,
+  );
+
+  if (Number.isNaN(paidAt.getTime())) {
+    throw new Error(
+      "La fecha de pago ingresada no es válida.",
+    );
+  }
+
+  return paidAt;
+}
+
+function getPaymentMethod(
+  formData: FormData,
+) {
+  const value = formData.get(
+    "paymentMethod",
+  );
+
+  return paymentMethods.includes(
+    value as (typeof paymentMethods)[number],
+  )
+    ? (value as (typeof paymentMethods)[number])
+    : "BANK_TRANSFER";
+}
+
+export async function confirmRenewalAsPaid(
+  renewalId: string,
+  formData: FormData,
+) {
+  const user = await requireUser();
+  const outcome =
+    await confirmRenewalPayment({
+      renewalId,
+      paidAt: getPaymentDate(formData),
+      paymentMethod:
+        getPaymentMethod(formData),
+      createNextRenewal:
+        formData.get(
+          "createNextRenewal",
+        ) === "on",
+      userId: user.id,
+    });
+
+  if (
+    outcome.state === "missing" ||
+    !outcome.clientId
+  ) {
+    throw new Error(
+      "La renovación seleccionada ya no existe.",
+    );
+  }
+
+  revalidatePath("/");
+  revalidatePath("/renovaciones");
+  revalidatePath("/pagos");
+  revalidatePath(
+    `/clientes/${outcome.clientId}`,
+  );
+
+  if (outcome.subscriptionId) {
+    revalidatePath("/suscripciones");
+  }
+
+  redirect(
+    outcome.state === "already-closed"
+      ? "/renovaciones?resultado=ya-cerrada"
+      : "/renovaciones?resultado=renovada",
   );
 }

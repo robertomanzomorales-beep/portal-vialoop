@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { parseQuotationMetadata } from "@/lib/quotation";
+import DeleteQuotationButton from "./DeleteQuotationButton";
 import QuotationForm from "./QuotationForm";
 import styles from "./cotizaciones.module.css";
 
@@ -191,13 +192,23 @@ export default async function QuotationsPage() {
                         </span>
                       </td>
                       <td>
-                        <Link
-                          className={styles.pdfLink}
-                          href={`/api/cotizaciones/${log.id}/pdf`}
-                          target="_blank"
+                        <div
+                          className={styles.historyActions}
                         >
-                          Ver PDF
-                        </Link>
+                          <Link
+                            className={styles.pdfLink}
+                            href={`/api/cotizaciones/${log.id}/pdf`}
+                            target="_blank"
+                          >
+                            Ver PDF
+                          </Link>
+                          <DeleteQuotationButton
+                            quotationId={log.id}
+                            quotationNumber={
+                              metadata.number
+                            }
+                          />
+                        </div>
                       </td>
                     </tr>
                   ),

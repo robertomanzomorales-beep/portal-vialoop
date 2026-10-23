@@ -1,22 +1,41 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/auth";
 import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import {
   createQuotationPdf,
+  parseQuotationMetadata,
   type QuotationItem,
   type QuotationMetadata,
 } from "@/lib/quotation";
 import { buildQuotationEmail } from "@/lib/quotation-email";
 import { registerQuotationInFollowUp } from "@/lib/quotation-follow-up";
+import {
+  parseProspectMetadata,
+  type ProspectMetadata,
+} from "@/lib/prospect";
 
 export type QuotationActionState = {
   ok: boolean;
   message: string;
   quotationId?: string;
 };
+
+export type DeleteQuotationResult = {
+  ok: boolean;
+  message: string;
+};
+
+function json(
+  value: unknown,
+): Prisma.InputJsonValue {
+  return JSON.parse(
+    JSON.stringify(value),
+  ) as Prisma.InputJsonValue;
+}
 
 function text(
   formData: FormData,
@@ -423,5 +442,205 @@ export async function createAndSendQuotation(
       ? `${number} enviada a ${recipientEmail} y registrada en Seguimiento.`
       : `${number} enviada a ${recipientEmail}; revisa el registro manual en Seguimiento.`,
     quotationId: quotationLog.id,
+  };
+}
+
+function withoutQuotationNote(
+  notes: string,
+  quotationNumber: string,
+) {
+  return notes
+    .split("\n")
+    .filter(
+      (line) =>
+        !line.includes(quotationNumber),
+    )
+    .join("\n")
+    .trim();
+}
+
+function removeQuotationFromProspect(
+  metadata: ProspectMetadata,
+  quotationId: string,
+  quotationNumber: string,
+  validUntil: string,
+): ProspectMetadata {
+  const quotations =
+    metadata.quotations.filter(
+      (quotation) =>
+        quotation.id !== quotationId &&
+        quotation.number !== quotationNumber,
+    );
+  const remainingDeadlines = quotations
+    .map((quotation) => quotation.validUntil)
+    .filter(Boolean)
+    .sort();
+  const nextFollowUp =
+    metadata.nextFollowUp === validUntil
+      ? remainingDeadlines[0] || ""
+      : metadata.nextFollowUp;
+
+  return {
+    ...metadata,
+    nextFollowUp,
+    notes: withoutQuotationNote(
+      metadata.notes,
+      quotationNumber,
+    ),
+    updatedAt: new Date().toISOString(),
+    quotations,
+  };
+}
+
+export async function deleteQuotation(
+  quotationId: string,
+): Promise<DeleteQuotationResult> {
+  const user = await requireUser();
+
+  if (!quotationId.trim()) {
+    return {
+      ok: false,
+      message: "La cotización no es válida.",
+    };
+  }
+
+  const quotationLog =
+    await prisma.activityLog.findFirst({
+      where: {
+        id: quotationId,
+        entityType: "Quotation",
+      },
+    });
+  const quotation = quotationLog
+    ? parseQuotationMetadata(
+        quotationLog.metadata,
+      )
+    : null;
+
+  if (!quotationLog || !quotation) {
+    return {
+      ok: false,
+      message:
+        "La cotización ya no existe o su registro no es válido.",
+    };
+  }
+
+  const prospectMatches: Prisma.ActivityLogWhereInput[] = [
+    ...(quotation.followUpId
+      ? [{ id: quotation.followUpId }]
+      : []),
+    ...(quotationLog.clientId
+      ? [{ clientId: quotationLog.clientId }]
+      : []),
+    ...(quotation.recipientEmail
+      ? [{ entityId: quotation.recipientEmail }]
+      : []),
+    ...(quotation.clientName
+      ? [{ entityId: quotation.clientName }]
+      : []),
+  ];
+  const prospectLogs =
+    await prisma.activityLog.findMany({
+      where: {
+        entityType: "Prospect",
+        OR: prospectMatches,
+      },
+      take: 100,
+    });
+  const linkedProspects = prospectLogs
+    .map((log) => ({
+      log,
+      metadata: parseProspectMetadata(
+        log.metadata,
+      ),
+    }))
+    .filter(
+      (
+        item,
+      ): item is {
+        log: (typeof prospectLogs)[number];
+        metadata: ProspectMetadata;
+      } =>
+        Boolean(item.metadata) &&
+        item.metadata!.quotations.some(
+          (itemQuotation) =>
+            itemQuotation.id === quotationId ||
+            itemQuotation.number ===
+              quotation.number,
+        ),
+    );
+
+  await prisma.$transaction(
+    async (transaction) => {
+      for (const prospect of linkedProspects) {
+        const nextMetadata =
+          removeQuotationFromProspect(
+            prospect.metadata,
+            quotationId,
+            quotation.number,
+            quotation.validUntil,
+          );
+
+        await transaction.activityLog.update({
+          where: {
+            id: prospect.log.id,
+          },
+          data: {
+            userId: user.id,
+            action:
+              "PROSPECT_QUOTATION_REMOVED",
+            description: `${quotation.number} eliminada del seguimiento de ${quotation.clientName}.`,
+            metadata: json(nextMetadata),
+          },
+        });
+      }
+
+      const deleted =
+        await transaction.activityLog.deleteMany({
+          where: {
+            id: quotationId,
+            entityType: "Quotation",
+          },
+        });
+
+      if (deleted.count !== 1) {
+        throw new Error(
+          "La cotización cambió mientras se intentaba eliminar.",
+        );
+      }
+
+      await transaction.activityLog.create({
+        data: {
+          userId: user.id,
+          clientId:
+            quotationLog.clientId || undefined,
+          action: "QUOTATION_DELETED",
+          entityType: "QuotationAudit",
+          entityId: quotation.number,
+          description: `${quotation.number} eliminada del historial de cotizaciones.`,
+          metadata: {
+            quotationId,
+            quotationNumber: quotation.number,
+            clientName: quotation.clientName,
+            deletedAt: new Date().toISOString(),
+          },
+        },
+      });
+    },
+  );
+
+  revalidatePath("/");
+  revalidatePath("/cotizaciones");
+  revalidatePath("/seguimiento");
+
+  if (quotationLog.clientId) {
+    revalidatePath(
+      `/clientes/${quotationLog.clientId}`,
+    );
+  }
+
+  return {
+    ok: true,
+    message: `${quotation.number} fue eliminada correctamente.`,
   };
 }

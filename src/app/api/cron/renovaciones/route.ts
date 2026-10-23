@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { processAutomaticRenewalEmails } from "@/lib/renewal-mailer";
+import { reconcileRenewalRecords } from "@/lib/renewal-lifecycle";
 
 export const dynamic =
   "force-dynamic";
@@ -49,6 +50,14 @@ export async function GET(
   }
 
   try {
+    const mode =
+      process.env.AUTO_RENEWAL_MODE
+        ?.trim()
+        .toLowerCase();
+    const reconciliation =
+      mode === "live"
+        ? await reconcileRenewalRecords()
+        : null;
     const result =
       await processAutomaticRenewalEmails();
 
@@ -57,6 +66,7 @@ export async function GET(
         ok: true,
         executedAt:
           new Date().toISOString(),
+        reconciliation,
         result,
       },
       {
