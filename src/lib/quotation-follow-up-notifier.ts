@@ -111,11 +111,14 @@ function portalUrl() {
   }
 }
 
-async function isClosedFollowUp(
+async function getFollowUpState(
   followUpId?: string,
 ) {
   if (!followUpId) {
-    return false;
+    return {
+      closed: false,
+      assignedTo: "",
+    };
   }
 
   const log =
@@ -133,10 +136,43 @@ async function isClosedFollowUp(
       log?.metadata,
     );
 
-  return (
-    prospect?.status === "WON" ||
-    prospect?.status === "LOST"
-  );
+  return {
+    closed:
+      prospect?.status === "WON" ||
+      prospect?.status === "LOST",
+    assignedTo:
+      prospect?.assignedTo || "",
+  };
+}
+
+function getResponsibleRecipient(
+  assignedTo: string,
+  quotation: QuotationMetadata,
+) {
+  const normalized = assignedTo
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "doris") {
+    return {
+      name: "Doris",
+      email: "dloayza@vialoop.cl",
+    };
+  }
+
+  if (normalized === "roberto") {
+    return {
+      name: "Roberto",
+      email: "rmanzo@vialoop.cl",
+    };
+  }
+
+  return {
+    name:
+      quotation.senderName
+        .split(" ")[0] || "Equipo",
+    email: quotation.senderEmail,
+  };
 }
 
 export async function processQuotationFollowUpAlerts(): Promise<QuotationFollowUpAlertResult> {
@@ -267,11 +303,12 @@ export async function processQuotationFollowUpAlerts(): Promise<QuotationFollowU
       continue;
     }
 
-    if (
-      await isClosedFollowUp(
+    const followUpState =
+      await getFollowUpState(
         quotation.followUpId,
-      )
-    ) {
+      );
+
+    if (followUpState.closed) {
       result.skipped += 1;
       result.details.push({
         quotation: quotation.number,
@@ -283,8 +320,13 @@ export async function processQuotationFollowUpAlerts(): Promise<QuotationFollowU
       continue;
     }
 
+    const responsible =
+      getResponsibleRecipient(
+        followUpState.assignedTo,
+        quotation,
+      );
     const recipient =
-      quotation.senderEmail
+      responsible.email
         .trim()
         .toLowerCase();
 
@@ -317,6 +359,7 @@ export async function processQuotationFollowUpAlerts(): Promise<QuotationFollowU
         quotation,
         daysUntilExpiry,
         followUpUrl,
+        responsible.name,
       );
 
     try {

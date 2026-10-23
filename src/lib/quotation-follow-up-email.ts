@@ -50,6 +50,7 @@ export function buildQuotationExpiryAlertEmail(
   quotation: QuotationMetadata,
   daysUntilExpiry: number,
   portalUrl: string,
+  responsibleName: string,
 ) {
   const deadline = deadlineLabel(
     daysUntilExpiry,
@@ -91,7 +92,7 @@ export function buildQuotationExpiryAlertEmail(
     .join("");
   const content = `
     <p style="margin:0 0 18px;color:#101828;font-size:14px;line-height:1.65;">
-      Hola <strong>${escapeEmailHtml(quotation.senderName.split(" ")[0] || "equipo")}</strong>:
+      Hola <strong>${escapeEmailHtml(responsibleName || "equipo")}</strong>:
     </p>
     <p style="margin:0 0 22px;color:#475467;font-size:14px;line-height:1.7;">
       La cotización <strong style="color:#101828;">${escapeEmailHtml(quotation.number)}</strong> de
