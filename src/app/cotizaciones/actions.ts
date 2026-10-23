@@ -187,6 +187,7 @@ export async function createAndSendQuotation(
         id: true,
         businessName: true,
         tradeName: true,
+        rut: true,
       },
     });
 
@@ -249,6 +250,8 @@ export async function createAndSendQuotation(
     clientName:
       client.tradeName ||
       client.businessName,
+    clientTaxId:
+      client.rut || undefined,
     contactName,
     recipientEmail,
     projectName,

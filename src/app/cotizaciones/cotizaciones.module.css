@@ -79,13 +79,13 @@
 .historyPanel {
   overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 0;
+  border-radius: var(--portal-radius-md);
   background: var(--portal-surface);
-  box-shadow: none;
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .quotationForm {
-  border-top: 5px solid #df4825;
+  border-top: 4px solid #2ca3dd;
 }
 
 .quotationWorkspace {
@@ -124,7 +124,7 @@
   border-radius: 0;
   background: transparent;
   padding: 3px 0 8px;
-  color: #df4825;
+  color: #175cd3;
   font-size: 0.6rem;
   font-weight: 820;
 }
@@ -194,8 +194,8 @@
 .field textarea:focus,
 .itemRow input:focus,
 .itemRow textarea:focus {
-  border-color: #df4825;
-  box-shadow: 0 1px 0 #df4825;
+  border-color: #175cd3;
+  box-shadow: 0 1px 0 #175cd3;
 }
 
 .fullWidth {
@@ -204,9 +204,8 @@
 
 .itemsTable {
   overflow: hidden;
-  border-top: 2px solid var(--portal-text);
-  border-bottom: 1px solid var(--portal-text);
-  border-radius: 0;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 11px;
 }
 
 .itemsHeader,
@@ -268,7 +267,7 @@
 
 .itemNumber {
   padding-top: 11px;
-  color: #df4825;
+  color: #175cd3;
   font-size: 0.66rem;
   font-weight: 760;
 }
@@ -324,7 +323,7 @@
   margin: 5px 0 0 6px;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--portal-text-tertiary);
   font-size: 1.05rem;
@@ -351,7 +350,7 @@
   justify-self: start;
   min-height: 36px;
   border: 0;
-  border-bottom: 1px solid #df4825;
+  border-bottom: 1px solid #175cd3;
   border-radius: 0;
   background: transparent;
   padding: 0 1px;
@@ -406,20 +405,20 @@
 .totalPanel .grandTotal {
   min-height: 56px;
   margin-top: 8px;
-  border-top: 2px solid var(--portal-text);
   border-bottom: 0;
-  border-radius: 0;
-  background: var(--portal-text);
+  border-top: 3px solid #2ca3dd;
+  border-radius: 10px;
+  background: #111827;
   padding: 0 14px;
 }
 
 .grandTotal span {
-  color: var(--portal-bg);
+  color: #dbe7ff;
   font-weight: 760;
 }
 
 .grandTotal strong {
-  color: var(--portal-bg);
+  color: #ffffff;
   font-size: 1.3rem;
   font-weight: 800;
 }
@@ -431,19 +430,32 @@
   min-height: 670px;
   flex-direction: column;
   align-self: start;
-  border-top: 6px solid #df4825;
-  background: #f7f3e9;
-  box-shadow: inset 8px 0 0 #151411;
-  padding: 31px 27px 29px 35px;
-  color: #151411;
+  border-top: 6px solid #2ca3dd;
+  background: #ffffff;
+  box-shadow: inset 1px 0 0 #e4e7ec;
+  padding: 31px 27px 29px;
+  color: #101828;
   contain: layout paint;
 }
 
 .previewBrand {
   display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
   gap: 5px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #151411;
+  border-bottom: 1px solid #d7dce4;
+}
+
+.previewBrand > div {
+  display: grid;
+  gap: 5px;
+}
+
+.previewLogo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
 }
 
 .previewBrand strong {
@@ -471,7 +483,7 @@
 }
 
 .previewReference strong {
-  color: #df4825;
+  color: #175cd3;
   font-size: 0.69rem;
   font-weight: 800;
 }
@@ -507,7 +519,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  border-bottom: 1px solid #cecec8;
+  border-bottom: 1px solid #e4e7ec;
 }
 
 .previewSummary span {
@@ -522,27 +534,27 @@
 .previewSummary .previewTotal {
   min-height: 65px;
   margin-top: 9px;
-  border-top: 4px solid #df4825;
-  border-bottom: 0;
-  background: #151411;
+  border: 1px solid #dbe5f2;
+  border-radius: 9px;
+  background: #f5f8ff;
   padding: 0 12px;
 }
 
 .previewTotal span {
-  color: #aaa397;
+  color: #667085;
   font-weight: 750;
 }
 
 .previewTotal strong {
-  color: #f7f3e9;
+  color: #175cd3;
   font-size: 1.16rem;
 }
 
 .documentPreview > p {
   margin: 20px 0 0;
-  border-left: 3px solid #df4825;
+  border-left: 3px solid #2ca3dd;
   padding-left: 12px;
-  color: #69635a;
+  color: #667085;
   font-size: 0.66rem;
   line-height: 1.65;
 }
@@ -555,7 +567,7 @@
   gap: 16px;
   margin: 22px 26px 0;
   border: 1px solid;
-  border-radius: 2px;
+  border-radius: 10px;
   padding: 12px 14px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -596,11 +608,11 @@
 
 .formFooter button {
   min-height: 42px;
-  border: 1px solid #df4825;
-  border-radius: 0;
-  background: #df4825;
+  border: 1px solid #175cd3;
+  border-radius: 9px;
+  background: #175cd3;
   padding: 0 19px;
-  color: #151411;
+  color: #ffffff;
   font: inherit;
   font-size: 0.76rem;
   font-weight: 780;
@@ -612,8 +624,8 @@
 }
 
 .formFooter button:hover:not(:disabled) {
-  border-color: #ef5a35;
-  background: #ef5a35;
+  border-color: #0f4fb8;
+  background: #0f4fb8;
 }
 
 .formFooter button:disabled {

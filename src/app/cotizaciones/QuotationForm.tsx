@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useActionState,
@@ -482,8 +483,17 @@ export default function QuotationForm({
 
         <aside className={styles.documentPreview}>
           <div className={styles.previewBrand}>
-            <strong>Vialoop</strong>
-            <span>Propuesta comercial</span>
+            <Image
+              alt="Vialoop"
+              className={styles.previewLogo}
+              height={52}
+              src="/logo-negro-vialoop-transparente.webp"
+              width={52}
+            />
+            <div>
+              <strong>Vialoop</strong>
+              <span>Propuesta comercial</span>
+            </div>
           </div>
 
           <div className={styles.previewReference}>
