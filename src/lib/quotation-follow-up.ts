@@ -7,7 +7,10 @@ import {
   type ProspectMetadata,
   type ProspectQuotation,
 } from "@/lib/prospect";
-import type { QuotationMetadata } from "@/lib/quotation";
+import {
+  parseQuotationMetadata,
+  type QuotationMetadata,
+} from "@/lib/quotation";
 
 type RegisterQuotationFollowUpInput = {
   quotationId: string;
@@ -355,4 +358,142 @@ export async function registerQuotationInFollowUp({
     });
 
   return followUp.id;
+}
+
+export type QuotationFollowUpSyncResult = {
+  reviewed: number;
+  registered: number;
+  errors: number;
+};
+
+export async function syncSentQuotationsToFollowUp(
+  limit = 500,
+): Promise<QuotationFollowUpSyncResult> {
+  const logs =
+    await prisma.activityLog.findMany({
+      where: {
+        entityType: "Quotation",
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      select: {
+        id: true,
+        userId: true,
+        clientId: true,
+        metadata: true,
+        client: {
+          select: {
+            phone: true,
+            mainContactName: true,
+          },
+        },
+      },
+    });
+
+  const quotations = logs
+    .map((log) => ({
+      log,
+      quotation:
+        parseQuotationMetadata(
+          log.metadata,
+        ),
+    }))
+    .filter(
+      (
+        item,
+      ): item is typeof item & {
+        quotation: QuotationMetadata;
+      } =>
+        Boolean(item.quotation) &&
+        item.quotation?.emailStatus ===
+          "SENT",
+    );
+
+  const linkedIds = quotations
+    .map(
+      ({ quotation }) =>
+        quotation.followUpId,
+    )
+    .filter(
+      (id): id is string => Boolean(id),
+    );
+  const existingLinks =
+    linkedIds.length > 0
+      ? await prisma.activityLog.findMany({
+          where: {
+            id: {
+              in: linkedIds,
+            },
+            entityType: "Prospect",
+          },
+          select: {
+            id: true,
+          },
+        })
+      : [];
+  const existingLinkIds = new Set(
+    existingLinks.map((item) => item.id),
+  );
+
+  const result: QuotationFollowUpSyncResult = {
+    reviewed: quotations.length,
+    registered: 0,
+    errors: 0,
+  };
+
+  for (const {
+    log,
+    quotation,
+  } of quotations) {
+    if (
+      quotation.followUpId &&
+      existingLinkIds.has(
+        quotation.followUpId,
+      )
+    ) {
+      continue;
+    }
+
+    try {
+      const followUpId =
+        await registerQuotationInFollowUp({
+          quotationId: log.id,
+          quotation,
+          userId: log.userId,
+          clientId: log.clientId,
+          clientPhone:
+            log.client?.phone,
+          clientContactName:
+            log.client
+              ?.mainContactName,
+        });
+
+      await prisma.activityLog.update({
+        where: {
+          id: log.id,
+        },
+        data: {
+          metadata: json({
+            ...quotation,
+            followUpId,
+            followUpRegisteredAt:
+              new Date().toISOString(),
+          }),
+        },
+      });
+
+      existingLinkIds.add(followUpId);
+      result.registered += 1;
+    } catch (error) {
+      result.errors += 1;
+      console.error(
+        `No fue posible sincronizar ${quotation.number} con Seguimiento:`,
+        error,
+      );
+    }
+  }
+
+  return result;
 }
