@@ -41,6 +41,7 @@ export type QuotationMetadata = {
   lastError?: string;
   followUpId?: string;
   followUpRegisteredAt?: string;
+  followUpDismissedAt?: string;
   expiryNotificationSentAt?: string;
   expiryNotificationMessageId?: string;
   expiryNotificationLastAttemptAt?: string;
@@ -157,6 +158,10 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
     followUpRegisteredAt:
       typeof value.followUpRegisteredAt === "string"
         ? value.followUpRegisteredAt
+        : undefined,
+    followUpDismissedAt:
+      typeof value.followUpDismissedAt === "string"
+        ? value.followUpDismissedAt
         : undefined,
     expiryNotificationSentAt:
       typeof value.expiryNotificationSentAt === "string"

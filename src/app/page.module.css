@@ -1,17 +1,17 @@
 .content {
   box-sizing: border-box;
+  width: min(100%, 1560px);
   min-height: 100vh;
-  max-width: 1760px;
   margin: 0 auto;
-  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  padding: 36px clamp(22px, 3.6vw, 48px) 52px;
 }
 
 .header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 30px;
-  margin-bottom: 28px;
+  gap: 28px;
+  margin-bottom: 22px;
 }
 
 .eyebrow,
@@ -19,20 +19,20 @@
   color: var(--portal-accent);
   font-size: 10px;
   font-weight: 760;
-  letter-spacing: 0.085em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .header h1 {
-  margin: 7px 0 9px;
+  margin: 6px 0 8px;
   color: var(--portal-text);
   font-size: clamp(32px, 4vw, 44px);
-  letter-spacing: -0.04em;
-  line-height: 1.08;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
 }
 
 .header p {
-  max-width: 650px;
+  max-width: 600px;
   margin: 0;
   color: var(--portal-muted);
   font-size: 14px;
@@ -41,7 +41,7 @@
 
 .currentDate {
   display: block;
-  margin-top: 10px;
+  margin-top: 9px;
   color: var(--portal-text-tertiary);
   font-size: 11px;
   font-weight: 650;
@@ -50,32 +50,32 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .primaryButton,
 .secondaryButton {
   display: inline-flex;
+  min-height: 41px;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 9px;
+  padding: 0 16px;
   font-size: 12px;
-  font-weight: 680;
+  font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
 }
 
 .primaryButton {
-  min-height: 42px;
-  padding: 0 18px;
   background: var(--portal-accent);
   color: var(--portal-on-accent);
-  box-shadow: 0 8px 18px var(--portal-focus);
+  box-shadow: 0 7px 18px var(--portal-focus);
 }
 
 .primaryButton:hover {
@@ -84,8 +84,6 @@
 }
 
 .secondaryButton {
-  min-height: 42px;
-  padding: 0 16px;
   border: 1px solid var(--portal-border-strong);
   background: var(--portal-surface);
   color: var(--portal-text-secondary);
@@ -97,133 +95,16 @@
   color: var(--portal-accent);
 }
 
-.processPanel {
-  overflow: hidden;
-  border: 1px solid var(--portal-border);
-  border-radius: var(--portal-radius-lg);
-  background: var(--portal-surface);
-  box-shadow: var(--portal-shadow-sm);
-}
-
-.processHeader {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 28px;
-  border-bottom: 1px solid var(--portal-border);
-  padding: 19px 22px;
-}
-
-.processHeader h2 {
-  margin: 6px 0 0;
-  color: var(--portal-text);
-  font-size: 18px;
-  letter-spacing: -0.025em;
-}
-
-.processHeader p {
-  max-width: 520px;
-  margin: 0;
-  color: var(--portal-muted);
-  font-size: 11px;
-  line-height: 1.55;
-  text-align: right;
-}
-
-.processGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.processStep {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 106px;
-  align-items: center;
-  gap: 12px;
-  border-right: 1px solid var(--portal-border);
-  color: inherit;
-  padding: 18px 34px 18px 18px;
-  text-decoration: none;
-  transition: background-color 150ms ease;
-}
-
-.processStep:last-child {
-  border-right: 0;
-  padding-right: 18px;
-}
-
-.processStep:hover {
-  background: var(--portal-surface-soft);
-}
-
-.processNumber {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  place-items: center;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 10px;
-  background: var(--portal-surface-soft);
-  color: var(--portal-text);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
-  font-weight: 680;
-}
-
-.processCopy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.processCopy strong {
-  color: var(--portal-text);
-  font-size: 13px;
-  letter-spacing: -0.01em;
-}
-
-.processCopy > span {
-  overflow: hidden;
-  margin-top: 4px;
-  color: var(--portal-text-secondary);
-  font-size: 10px;
-  font-weight: 620;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.processCopy small {
-  overflow: hidden;
-  margin-top: 3px;
-  color: var(--portal-text-tertiary);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.processArrow {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  color: var(--portal-text-tertiary);
-  font-size: 15px;
-  transform: translateY(-50%);
-}
-
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  gap: 13px;
 }
 
 .metricCard,
-.goalPanel,
 .panel,
-.plansPanel {
+.goalPanel,
+.trendPanel {
   border: 1px solid var(--portal-border);
   border-radius: var(--portal-radius-lg);
   background: var(--portal-surface);
@@ -231,54 +112,40 @@
 }
 
 .metricCard {
-  display: block;
   min-width: 0;
-  padding: 20px;
+  padding: 18px 19px;
   color: inherit;
   text-decoration: none;
-}
-
-a.metricCard {
   transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
-a.metricCard:hover {
-  transform: translateY(-2px);
+.metricCard:hover {
   border-color: var(--portal-accent-border);
-  box-shadow: 0 14px 30px var(--portal-shadow-color);
-}
-
-.metricCardSuccess {
-  border-color: var(--portal-success-border);
-  background: var(--portal-success-soft);
+  box-shadow: 0 12px 25px var(--portal-shadow-color);
+  transform: translateY(-1px);
 }
 
 .metricCardAlert {
   border-color: var(--portal-warning-border);
-  background: var(--portal-warning-soft);
+  background:
+    linear-gradient(135deg, var(--portal-warning-soft), transparent 62%),
+    var(--portal-surface);
 }
 
-.metricCardAlert strong {
-  color: var(--portal-warning);
-}
-
-.metricCard span {
+.metricCard > span {
   display: block;
-  overflow: hidden;
   color: var(--portal-muted);
   font-size: 11px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 670;
 }
 
 .metricCard strong {
   display: block;
-  margin: 12px 0 7px;
   overflow: hidden;
+  margin: 10px 0 5px;
   color: var(--portal-text);
   font-size: clamp(23px, 2.4vw, 30px);
   letter-spacing: -0.045em;
@@ -287,100 +154,297 @@ a.metricCard:hover {
   white-space: nowrap;
 }
 
-.metricCardSuccess strong {
-  color: var(--portal-success);
+.metricCardAlert strong {
+  color: var(--portal-warning);
 }
 
 .metricCard p {
+  overflow: hidden;
   margin: 0;
   color: var(--portal-text-tertiary);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.goalPanel {
-  margin-top: 16px;
-  padding: 22px 24px 18px;
+.focusGrid,
+.performanceGrid,
+.activityGrid {
+  display: grid;
+  gap: 13px;
+  margin-top: 13px;
 }
 
-.goalHeader {
+.focusGrid {
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
+}
+
+.performanceGrid,
+.activityGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel,
+.goalPanel,
+.trendPanel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.panel {
+  padding: 20px;
+}
+
+.panelHeader,
+.goalHeader,
+.trendHeader {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 18px;
+  gap: 18px;
 }
 
-.goalHeader h2,
+.panelHeader {
+  margin-bottom: 15px;
+}
+
 .panelHeader h2,
-.plansHeader h2 {
-  margin: 6px 0 0;
+.goalHeader h2,
+.trendHeader h2 {
+  margin: 5px 0 0;
   color: var(--portal-text);
-  font-size: 19px;
+  font-size: 17px;
   letter-spacing: -0.025em;
 }
 
-.goalSummary {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+.panelHeader p {
+  margin: 5px 0 0;
+  color: var(--portal-text-tertiary);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
-.goalSummary strong {
+.textAction {
+  flex: 0 0 auto;
   color: var(--portal-accent);
-  font-size: 22px;
-  letter-spacing: -0.03em;
+  font-size: 11px;
+  font-weight: 720;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.goalSummary span {
-  color: var(--portal-muted);
-  font-size: 12px;
+.textAction:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.salesOverview {
+.agendaList,
+.priorityList,
+.saleList {
+  border-top: 1px solid var(--portal-border);
+}
+
+.agendaItem {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
-  margin-bottom: 18px;
-  border: 1px solid var(--portal-border);
-  border-radius: 13px;
+  grid-template-columns: 96px minmax(0, 1.5fr) minmax(150px, 0.8fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 61px;
+  border-bottom: 1px solid var(--portal-border);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.agendaItem:last-child {
+  border-bottom: 0;
+}
+
+.agendaItem:hover {
   background: var(--portal-surface-soft);
 }
 
-.salesOverview > div {
+.agendaDate {
+  width: fit-content;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 7px;
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-secondary);
+  padding: 6px 8px;
+  font-size: 9px;
+  font-weight: 740;
+  text-align: center;
+}
+
+.agendaDateOverdue {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.agendaMain,
+.agendaContext,
+.priorityMain,
+.saleMain,
+.saleAmount {
+  display: flex;
   min-width: 0;
-  border-right: 1px solid var(--portal-border);
-  padding: 13px 15px;
+  flex-direction: column;
 }
 
-.salesOverview > div:last-child {
-  border-right: 0;
+.agendaMain strong,
+.priorityTopline strong,
+.saleMain strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.salesOverview span,
-.salesOverview strong {
-  display: block;
+.agendaMain small,
+.agendaContext small,
+.agendaContext strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.salesOverview span {
-  color: var(--portal-text-tertiary);
+.agendaMain small {
+  margin-top: 4px;
+  color: var(--portal-muted);
   font-size: 9px;
-  font-weight: 650;
-  text-transform: uppercase;
 }
 
-.salesOverview strong {
-  margin-top: 5px;
+.agendaContext {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.agendaContext small {
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
+}
+
+.agendaContext strong {
+  margin-top: 4px;
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.controlPanel {
+  background:
+    linear-gradient(160deg, var(--portal-accent-soft), transparent 42%),
+    var(--portal-surface);
+}
+
+.alertList {
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+}
+
+.alertList a {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--portal-border);
+  padding: 0 13px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.alertList a:last-child {
+  border-bottom: 0;
+}
+
+.alertList a:hover {
+  background: var(--portal-surface);
+}
+
+.alertList span {
+  color: var(--portal-text-secondary);
+  font-size: 10px;
+  font-weight: 630;
+}
+
+.alertList strong {
+  min-width: 28px;
   color: var(--portal-text);
-  font-size: 13px;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+  text-align: right;
+}
+
+.alertList .alertCritical span,
+.alertList .alertCritical strong {
+  color: var(--portal-danger);
+}
+
+.dataWarning {
+  display: flex;
+  flex-direction: column;
+  margin-top: 11px;
+  border: 1px solid var(--portal-warning-border);
+  border-radius: 9px;
+  background: var(--portal-warning-soft);
+  padding: 11px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dataWarning strong {
+  color: var(--portal-warning);
+  font-size: 10px;
+}
+
+.dataWarning span {
+  margin-top: 3px;
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.goalPanel,
+.trendPanel {
+  padding: 20px;
+}
+
+.goalHeader strong {
+  color: var(--portal-accent);
+  font-size: 23px;
+  letter-spacing: -0.04em;
+}
+
+.goalAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.goalAmount strong {
+  color: var(--portal-text);
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.05em;
+}
+
+.goalAmount span {
+  color: var(--portal-muted);
+  font-size: 11px;
 }
 
 .progressTrack {
   height: 8px;
   overflow: hidden;
+  margin-top: 17px;
   border-radius: 999px;
   background: var(--portal-border);
 }
@@ -388,68 +452,41 @@ a.metricCard:hover {
 .progressValue {
   display: block;
   height: 100%;
-  min-width: 0;
   border-radius: inherit;
   background: var(--portal-accent);
-  transition: width 350ms ease;
+  transition: width 300ms ease;
 }
 
-.progressLabels {
+.goalFooter {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  margin-top: 9px;
+  gap: 18px;
+  margin-top: 10px;
   color: var(--portal-text-tertiary);
-  font-size: 10px;
-  font-weight: 650;
+  font-size: 9px;
 }
 
-.trendPanel {
-  margin-top: 16px;
-  overflow: hidden;
-  border: 1px solid var(--portal-border);
-  border-radius: var(--portal-radius-lg);
-  background: var(--portal-surface);
-  box-shadow: var(--portal-shadow-sm);
+.goalFooter strong {
+  color: var(--portal-text-secondary);
 }
 
 .trendHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  border-bottom: 1px solid var(--portal-border);
-  padding: 20px 22px;
-}
-
-.trendHeader h2 {
-  margin: 6px 0 0;
-  color: var(--portal-text);
-  font-size: 18px;
-  letter-spacing: -0.025em;
-}
-
-.trendHeader p {
-  margin: 6px 0 0;
-  color: var(--portal-muted);
-  font-size: 11px;
-  line-height: 1.5;
+  align-items: center;
 }
 
 .trendChart {
   display: grid;
-  min-height: 240px;
-  grid-template-columns: repeat(6, minmax(72px, 1fr));
-  gap: clamp(10px, 2vw, 24px);
-  overflow-x: auto;
-  padding: 24px 24px 20px;
+  min-height: 166px;
+  grid-template-columns: repeat(6, minmax(48px, 1fr));
+  gap: clamp(7px, 1.4vw, 16px);
+  margin-top: 13px;
 }
 
 .trendColumn {
   display: grid;
-  min-width: 72px;
-  grid-template-rows: 22px 150px 18px;
-  gap: 8px;
+  min-width: 0;
+  grid-template-rows: 19px 112px 16px;
+  gap: 5px;
   text-align: center;
 }
 
@@ -457,7 +494,7 @@ a.metricCard:hover {
   overflow: hidden;
   color: var(--portal-text-tertiary);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 8px;
+  font-size: 7px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -466,855 +503,292 @@ a.metricCard:hover {
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  border: 1px solid var(--portal-border);
-  border-radius: 10px 10px 7px 7px;
-  background: var(--portal-surface-soft);
+  border-bottom: 1px solid var(--portal-border-strong);
+  background: linear-gradient(
+    to top,
+    var(--portal-surface-soft),
+    transparent 70%
+  );
 }
 
 .trendTrack i {
   display: block;
   width: 100%;
-  border-radius: 8px 8px 5px 5px;
+  border-radius: 5px 5px 1px 1px;
   background: var(--portal-accent);
+  opacity: 0.88;
   transition: height 300ms ease;
 }
 
 .trendColumn > strong {
   color: var(--portal-text-secondary);
-  font-size: 10px;
-  font-weight: 680;
+  font-size: 9px;
+  font-weight: 700;
 }
 
-.mainGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.operationsGrid,
-.lowerGrid {
-  display: grid;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.operationsGrid {
-  grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.9fr);
-}
-
-.lowerGrid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 1fr);
-}
-
-.panel {
-  min-width: 0;
-  overflow: hidden;
-  padding: 22px;
-}
-
-.panelHeader {
+.priorityItem,
+.saleItem {
   display: flex;
-  align-items: flex-start;
+  min-height: 68px;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  min-height: 84px;
-  padding-bottom: 18px;
+  gap: 16px;
   border-bottom: 1px solid var(--portal-border);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms ease;
 }
 
-.panelHeader p {
-  max-width: 430px;
-  margin: 6px 0 0;
-  color: var(--portal-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.priorityList,
-.operationalList,
-.recentList,
-.planList {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.priorityItem {
-  display: flex;
-  min-width: 0;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--portal-border);
-}
-
-.priorityItem:last-child {
+.priorityItem:last-child,
+.saleItem:last-child {
   border-bottom: 0;
 }
 
-.priorityMain {
-  min-width: 0;
-  flex: 1;
+.priorityItem:hover,
+.saleItem:hover {
+  background: var(--portal-surface-soft);
 }
 
 .priorityTopline {
   display: flex;
   min-width: 0;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 8px;
 }
 
-.priorityClient {
+.priorityMain > span:not(.priorityTopline),
+.saleMain > span {
   overflow: hidden;
-  color: var(--portal-text);
-  font-size: 13px;
-  font-weight: 750;
-  text-decoration: none;
+  margin-top: 4px;
+  color: var(--portal-text-secondary);
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.priorityClient:hover {
-  color: var(--portal-accent);
+.priorityMain > small,
+.saleMain > small {
+  margin-top: 4px;
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
 }
 
 .urgencyBadge {
-  display: inline-flex;
   flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid var(--portal-border-strong);
   border-radius: 999px;
-  padding: 5px 8px;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
-  white-space: nowrap;
+  padding: 3px 6px;
+  font-size: 8px;
+  font-weight: 740;
 }
 
-.urgencyExpired,
-.urgencyFinal {
+.urgencyExpired {
+  border-color: var(--portal-danger-border);
   background: var(--portal-danger-soft);
   color: var(--portal-danger);
 }
 
-.urgencySecond {
+.urgencyFinal {
+  border-color: var(--portal-warning-border);
   background: var(--portal-warning-soft);
   color: var(--portal-warning);
 }
 
-.urgencyFirst {
+.urgencyUpcoming {
+  border-color: var(--portal-accent-border);
   background: var(--portal-accent-soft);
   color: var(--portal-accent);
-}
-
-.priorityDomain {
-  display: block;
-  overflow: hidden;
-  color: var(--portal-text-secondary);
-  font-size: 12px;
-  line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.priorityMeta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 13px;
-  margin-top: 8px;
-  color: var(--portal-text-tertiary);
-  font-size: 10px;
-  line-height: 1.4;
-}
-
-.priorityMeta span {
-  position: relative;
-}
-
-.priorityMeta span:not(:last-child)::after {
-  position: absolute;
-  top: 50%;
-  right: -7px;
-  width: 2px;
-  height: 2px;
-  border-radius: 50%;
-  background: var(--portal-border-strong);
-  content: "";
-  transform: translateY(-50%);
-}
-
-.priorityAside {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
 }
 
 .priorityAmount {
-  color: var(--portal-text);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.inlineAction {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 9px;
-  background: var(--portal-surface);
-  color: var(--portal-accent);
-  padding: 0 12px;
-  font-size: 11px;
-  font-weight: 750;
-  text-decoration: none;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease;
-}
-
-.inlineAction:hover {
-  border-color: var(--portal-accent-border);
-  background: var(--portal-accent-soft);
-}
-
-.operationalItem {
-  display: flex;
-  min-width: 0;
-  min-height: 84px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  border-bottom: 1px solid var(--portal-border);
-  color: inherit;
-  padding: 16px 0;
-  text-decoration: none;
-}
-
-.operationalItem:last-child {
-  border-bottom: 0;
-}
-
-.operationalItem > div {
-  min-width: 0;
-}
-
-.operationalItem > div strong {
-  display: block;
-  overflow: hidden;
-  color: var(--portal-text);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.operationalItem > div span {
-  display: block;
-  overflow: hidden;
-  margin-top: 6px;
-  color: var(--portal-muted);
-  font-size: 10px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.operationalItem > strong {
   flex: 0 0 auto;
-  color: var(--portal-accent);
-  font-size: 21px;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-}
-
-.operationalAlert > strong {
-  color: var(--portal-danger);
-}
-
-.operationalAmount {
-  font-size: 15px !important;
-}
-
-.panelFooter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--portal-border);
-}
-
-.recentItem {
-  display: flex;
-  min-width: 0;
-  min-height: 88px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid var(--portal-border);
-  color: inherit;
-  padding: 16px 0;
-  text-decoration: none;
-}
-
-.recentItem:last-child {
-  border-bottom: 0;
-}
-
-.recentItem > div {
-  min-width: 0;
-}
-
-.recentItem > div strong {
-  display: block;
-  overflow: hidden;
   color: var(--portal-text);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recentItem > div span {
-  display: block;
-  overflow: hidden;
-  margin-top: 5px;
-  color: var(--portal-text-secondary);
-  font-size: 11px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recentItem > div small {
-  display: block;
-  overflow: hidden;
-  margin-top: 5px;
-  color: var(--portal-text-tertiary);
-  font-size: 10px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.recentItem:hover > div strong {
-  color: var(--portal-accent);
-}
-
-.paymentAmount {
-  flex: 0 0 auto;
-  color: var(--portal-success);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.planItem {
-  display: flex;
-  min-width: 0;
-  min-height: 84px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  border-bottom: 1px solid var(--portal-border);
-  padding: 16px 0;
-}
-
-.planItem:last-child {
-  border-bottom: 0;
-}
-
-.planItem > div {
-  min-width: 0;
-}
-
-.planItem > div strong {
-  display: block;
-  overflow: hidden;
-  color: var(--portal-text);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.planItem > div span {
-  display: block;
-  overflow: hidden;
-  margin-top: 6px;
-  color: var(--portal-muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.planPrice {
-  flex: 0 0 auto;
-  color: var(--portal-accent);
-  font-size: 15px;
-  white-space: nowrap;
-}
-
-.planPrice small {
-  color: var(--portal-muted);
-  font-size: 9px;
-  font-weight: 550;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-}
-
-.chargeItem,
-.saleItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  min-height: 90px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--portal-border);
-  color: inherit;
-  text-decoration: none;
-  transition: background-color 160ms ease;
-}
-
-.chargeItem:last-child,
-.saleItem:last-child {
-  border-bottom: 0;
-}
-
-.chargeItem:hover .itemTopline > strong,
-.saleItem:hover .saleHeading > strong {
-  color: var(--portal-accent);
-}
-
-.itemMain {
-  min-width: 0;
-  flex: 1;
-}
-
-.itemTopline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-bottom: 6px;
-}
-
-.itemTopline > strong,
-.saleHeading > strong {
-  overflow: hidden;
-  color: var(--portal-text);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color 160ms ease;
-}
-
-.dueBadge {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  border-radius: 999px;
-  padding: 5px 8px;
-  font-size: 9px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.dueUrgent {
-  background: var(--portal-danger-soft);
-  color: var(--portal-danger);
-}
-
-.dueSoon {
-  background: var(--portal-warning-soft);
-  color: var(--portal-warning);
-}
-
-.dueUpcoming {
-  background: var(--portal-accent-soft);
-  color: var(--portal-accent);
-}
-
-.itemDescription {
-  display: block;
-  overflow: hidden;
-  color: var(--portal-text-secondary);
   font-size: 12px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
-.itemMain small {
-  display: block;
-  overflow: hidden;
-  margin-top: 5px;
-  color: var(--portal-text-tertiary);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.itemAmount,
 .saleAmount {
   flex: 0 0 auto;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.saleAmount strong {
   color: var(--portal-text);
-  font-size: 13px;
-  white-space: nowrap;
+  font-size: 12px;
 }
 
-.saleAmount {
-  color: var(--portal-success);
-}
-
-.saleHeading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-bottom: 6px;
-}
-
-.saleHeading span {
-  flex: 0 0 auto;
+.saleAmount small {
+  margin-top: 4px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
-  font-weight: 750;
-  white-space: nowrap;
+  font-size: 8px;
 }
 
 .emptyState {
   display: flex;
-  min-height: 300px;
-  flex-direction: column;
+  min-height: 112px;
   align-items: center;
   justify-content: center;
-  padding: 30px;
-  text-align: center;
+  gap: 12px;
+  border: 1px dashed var(--portal-border-strong);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+  padding: 18px;
 }
 
-.emptyIcon {
+.emptyState > span {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   place-items: center;
   border-radius: 50%;
   background: var(--portal-success-soft);
   color: var(--portal-success);
+  font-size: 13px;
   font-weight: 800;
 }
 
 .emptyState h3 {
-  margin: 14px 0 7px;
+  margin: 0;
   color: var(--portal-text);
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .emptyState p {
-  max-width: 340px;
-  margin: 0;
-  color: var(--portal-muted);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.plansPanel {
-  margin-top: 16px;
-  overflow: hidden;
-}
-
-.plansHeader {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--portal-border);
-}
-
-.plansHeader p {
-  margin: 0;
+  margin: 4px 0 0;
   color: var(--portal-text-tertiary);
-  font-size: 11px;
-}
-
-.planGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.planGrid .planItem {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 19px 22px;
-  border-right: 1px solid var(--portal-border);
-}
-
-.planGrid .planItem:nth-child(3n) {
-  border-right: 0;
-}
-
-.planGrid .planItem:nth-child(n + 4) {
-  border-top: 1px solid var(--portal-border);
-}
-
-.planGrid .planItem > div {
-  min-width: 0;
-}
-
-.planGrid .planItem > div strong {
-  display: block;
-  overflow: hidden;
-  color: var(--portal-text);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.planGrid .planItem > div span {
-  display: block;
-  overflow: hidden;
-  margin-top: 4px;
-  color: var(--portal-muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.planPrice {
-  flex: 0 0 auto;
-  color: var(--portal-accent);
-  font-size: 15px;
-  white-space: nowrap;
-}
-
-.planPrice small {
-  color: var(--portal-muted);
   font-size: 9px;
-  font-weight: 550;
+  line-height: 1.45;
 }
 
-.plansEmpty {
-  padding: 30px 22px;
-  color: var(--portal-muted);
-  font-size: 12px;
-  text-align: center;
-}
-
-@media (max-width: 1180px) {
-  .processGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .processStep:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .processStep:nth-child(n + 3) {
-    border-top: 1px solid var(--portal-border);
-  }
-
+@media (max-width: 1120px) {
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .mainGrid,
-  .operationsGrid,
-  .lowerGrid {
-    grid-template-columns: 1fr;
+  .focusGrid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(270px, 0.75fr);
   }
 
-  .planGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .agendaItem {
+    grid-template-columns: 88px minmax(0, 1fr);
   }
 
-  .planGrid .planItem:nth-child(3n) {
-    border-right: 1px solid var(--portal-border);
-  }
-
-  .planGrid .planItem:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .planGrid .planItem:nth-child(n + 3) {
-    border-top: 1px solid var(--portal-border);
+  .agendaContext {
+    display: none;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
+  .focusGrid,
+  .performanceGrid,
+  .activityGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .agendaItem {
+    grid-template-columns: 96px minmax(0, 1.5fr) minmax(145px, 0.8fr);
+  }
+
+  .agendaContext {
+    display: flex;
+  }
+}
+
+@media (max-width: 660px) {
   .content {
-    padding: 28px 16px 36px;
-  }
-
-  .header,
-  .goalHeader,
-  .plansHeader,
-  .processHeader,
-  .trendHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .processHeader p {
-    text-align: left;
-  }
-
-  .trendHeader .secondaryButton {
-    width: 100%;
+    padding: 24px 16px 38px;
   }
 
   .header {
-    gap: 20px;
+    flex-direction: column;
   }
 
   .headerActions {
     width: 100%;
-    flex-direction: column-reverse;
   }
 
-  .headerActions .primaryButton,
-  .headerActions .secondaryButton {
-    width: 100%;
+  .headerActions a {
+    flex: 1;
   }
 
   .metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .processGrid,
-  .salesOverview {
-    grid-template-columns: 1fr;
+  .metricCard {
+    padding: 16px;
   }
 
-  .processStep,
-  .processStep:nth-child(2n),
-  .processStep:last-child {
-    min-height: 88px;
-    border-right: 0;
-    padding: 15px 18px;
+  .panel,
+  .goalPanel,
+  .trendPanel {
+    padding: 17px;
   }
 
-  .processStep:nth-child(n + 2) {
-    border-top: 1px solid var(--portal-border);
+  .panelHeader,
+  .trendHeader {
+    align-items: flex-start;
   }
 
-  .processArrow {
+  .agendaItem {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .agendaContext {
     display: none;
   }
 
-  .salesOverview > div,
-  .salesOverview > div:last-child {
-    border-right: 0;
-    border-bottom: 1px solid var(--portal-border);
+  .trendChart {
+    grid-template-columns: repeat(6, minmax(54px, 1fr));
+    overflow-x: auto;
   }
 
-  .salesOverview > div:last-child {
-    border-bottom: 0;
+  .goalAmount {
+    flex-direction: column;
+    gap: 2px;
   }
+}
 
-  .goalSummary {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .panel {
-    padding: 18px;
-  }
-
-  .panelHeader {
-    min-height: 0;
+@media (max-width: 430px) {
+  .headerActions {
     flex-direction: column;
   }
 
-  .secondaryButton {
+  .headerActions a {
     width: 100%;
   }
 
-  .chargeItem,
-  .saleItem,
-  .priorityItem,
-  .recentItem {
-    align-items: flex-start;
+  .panelHeader {
+    flex-direction: column;
+    gap: 8px;
   }
 
   .priorityTopline {
     align-items: flex-start;
-  }
-
-  .operationalItem > div span,
-  .recentItem > div span,
-  .recentItem > div small {
-    overflow: visible;
-    white-space: normal;
-  }
-
-  .itemTopline,
-  .saleHeading {
-    align-items: flex-start;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
   }
 
-  .itemAmount,
+  .priorityItem,
+  .saleItem {
+    align-items: flex-start;
+    padding: 13px 0;
+  }
+
+  .priorityAmount,
   .saleAmount {
-    padding-top: 1px;
-  }
-
-  .planGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .planGrid .planItem,
-  .planGrid .planItem:nth-child(2n),
-  .planGrid .planItem:nth-child(3n) {
-    border-right: 0;
-  }
-
-  .planGrid .planItem:nth-child(n + 2) {
-    border-top: 1px solid var(--portal-border);
+    max-width: 92px;
   }
 }
 
-@media (max-width: 480px) {
-  .chargeItem,
-  .saleItem,
-  .priorityItem,
-  .recentItem,
-  .planItem {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .itemAmount,
-  .saleAmount,
-  .paymentAmount {
-    padding-top: 0;
-  }
-
-  .priorityAside {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .operationalItem {
-    align-items: flex-start;
-  }
-
-  .operationalItem > strong {
-    font-size: 17px;
+@media (prefers-reduced-motion: reduce) {
+  .primaryButton,
+  .secondaryButton,
+  .metricCard,
+  .progressValue,
+  .trendTrack i {
+    transition: none;
   }
 }

@@ -227,6 +227,11 @@ export async function processQuotationFollowUpAlerts(): Promise<QuotationFollowU
       continue;
     }
 
+    if (quotation.followUpDismissedAt) {
+      result.skipped += 1;
+      continue;
+    }
+
     if (!quotation.followUpId) {
       try {
         const followUpId =

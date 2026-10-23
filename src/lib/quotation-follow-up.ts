@@ -408,7 +408,9 @@ export async function syncSentQuotationsToFollowUp(
       } =>
         Boolean(item.quotation) &&
         item.quotation?.emailStatus ===
-          "SENT",
+          "SENT" &&
+        !item.quotation
+          ?.followUpDismissedAt,
     );
 
   const linkedIds = quotations

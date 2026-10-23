@@ -1,78 +1,127 @@
 .page {
-  width: 100%;
-  max-width: 1760px;
-  margin: 0 auto;
   display: grid;
+  width: 100%;
+  max-width: 1680px;
   min-height: 100vh;
-  gap: 22px;
-  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  margin: 0 auto;
+  gap: 18px;
+  padding: 34px clamp(22px, 3.5vw, 46px) 52px;
   background: var(--portal-bg);
   color: var(--portal-text);
 }
 
 .hero,
-.panelHeader,
 .pipelineHeader,
-.cardHeading,
-.cardFooter,
+.calendarHeader,
+.editorHeader,
 .formActions {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+  gap: 22px;
 }
 
 .hero h1 {
-  margin: 7px 0 8px;
+  margin: 6px 0 7px;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.045em;
+  line-height: 1.08;
 }
 
-.hero p {
-  max-width: 760px;
+.hero p,
+.pipelineHeader p,
+.calendarHeader p {
+  max-width: 720px;
   margin: 0;
   color: var(--portal-muted);
+  font-size: 13px;
   line-height: 1.55;
 }
 
 .eyebrow {
   color: var(--portal-accent);
-  font-size: 0.72rem;
-  font-weight: 850;
+  font-size: 10px;
+  font-weight: 820;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+}
+
+.exportButton,
+.primaryButton,
+.editButton,
+.ghostButton,
+.deleteButton {
+  display: inline-flex;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 760;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.exportButton,
+.primaryButton {
+  border: 1px solid var(--portal-text);
+  background: var(--portal-text);
+  color: var(--portal-on-accent);
+}
+
+.exportButton:hover,
+.primaryButton:hover {
+  transform: translateY(-1px);
 }
 
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .metrics article,
-.insightsGrid > article,
-.agendaPanel,
-.editorPanel,
+.calendarPanel,
 .pipelinePanel {
   border: 1px solid var(--portal-border);
-  border-radius: 18px;
+  border-radius: var(--portal-radius-lg);
   background: var(--portal-surface);
-  box-shadow: 0 16px 42px var(--portal-shadow-color);
+  box-shadow: var(--portal-shadow-sm);
 }
 
 .metrics article {
   display: grid;
-  gap: 8px;
-  min-height: 126px;
-  padding: 20px;
+  min-width: 0;
+  min-height: 112px;
+  align-content: space-between;
+  gap: 5px;
+  padding: 17px 18px;
 }
 
 .metrics span,
 .metrics small {
+  overflow: hidden;
   color: var(--portal-muted);
-  font-size: 0.78rem;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metrics span {
+  font-weight: 680;
 }
 
 .metrics strong {
-  font-size: 2rem;
+  color: var(--portal-text);
+  font-size: 27px;
   letter-spacing: -0.05em;
 }
 
@@ -85,174 +134,293 @@
   color: var(--portal-danger);
 }
 
-.agendaPanel {
-  padding: 22px;
+.calendarPanel {
+  overflow: hidden;
 }
 
-.agendaPanel .panelHeader > span {
-  color: var(--portal-text-tertiary);
-  font-size: 0.72rem;
+.calendarHeader {
+  align-items: center;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--portal-border);
 }
 
-.agendaList {
+.calendarHeader h2,
+.pipelineHeader h2 {
+  margin: 5px 0 5px;
+  color: var(--portal-text);
+  font-size: 18px;
+  letter-spacing: -0.025em;
+}
+
+.calendarNavigation {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 18px;
+  grid-template-columns: 34px minmax(145px, auto) 34px auto;
+  align-items: center;
+  gap: 7px;
 }
 
-.agendaList article {
-  display: grid;
-  min-width: 0;
+.calendarNavigation button {
+  display: inline-grid;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 8px;
+  background: var(--portal-surface);
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.calendarNavigation button:hover {
+  border-color: var(--portal-accent-border);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+}
+
+.calendarNavigation strong {
+  color: var(--portal-text);
+  font-size: 12px;
+  text-align: center;
+}
+
+.calendarNavigation .todayButton {
+  padding: 0 11px;
+}
+
+.overdueStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+}
+
+.overdueStrip > div:first-child {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: 8px;
-  border: 1px solid var(--portal-border);
-  border-radius: 12px;
-  background: var(--portal-surface-soft);
-  padding: 14px;
 }
 
-.agendaList time {
+.overdueStrip strong {
+  color: var(--portal-danger);
+  font-size: 11px;
+}
+
+.overdueStrip span {
+  color: var(--portal-muted);
+  font-size: 10px;
+}
+
+.overdueActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.overdueActions button {
+  border: 1px solid var(--portal-danger-border);
+  border-radius: 999px;
+  background: var(--portal-surface);
+  color: var(--portal-danger);
+  padding: 5px 9px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 740;
+  cursor: pointer;
+}
+
+.calendarMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--portal-border);
   color: var(--portal-text-tertiary);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.65rem;
-  font-weight: 680;
+  font-size: 9px;
+}
+
+.calendarViewport {
+  overflow-x: auto;
+}
+
+.weekdayRow,
+.calendarGrid {
+  min-width: 900px;
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface-soft);
+}
+
+.weekdayRow span {
+  padding: 8px 10px;
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
+  font-weight: 760;
+  text-align: center;
   text-transform: uppercase;
 }
 
-.agendaList strong,
-.agendaList span {
-  display: block;
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendarDay {
+  min-height: 112px;
+  border-right: 1px solid var(--portal-border);
+  border-bottom: 1px solid var(--portal-border);
+  padding: 8px;
+  background: var(--portal-surface);
+}
+
+.calendarDay:nth-child(7n) {
+  border-right: 0;
+}
+
+.calendarDayOutside {
+  background: var(--portal-surface-soft);
+  opacity: 0.48;
+}
+
+.calendarDayToday {
+  box-shadow: inset 0 0 0 1px var(--portal-accent);
+}
+
+.dayNumber {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--portal-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.calendarDayToday .dayNumber {
+  background: var(--portal-accent);
+  color: var(--portal-on-accent);
+}
+
+.dayEvents {
+  display: grid;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.dayEvents button {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  border: 1px solid var(--portal-accent-border);
+  border-radius: 7px;
+  background: var(--portal-accent-soft);
+  padding: 5px 6px;
+  color: var(--portal-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dayEvents button:hover {
+  border-color: var(--portal-accent);
+}
+
+.dayEvents strong,
+.dayEvents span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.agendaList strong {
-  color: var(--portal-text);
-  font-size: 0.82rem;
+.dayEvents strong {
+  font-size: 8px;
 }
 
-.agendaList span {
-  margin-top: 3px;
+.dayEvents span,
+.dayEvents small {
   color: var(--portal-muted);
-  font-size: 0.7rem;
+  font-size: 7px;
 }
 
-.agendaList small {
-  color: var(--portal-text-tertiary);
-  font-size: 0.66rem;
-}
-
-.agendaOverdue {
-  border-color: var(--portal-danger-border) !important;
-}
-
-.agendaOverdue time {
-  color: var(--portal-danger);
-}
-
-.agendaToday {
-  border-color: var(--portal-warning-border) !important;
-}
-
-.agendaToday time {
-  color: var(--portal-warning);
-}
-
-.agendaUpcoming time {
-  color: var(--portal-success);
-}
-
-.insightsGrid {
+.pipelinePanel {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 14px;
-}
-
-.insightsGrid > article {
+  gap: 16px;
   padding: 22px;
 }
 
-.panelHeader h2,
-.pipelineHeader h2 {
-  margin: 5px 0 0;
-}
-
-.barList {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.barList > div {
-  display: grid;
-  grid-template-columns: 135px minmax(120px, 1fr) 30px;
+.pipelineHeader {
   align-items: center;
-  gap: 12px;
-  color: var(--portal-muted);
-  font-size: 0.78rem;
 }
 
-.barList > div > div {
-  overflow: hidden;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--portal-surface-soft);
+.editorPanel {
+  scroll-margin-top: 24px;
+  border: 1px solid var(--portal-accent-border);
+  border-radius: 13px;
+  background: var(--portal-accent-soft);
+  padding: 18px;
 }
 
-.barList i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--portal-accent), var(--portal-accent-border));
+.editorHeader h3 {
+  margin: 5px 0 0;
+  font-size: 16px;
 }
 
-.industryList {
-  display: grid;
-  gap: 0;
-  margin-top: 14px;
-}
-
-.industryList > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--portal-border);
-  color: var(--portal-muted);
-  font-size: 0.84rem;
-}
-
-.industryList > div:last-child {
-  border-bottom: 0;
-}
-
-.industryList strong {
+.ghostButton,
+.editButton {
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
   color: var(--portal-text);
 }
 
-.editorPanel,
-.pipelinePanel {
-  padding: 24px;
+.deleteButton {
+  min-height: 34px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--portal-danger);
+}
+
+.deleteButton:hover {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+}
+
+.deleteButton:disabled,
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .prospectForm {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 22px;
+  gap: 13px;
+  margin-top: 16px;
 }
 
 .prospectForm label {
   display: grid;
   align-content: start;
-  gap: 7px;
+  gap: 6px;
 }
 
 .prospectForm label > span {
   color: var(--portal-text-secondary);
-  font-size: 0.77rem;
-  font-weight: 750;
+  font-size: 10px;
+  font-weight: 720;
 }
 
 .prospectForm input,
@@ -262,23 +430,25 @@
 .filters select {
   width: 100%;
   border: 1px solid var(--portal-border);
-  border-radius: 10px;
+  border-radius: 9px;
   outline: 0;
   background: var(--portal-surface);
   color: var(--portal-text);
+  font: inherit;
+  font-size: 12px;
 }
 
 .prospectForm input,
 .prospectForm select,
 .filters input,
 .filters select {
-  height: 42px;
-  padding: 0 12px;
+  height: 40px;
+  padding: 0 11px;
 }
 
 .prospectForm textarea {
-  min-height: 98px;
-  padding: 11px 12px;
+  min-height: 86px;
+  padding: 10px 11px;
   resize: vertical;
 }
 
@@ -298,119 +468,115 @@
 
 .formActions {
   align-items: center;
+  margin-top: 3px;
+  padding-top: 14px;
   border-top: 1px solid var(--portal-border);
-  padding-top: 18px;
-}
-
-.primaryButton,
-.secondaryButton,
-.exportButton,
-.editButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.primaryButton,
-.exportButton {
-  min-height: 40px;
-  border: 1px solid var(--portal-text);
-  padding: 0 16px;
-  background: var(--portal-text);
-  color: var(--portal-on-accent);
-}
-
-.primaryButton:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.secondaryButton,
-.editButton {
-  min-height: 34px;
-  border: 1px solid var(--portal-border);
-  padding: 0 13px;
-  background: var(--portal-surface);
-  color: var(--portal-text);
 }
 
 .successMessage,
-.errorMessage {
+.errorMessage,
+.feedbackSuccess,
+.feedbackError {
   margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 680;
 }
 
-.successMessage {
+.successMessage,
+.feedbackSuccess {
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
   color: var(--portal-success);
 }
 
-.errorMessage {
+.errorMessage,
+.feedbackError {
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
   color: var(--portal-danger);
-}
-
-.pipelinePanel {
-  display: grid;
-  gap: 20px;
 }
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) 230px;
-  gap: 12px;
+  grid-template-columns: minmax(240px, 1fr) 220px auto;
+  align-items: center;
+  gap: 10px;
 }
 
-.prospectGrid {
+.resultCount {
+  color: var(--portal-text-tertiary);
+  font-size: 10px;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.prospectList {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 9px;
 }
 
 .prospectCard {
-  display: grid;
-  align-content: start;
-  gap: 16px;
-  content-visibility: auto;
-  contain-intrinsic-size: 420px;
-  padding: 20px;
+  scroll-margin-top: 24px;
+  overflow: hidden;
   border: 1px solid var(--portal-border);
-  border-radius: 15px;
+  border-radius: 12px;
   background: var(--portal-surface-soft);
+  content-visibility: auto;
+  contain-intrinsic-size: 180px;
 }
 
-.cardHeading h3 {
-  margin: 9px 0 4px;
-  font-size: 1.05rem;
+.recordHeader {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.25fr) minmax(170px, 1fr) minmax(155px, 0.72fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 15px;
 }
 
-.cardHeading p,
-.cardNotes {
+.recordIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.recordIdentity > div,
+.recordService {
+  min-width: 0;
+}
+
+.recordIdentity h3 {
+  overflow: hidden;
   margin: 0;
+  color: var(--portal-text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordIdentity p {
+  overflow: hidden;
+  margin: 3px 0 0;
   color: var(--portal-muted);
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .statusBadge {
   display: inline-flex;
+  flex: 0 0 auto;
   border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 0.64rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
+  padding: 5px 8px;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
-.statusNEW {
-  background: var(--portal-accent-soft);
-  color: var(--portal-accent);
-}
-
+.statusNEW,
 .statusCONTACTED {
   background: var(--portal-accent-soft);
   color: var(--portal-accent);
@@ -436,65 +602,64 @@
   color: var(--portal-danger);
 }
 
-.cardDetails {
+.recordService {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
+  gap: 3px;
 }
 
-.cardDetails div {
-  min-width: 0;
-}
-
-.cardDetails dt {
-  color: var(--portal-muted);
-  font-size: 0.65rem;
-  font-weight: 750;
+.recordService span,
+.recordDate span,
+.quotationSummary span,
+.detailLabel {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
 }
 
-.cardDetails dd {
+.recordService strong,
+.recordService small {
   overflow: hidden;
-  margin: 5px 0 0;
-  color: var(--portal-text);
-  font-size: 0.78rem;
-  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.followUpDate {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--portal-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: var(--portal-surface);
-  font-size: 0.76rem;
+.recordService strong {
+  color: var(--portal-text);
+  font-size: 11px;
 }
 
-.followUpDate span {
+.recordService small {
   color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.recordDate {
+  display: grid;
+  gap: 4px;
+  border-left: 2px solid var(--portal-border-strong);
+  padding-left: 11px;
+}
+
+.recordDate strong {
+  color: currentColor;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .dateOverdue {
-  border-color: var(--portal-danger-border);
-  background: var(--portal-danger-soft);
+  border-color: var(--portal-danger);
   color: var(--portal-danger);
 }
 
 .dateToday {
-  border-color: var(--portal-warning-border);
-  background: var(--portal-warning-soft);
+  border-color: var(--portal-warning);
   color: var(--portal-warning);
 }
 
 .dateUpcoming {
-  border-color: var(--portal-success-border);
-  background: var(--portal-success-soft);
+  border-color: var(--portal-success);
   color: var(--portal-success);
 }
 
@@ -502,190 +667,185 @@
   color: var(--portal-muted);
 }
 
-.linkedQuotation {
-  display: grid;
-  gap: 13px;
-  border: 1px solid var(--portal-border);
-  border-left: 3px solid var(--portal-accent);
-  border-radius: 10px;
-  padding: 14px 15px;
-  background: var(--portal-surface);
-}
-
-.quotationHeading {
+.recordActions {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.quotationHeading > div {
-  display: grid;
+  align-items: center;
+  justify-content: flex-end;
   gap: 4px;
 }
 
-.quotationHeading > div > span {
-  color: var(--portal-muted);
-  font-size: 0.64rem;
-  font-weight: 780;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
+.editButton,
+.deleteButton {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 9px;
 }
 
-.quotationHeading strong {
+.quotationSummary {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.75fr) minmax(160px, 1.35fr) minmax(95px, 0.65fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  margin: 0 14px 12px;
+  border: 1px solid var(--portal-border);
+  border-left: 3px solid var(--portal-accent);
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: var(--portal-surface);
+}
+
+.quotationSummary > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.quotationSummary strong {
+  overflow: hidden;
   color: var(--portal-text);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 0.84rem;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quotationSummary > a {
+  color: var(--portal-accent);
+  font-size: 9px;
+  font-weight: 780;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .quotationValidity {
   display: inline-flex;
-  flex-shrink: 0;
   align-items: center;
-  min-height: 25px;
+  justify-content: center;
+  min-height: 24px;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0 9px;
-  font-size: 0.65rem;
-  font-weight: 820;
+  padding: 0 8px;
+  font-size: 8px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
 }
 
 .quotationActive {
   border-color: var(--portal-success-border);
   background: var(--portal-success-soft);
-  color: var(--portal-success);
+  color: var(--portal-success) !important;
 }
 
 .quotationSoon,
 .quotationToday {
   border-color: var(--portal-warning-border);
   background: var(--portal-warning-soft);
-  color: var(--portal-warning);
+  color: var(--portal-warning) !important;
 }
 
 .quotationExpired {
   border-color: var(--portal-danger-border);
   background: var(--portal-danger-soft);
-  color: var(--portal-danger);
+  color: var(--portal-danger) !important;
 }
 
 .quotationNeutral {
   border-color: var(--portal-border);
   background: var(--portal-surface-soft);
-  color: var(--portal-muted);
+  color: var(--portal-muted) !important;
 }
 
-.quotationDetails {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(100px, 0.8fr) minmax(110px, 0.9fr);
-  gap: 12px;
-  margin: 0;
-  padding-top: 12px;
+.recordDetails {
   border-top: 1px solid var(--portal-border);
-}
-
-.quotationDetails div {
-  min-width: 0;
-}
-
-.quotationDetails dt {
-  color: var(--portal-muted);
-  font-size: 0.62rem;
-  font-weight: 750;
-  text-transform: uppercase;
-}
-
-.quotationDetails dd {
-  overflow: hidden;
-  margin: 4px 0 0;
-  color: var(--portal-text);
-  font-size: 0.74rem;
-  font-weight: 720;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.quotedServices {
-  margin: 0;
-  color: var(--portal-muted);
-  font-size: 0.74rem;
-  line-height: 1.55;
-}
-
-.quotationPdfLink {
-  width: fit-content;
-  color: var(--portal-accent);
-  font-size: 0.72rem;
-  font-weight: 820;
-  text-decoration: none;
-}
-
-.quotationPdfLink:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.cardNotes {
-  border-left: 2px solid var(--portal-accent-border);
-  padding-left: 11px;
-}
-
-.messageSuggestion {
-  border: 1px solid var(--portal-border);
-  border-radius: 10px;
   background: var(--portal-surface);
 }
 
-.messageSuggestion summary {
-  padding: 11px 12px;
+.recordDetails > summary {
+  padding: 10px 15px;
   color: var(--portal-accent);
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 9px;
+  font-weight: 760;
   cursor: pointer;
+  list-style-position: inside;
 }
 
-.messageSuggestion[open] summary {
+.recordDetails[open] > summary {
   border-bottom: 1px solid var(--portal-border);
   background: var(--portal-surface-soft);
 }
 
-.messageVariant {
+.detailGrid {
   display: grid;
-  gap: 9px;
-  padding: 13px 12px;
+  grid-template-columns: minmax(220px, 0.9fr) repeat(2, minmax(240px, 1fr));
+  gap: 12px;
+  padding: 14px;
 }
 
-.messageVariant + .messageVariant {
-  border-top: 1px solid var(--portal-border);
-}
-
-.messageMeta {
-  display: flex;
+.contactBlock,
+.messageBlock {
   min-width: 0;
-  flex-direction: column;
-  gap: 3px;
+  border: 1px solid var(--portal-border);
+  border-radius: 9px;
+  padding: 12px;
+  background: var(--portal-surface-soft);
 }
 
-.messageMeta strong {
-  color: var(--portal-text);
-  font-size: 0.74rem;
+.contactBlock dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
 }
 
-.messageMeta span {
-  overflow: hidden;
+.contactBlock dt {
   color: var(--portal-text-tertiary);
-  font-size: 0.68rem;
+  font-size: 8px;
+}
+
+.contactBlock dd {
+  overflow-wrap: anywhere;
+  margin: 3px 0 0;
+  color: var(--portal-text);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.notesBlock,
+.servicesBlock {
+  margin: 11px 0 0;
+  border-top: 1px solid var(--portal-border);
+  padding-top: 9px;
+  color: var(--portal-muted);
+  font-size: 9px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.servicesBlock strong {
+  color: var(--portal-text-secondary);
+}
+
+.messageBlock {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.messageBlock > strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.messageVariant p {
-  max-height: 180px;
+.messageBlock > p {
+  max-height: 150px;
   overflow-y: auto;
   margin: 0;
-  padding: 0;
   color: var(--portal-muted);
-  font-size: 0.78rem;
+  font-size: 9px;
   line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -693,53 +853,42 @@
 .messageActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 
-.messageSuggestion button,
-.messageSuggestion a,
-.cardFooter button {
+.messageActions button,
+.messageActions a {
   border: 0;
   background: transparent;
   color: var(--portal-accent);
-  font-size: 0.72rem;
-  font-weight: 800;
+  padding: 0;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 760;
   text-decoration: none;
   cursor: pointer;
 }
 
-.cardFooter {
-  align-items: center;
-  padding-top: 2px;
-  color: var(--portal-muted);
-  font-size: 0.72rem;
-}
-
-.cardFooter span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cardFooter button {
-  color: var(--portal-danger);
-}
-
 .emptyState {
   display: grid;
+  min-height: 150px;
   place-items: center;
-  min-height: 180px;
-  gap: 7px;
+  align-content: center;
+  gap: 6px;
   border: 1px dashed var(--portal-border);
-  border-radius: var(--portal-radius-lg);
-  padding: 30px;
+  border-radius: 12px;
+  padding: 24px;
   text-align: center;
+}
+
+.emptyState strong {
+  font-size: 12px;
 }
 
 .emptyState p {
   margin: 0;
   color: var(--portal-muted);
-  font-size: 0.82rem;
+  font-size: 10px;
 }
 
 .srOnly {
@@ -751,86 +900,184 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
+  .recordHeader {
+    grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.8fr) auto;
+  }
+
+  .recordDate {
+    grid-column: 2;
+  }
+
+  .recordActions {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .quotationSummary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quotationSummary > a,
+  .quotationValidity {
+    justify-self: start;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .contactBlock {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendarHeader,
+  .pipelineHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendarNavigation {
+    width: 100%;
+    grid-template-columns: 34px 1fr 34px auto;
+  }
+
+  .overdueStrip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .overdueActions {
+    justify-content: flex-start;
   }
 
   .prospectForm {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .agendaList {
+  .filters {
+    grid-template-columns: 1fr 200px;
+  }
+
+  .resultCount {
+    grid-column: 1 / -1;
+  }
+
+  .recordHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .recordService,
+  .recordDate {
+    grid-column: 1;
+  }
+
+  .recordActions {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+    flex-direction: column;
+  }
+
+  .quotationSummary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 850px) {
-  .page {
-    padding: 28px 22px 40px;
-  }
-
-  .insightsGrid,
-  .prospectGrid {
+  .detailGrid {
     grid-template-columns: 1fr;
   }
+
+  .contactBlock {
+    grid-column: auto;
+  }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 620px) {
   .page {
-    gap: 16px;
-    padding: 22px 16px 36px;
+    padding: 26px 15px 38px;
   }
 
   .hero,
-  .pipelineHeader,
+  .editorHeader,
   .formActions {
-    align-items: stretch;
+    align-items: flex-start;
     flex-direction: column;
   }
 
-  .metrics,
-  .prospectForm,
-  .filters,
-  .agendaList {
+  .hero .exportButton,
+  .pipelineHeader .primaryButton,
+  .formActions .primaryButton {
+    width: 100%;
+  }
+
+  .metrics {
     grid-template-columns: 1fr;
   }
 
-  .editorPanel,
-  .pipelinePanel,
-  .insightsGrid > article,
-  .agendaPanel {
+  .calendarHeader,
+  .pipelinePanel {
     padding: 18px;
   }
 
-  .wideField,
-  .formActions {
-    grid-column: auto;
+  .calendarNavigation {
+    grid-template-columns: 34px 1fr 34px;
   }
 
-  .barList > div {
-    grid-template-columns: 105px minmax(70px, 1fr) 25px;
+  .calendarNavigation .todayButton {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
-  .cardDetails {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .quotationHeading {
-    align-items: stretch;
+  .calendarMeta {
+    align-items: flex-start;
     flex-direction: column;
+    gap: 4px;
   }
 
-  .quotationValidity {
-    width: fit-content;
-  }
-
-  .quotationDetails {
+  .prospectForm,
+  .filters {
     grid-template-columns: 1fr;
   }
 
-  .primaryButton,
-  .exportButton {
+  .resultCount {
+    grid-column: auto;
+  }
+
+  .recordHeader {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .recordIdentity,
+  .recordService,
+  .recordDate,
+  .recordActions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .recordIdentity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recordActions {
     width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .quotationSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .contactBlock dl {
+    grid-template-columns: 1fr;
   }
 }

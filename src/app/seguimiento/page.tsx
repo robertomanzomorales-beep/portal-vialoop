@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { syncSentQuotationsToFollowUp } from "@/lib/quotation-follow-up";
 import {
   getProspectStatusLabel,
   parseProspectMetadata,
-  prospectStatuses,
 } from "@/lib/prospect";
+import { syncSentQuotationsToFollowUp } from "@/lib/quotation-follow-up";
+import FollowUpCalendar, {
+  type FollowUpCalendarEntry,
+} from "./FollowUpCalendar";
 import ProspectManager, {
   type ProspectRecord,
 } from "./ProspectManager";
@@ -26,22 +28,7 @@ function addDays(
   return date.toISOString().slice(0, 10);
 }
 
-function formatAgendaDate(value: string) {
-  const date = new Date(`${value}T12:00:00Z`);
-
-  return new Intl.DateTimeFormat("es-CL", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    timeZone: "UTC",
-  })
-    .format(date)
-    .replaceAll(".", "");
-}
-
 export default async function FollowUpPage() {
-  // Keep the pipeline complete for quotations sent before automatic linkage
-  // existed, or whose first linkage attempt failed transiently.
   await syncSentQuotationsToFollowUp();
 
   const logs =
@@ -115,52 +102,36 @@ export default async function FollowUpPage() {
     ({ metadata }) =>
       metadata.status === "WON",
   ).length;
-
-  const agendaProspects = openProspects
-    .filter(
-      ({ metadata }) =>
+  const calendarEntries: FollowUpCalendarEntry[] =
+    openProspects
+      .filter(({ metadata }) =>
         Boolean(metadata.nextFollowUp),
-    )
-    .slice(0, 8);
-
-  const industryCounts = Array.from(
-    prospects.reduce((counts, item) => {
-      const industry =
-        item.metadata.industry ||
-        "Sin clasificar";
-      counts.set(
-        industry,
-        (counts.get(industry) ?? 0) + 1,
-      );
-      return counts;
-    }, new Map<string, number>()),
-  )
-    .sort(
-      (first, second) =>
-        second[1] - first[1],
-    )
-    .slice(0, 6);
-
-  const statusCounts = prospectStatuses.map(
-    (status) => ({
-      status,
-      count: prospects.filter(
-        ({ metadata }) =>
-          metadata.status === status,
-      ).length,
-    }),
-  );
+      )
+      .map(({ id, metadata }) => ({
+        id,
+        company: metadata.company,
+        date: metadata.nextFollowUp,
+        status:
+          getProspectStatusLabel(
+            metadata.status,
+          ),
+        assignedTo:
+          metadata.assignedTo,
+        quotationNumber:
+          metadata.quotations[0]
+            ?.number || "",
+      }));
 
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
         <div>
           <span className={styles.eyebrow}>
-            CRM Vialoop
+            Gestión comercial
           </span>
-          <h1>Seguimiento comercial</h1>
+          <h1>Seguimiento</h1>
           <p>
-            Ordena prospectos, agenda próximos contactos y prepara mensajes de seguimiento para convertir más oportunidades.
+            Organiza contactos, cotizaciones y próximos pasos desde una agenda comercial única.
           </p>
         </div>
 
@@ -168,7 +139,7 @@ export default async function FollowUpPage() {
           className={styles.exportButton}
           href="/api/seguimiento/exportar"
         >
-          Descargar CSV
+          Exportar CSV
         </a>
       </header>
 
@@ -179,9 +150,10 @@ export default async function FollowUpPage() {
             {openProspects.length}
           </strong>
           <small>
-            {prospects.length} en total
+            {prospects.length} registros en total
           </small>
         </article>
+
         <article
           className={
             overdue > 0
@@ -192,140 +164,34 @@ export default async function FollowUpPage() {
           <span>Seguimientos vencidos</span>
           <strong>{overdue}</strong>
           <small>
-            Requieren atención
+            {overdue > 0
+              ? "Requieren una nueva gestión"
+              : "Agenda al día"}
           </small>
         </article>
+
         <article>
-          <span>Para hoy</span>
+          <span>Agenda inmediata</span>
           <strong>{todayCount}</strong>
           <small>
-            {nextSevenDays} próximos 7 días
+            Hoy · {nextSevenDays} próximos 7 días
           </small>
         </article>
+
         <article>
           <span>Oportunidades ganadas</span>
           <strong>{won}</strong>
           <small>
             {prospects.length > 0
-              ? `${Math.round((won / prospects.length) * 100)}% del total`
-              : "Sin datos aún"}
+              ? `${Math.round((won / prospects.length) * 100)}% de conversión registrada`
+              : "Sin datos todavía"}
           </small>
         </article>
       </section>
 
-      {agendaProspects.length > 0 && (
-        <section className={styles.agendaPanel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <span className={styles.eyebrow}>Agenda comercial</span>
-              <h2>Próximos seguimientos</h2>
-            </div>
-
-            <span>{agendaProspects.length} contactos priorizados</span>
-          </div>
-
-          <div className={styles.agendaList}>
-            {agendaProspects.map(({ id, metadata }) => {
-              const tone = metadata.nextFollowUp < today
-                ? styles.agendaOverdue
-                : metadata.nextFollowUp === today
-                  ? styles.agendaToday
-                  : styles.agendaUpcoming;
-
-              return (
-                <article className={tone} key={id}>
-                  <time dateTime={metadata.nextFollowUp}>
-                    {formatAgendaDate(metadata.nextFollowUp)}
-                  </time>
-
-                  <div>
-                    <strong>{metadata.company}</strong>
-                    <span>
-                      {metadata.contactName || "Contacto por definir"}
-                      {metadata.assignedTo ? ` · ${metadata.assignedTo}` : ""}
-                    </span>
-                  </div>
-
-                  <small>{getProspectStatusLabel(metadata.status)}</small>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {prospects.length > 0 && (
-        <section
-          className={styles.insightsGrid}
-        >
-          <article>
-            <div
-              className={styles.panelHeader}
-            >
-              <div>
-                <span
-                  className={styles.eyebrow}
-                >
-                  Distribución
-                </span>
-                <h2>Pipeline por estado</h2>
-              </div>
-            </div>
-
-            <div
-              className={styles.barList}
-            >
-              {statusCounts.map(
-                ({ status, count }) => (
-                  <div key={status}>
-                    <span>
-                      {getProspectStatusLabel(
-                        status,
-                      )}
-                    </span>
-                    <div>
-                      <i
-                        style={{
-                          width: `${Math.max(4, (count / prospects.length) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <strong>{count}</strong>
-                  </div>
-                ),
-              )}
-            </div>
-          </article>
-
-          <article>
-            <div
-              className={styles.panelHeader}
-            >
-              <div>
-                <span
-                  className={styles.eyebrow}
-                >
-                  Segmentación
-                </span>
-                <h2>Principales industrias</h2>
-              </div>
-            </div>
-
-            <div
-              className={styles.industryList}
-            >
-              {industryCounts.map(
-                ([industry, count]) => (
-                  <div key={industry}>
-                    <span>{industry}</span>
-                    <strong>{count}</strong>
-                  </div>
-                ),
-              )}
-            </div>
-          </article>
-        </section>
-      )}
+      <FollowUpCalendar
+        entries={calendarEntries}
+      />
 
       <ProspectManager
         prospects={prospects}

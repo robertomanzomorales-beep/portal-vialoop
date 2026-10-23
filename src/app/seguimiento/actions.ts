@@ -2,18 +2,29 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   isProspectStatus,
   parseProspectMetadata,
   type ProspectMetadata,
 } from "@/lib/prospect";
+import { parseQuotationMetadata } from "@/lib/quotation";
 
 export type ProspectActionState = {
   ok: boolean;
   message: string;
   savedId?: string;
+  deletedId?: string;
 };
+
+function json(
+  input: unknown,
+): Prisma.InputJsonValue {
+  return JSON.parse(
+    JSON.stringify(input),
+  ) as Prisma.InputJsonValue;
+}
 
 function value(
   formData: FormData,
@@ -182,22 +193,122 @@ export async function saveProspect(
 }
 
 export async function deleteProspect(
-  formData: FormData,
-) {
+  id: string,
+): Promise<ProspectActionState> {
   await requireUser();
-  const id = value(formData, "id");
 
   if (!id) {
-    return;
+    return {
+      ok: false,
+      message:
+        "No fue posible identificar la oportunidad.",
+    };
   }
 
-  await prisma.activityLog.deleteMany({
-    where: {
-      id,
-      entityType: "Prospect",
-    },
-  });
+  const existing =
+    await prisma.activityLog.findFirst({
+      where: {
+        id,
+        entityType: "Prospect",
+      },
+      select: {
+        id: true,
+        metadata: true,
+      },
+    });
+
+  if (!existing) {
+    return {
+      ok: false,
+      message:
+        "La oportunidad ya no existe.",
+    };
+  }
+
+  const prospect =
+    parseProspectMetadata(
+      existing.metadata,
+    );
+  const quotationIds =
+    prospect?.quotations.map(
+      (quotation) => quotation.id,
+    ) ?? [];
+  const quotationLogs =
+    await prisma.activityLog.findMany({
+      where: {
+        entityType: "Quotation",
+        OR: [
+          ...(quotationIds.length > 0
+            ? [
+                {
+                  id: {
+                    in: quotationIds,
+                  },
+                },
+              ]
+            : []),
+          {
+            metadata: {
+              path: ["followUpId"],
+              equals: id,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        metadata: true,
+      },
+    });
+  const dismissedAt =
+    new Date().toISOString();
+  const quotationUpdates =
+    quotationLogs.flatMap((log) => {
+      const quotation =
+        parseQuotationMetadata(
+          log.metadata,
+        );
+
+      if (!quotation) {
+        return [];
+      }
+
+      return [
+        prisma.activityLog.update({
+          where: {
+            id: log.id,
+          },
+          data: {
+            metadata: json({
+              ...quotation,
+              followUpId: undefined,
+              followUpRegisteredAt:
+                undefined,
+              followUpDismissedAt:
+                dismissedAt,
+            }),
+          },
+        }),
+      ];
+    });
+
+  await prisma.$transaction([
+    ...quotationUpdates,
+    prisma.activityLog.deleteMany({
+      where: {
+        id,
+        entityType: "Prospect",
+      },
+    }),
+  ]);
 
   revalidatePath("/");
+  revalidatePath("/cotizaciones");
   revalidatePath("/seguimiento");
+
+  return {
+    ok: true,
+    message: `${prospect?.company || "La oportunidad"} fue eliminada del seguimiento. La cotización permanece en su historial.`,
+    deletedId: id,
+  };
 }
