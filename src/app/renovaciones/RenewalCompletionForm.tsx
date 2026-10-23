@@ -225,11 +225,11 @@ export default function RenewalCompletionForm({
               <div className={styles.manualNotice}>
                 <strong>Resultado del registro</strong>
                 <p>
-                  El ciclo actual quedará como renovado y
-                  dejará de aparecer entre las pendientes.
-                  Si ya existe un cobro, se marcará como
-                  pagado; de lo contrario se registrará uno
-                  nuevo cuando haya monto.
+                  El ciclo actual dejará de aparecer entre
+                  las pendientes. Con la próxima renovación
+                  activada quedará como renovado; sin ella,
+                  como pagado. El cobro asociado también se
+                  regularizará o se creará cuando haya monto.
                 </p>
               </div>
 

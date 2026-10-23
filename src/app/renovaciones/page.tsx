@@ -959,6 +959,14 @@ export default async function RenewalsPage({
         </div>
       )}
 
+      {resolvedSearchParams.resultado ===
+        "pagada" && (
+        <div className={styles.successMessage}>
+          El pago quedó confirmado y este vencimiento
+          fue cerrado sin crear un nuevo ciclo.
+        </div>
+      )}
+
       {reconciliation.reconciled > 0 && (
         <div className={styles.successMessage}>
           Se regularizaron automáticamente{" "}

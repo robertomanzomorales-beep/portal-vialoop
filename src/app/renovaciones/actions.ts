@@ -577,16 +577,17 @@ export async function confirmRenewalAsPaid(
   formData: FormData,
 ) {
   const user = await requireUser();
+  const createNextRenewal =
+    formData.get(
+      "createNextRenewal",
+    ) === "on";
   const outcome =
     await confirmRenewalPayment({
       renewalId,
       paidAt: getPaymentDate(formData),
       paymentMethod:
         getPaymentMethod(formData),
-      createNextRenewal:
-        formData.get(
-          "createNextRenewal",
-        ) === "on",
+      createNextRenewal,
       userId: user.id,
     });
 
@@ -613,6 +614,8 @@ export async function confirmRenewalAsPaid(
   redirect(
     outcome.state === "already-closed"
       ? "/renovaciones?resultado=ya-cerrada"
-      : "/renovaciones?resultado=renovada",
+      : createNextRenewal
+        ? "/renovaciones?resultado=renovada"
+        : "/renovaciones?resultado=pagada",
   );
 }

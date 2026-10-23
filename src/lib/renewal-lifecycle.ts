@@ -213,13 +213,17 @@ async function settleRenewalInTransaction(
       renewal.dueDate,
       billingCycle,
     );
+  const createNextCycle =
+    input.createNextRenewal !== false;
   const reconciliationNote = [
     `Renovación cerrada el ${formatDate(
       input.settledAt,
     )}: ${sourceLabel(input.source)}.`,
-    `Próximo vencimiento: ${formatDate(
-      nextDueDate,
-    )}.`,
+    createNextCycle
+      ? `Próximo vencimiento: ${formatDate(
+          nextDueDate,
+        )}.`
+      : "El pago fue confirmado sin crear un nuevo ciclo.",
   ].join("\n");
 
   const closed =
@@ -231,8 +235,12 @@ async function settleRenewalInTransaction(
         },
       },
       data: {
-        status: "RENEWED",
-        renewedAt: input.settledAt,
+        status: createNextCycle
+          ? "RENEWED"
+          : "PAID",
+        renewedAt: createNextCycle
+          ? input.settledAt
+          : null,
         notes: appendNote(
           renewal.notes,
           reconciliationNote,
@@ -251,6 +259,7 @@ async function settleRenewalInTransaction(
   }
 
   if (
+    createNextCycle &&
     renewal.projectId &&
     renewal.type === "HOSTING"
   ) {
@@ -266,6 +275,7 @@ async function settleRenewalInTransaction(
   }
 
   if (
+    createNextCycle &&
     renewal.projectId &&
     renewal.type === "DOMAIN"
   ) {
@@ -280,7 +290,10 @@ async function settleRenewalInTransaction(
     });
   }
 
-  if (renewal.subscription) {
+  if (
+    createNextCycle &&
+    renewal.subscription
+  ) {
     await transaction.subscription.update({
       where: {
         id: renewal.subscription.id,
@@ -294,7 +307,7 @@ async function settleRenewalInTransaction(
 
   let nextRenewalCreated = false;
 
-  if (input.createNextRenewal !== false) {
+  if (createNextCycle) {
     const { start, end } =
       getDayBounds(nextDueDate);
     const existingNextRenewal =
@@ -386,7 +399,9 @@ async function settleRenewalInTransaction(
         previousDueDate:
           renewal.dueDate.toISOString(),
         nextDueDate:
-          nextDueDate.toISOString(),
+          createNextCycle
+            ? nextDueDate.toISOString()
+            : null,
         settledAt:
           input.settledAt.toISOString(),
         nextRenewalCreated,
