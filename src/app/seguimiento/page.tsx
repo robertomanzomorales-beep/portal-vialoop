@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { syncSentQuotationsToFollowUp } from "@/lib/quotation-follow-up";
 import {
   getProspectStatusLabel,
   parseProspectMetadata,
@@ -39,6 +40,10 @@ function formatAgendaDate(value: string) {
 }
 
 export default async function FollowUpPage() {
+  // Keep the pipeline complete for quotations sent before automatic linkage
+  // existed, or whose first linkage attempt failed transiently.
+  await syncSentQuotationsToFollowUp();
+
   const logs =
     await prisma.activityLog.findMany({
       where: {
