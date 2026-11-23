@@ -49,71 +49,85 @@ export function buildVialoopEmailLayout({
         <style>
           :root { color-scheme: light only; }
           @media only screen and (max-width: 640px) {
-            .vialoop-shell { padding: 12px 8px !important; }
-            .vialoop-sheet { border-radius: 12px !important; }
-            .vialoop-header { padding: 23px 22px 25px !important; }
-            .vialoop-content { padding: 25px 22px 31px !important; }
-            .vialoop-footer { padding: 19px 22px 23px !important; }
-            .vialoop-title { font-size: 22px !important; line-height: 1.18 !important; }
-            .vialoop-reference { display: block !important; padding: 13px 0 0 !important; text-align: left !important; }
+            .vialoop-shell { padding: 8px 6px !important; }
+            .vialoop-sheet { border-radius: 10px !important; }
+            .vialoop-header { padding: 18px 17px 19px !important; }
+            .vialoop-content { padding: 20px 17px 22px !important; }
+            .vialoop-footer { padding: 14px 17px 17px !important; }
+            .vialoop-title { font-size: 20px !important; line-height: 1.2 !important; }
+            .vialoop-reference { display: block !important; padding: 9px 0 0 !important; text-align: left !important; }
             .quote-meta-cell,
             .quote-item-copy,
             .quote-item-value,
             .quote-total-copy,
             .quote-total-value,
             .quote-payment-label,
-            .quote-payment-value {
+            .quote-payment-value,
+            .quote-action-copy,
+            .quote-action-value,
+            .quote-flow-copy,
+            .quote-flow-value,
+            .welcome-material-cell {
               display: block !important;
               box-sizing: border-box !important;
               width: 100% !important;
               text-align: left !important;
             }
-            .quote-meta-cell { border-left: 0 !important; border-top: 1px solid #e4e7ec !important; }
+            .quote-meta-cell { border-left: 0 !important; border-top: 1px solid #dfe6ee !important; }
             .quote-meta-cell:first-child { border-top: 0 !important; }
-            .quote-item-copy { padding: 15px 16px 7px !important; }
-            .quote-item-value { padding: 0 16px 15px !important; }
-            .quote-total-copy { padding: 18px 18px 4px !important; }
-            .quote-total-value { padding: 0 18px 20px !important; }
-            .quote-payment-label { padding: 10px 0 2px !important; }
-            .quote-payment-value { padding: 0 0 10px !important; border-top: 0 !important; }
+            .quote-item-copy { padding: 12px 13px 5px !important; }
+            .quote-item-value { padding: 0 13px 12px !important; }
+            .quote-total-copy { padding: 13px 14px 3px !important; }
+            .quote-total-value { padding: 0 14px 15px !important; }
+            .quote-payment-label { padding: 7px 0 1px !important; }
+            .quote-payment-value { padding: 0 0 7px !important; border-top: 0 !important; }
+            .quote-action-copy { padding: 12px 0 5px !important; }
+            .quote-action-value { padding: 0 0 12px !important; }
+            .quote-flow-copy { padding: 12px 0 5px !important; }
+            .quote-flow-value { padding: 0 0 12px !important; text-align: left !important; }
+            .welcome-material-cell { border-left: 1px solid #dfe6ee !important; }
+            .welcome-material-cell + .welcome-material-cell { border-top: 0 !important; }
             .quote-cta { display: block !important; text-align: center !important; }
           }
         </style>
       </head>
-      <body style="margin:0;padding:0;background:#f2f4f7;font-family:Arial,Helvetica,'Segoe UI',sans-serif;color:#101828;-webkit-font-smoothing:antialiased;">
+      <body style="margin:0;padding:0;background:#eef2f6;font-family:Arial,Helvetica,'Segoe UI',sans-serif;color:#172033;-webkit-font-smoothing:antialiased;">
         ${
           preheader
             ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeEmailHtml(preheader)}</div>`
             : ""
         }
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;background:#f2f4f7;">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;background:#eef2f6;">
           <tr>
-            <td class="vialoop-shell" align="center" style="padding:34px 14px;">
-              <table class="vialoop-sheet" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:680px;overflow:hidden;border:1px solid #e4e7ec;border-radius:14px;border-collapse:separate;border-spacing:0;background:#ffffff;box-shadow:0 8px 22px rgba(16,24,40,.05);">
+            <td class="vialoop-shell" align="center" style="padding:22px 12px;">
+              <table class="vialoop-sheet" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:650px;overflow:hidden;border:1px solid #dfe6ee;border-radius:12px;border-collapse:separate;border-spacing:0;background:#ffffff;box-shadow:0 8px 24px rgba(20,45,78,.07);">
                 <tr>
-                  <td class="vialoop-header" style="padding:25px 30px 27px;background:#111827;color:#ffffff;">
+                  <td style="height:3px;background:#2f6fed;font-size:0;line-height:0;">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td class="vialoop-header" style="padding:19px 24px 21px;background:#10213a;color:#ffffff;">
                     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;">
                       <tr>
                         <td valign="top">
-                          <div style="color:#b2ccff;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${escapeEmailHtml(eyebrow)}</div>
+                          <div style="color:#9fc0ff;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;">${escapeEmailHtml(eyebrow)}</div>
                         </td>
                         ${
                           reference
-                            ? `<td class="vialoop-reference" align="right" valign="top" style="padding-left:20px;color:#dbe7ff;font-size:11px;font-weight:700;white-space:nowrap;">${escapeEmailHtml(reference)}</td>`
+                            ? `<td class="vialoop-reference" align="right" valign="top" style="padding-left:18px;color:#d6e4ff;font-size:10px;font-weight:700;white-space:nowrap;">${escapeEmailHtml(reference)}</td>`
                             : ""
                         }
                       </tr>
                     </table>
-                    <h1 class="vialoop-title" style="margin:8px 0 0;color:#ffffff;font-size:23px;font-weight:700;letter-spacing:-.35px;line-height:1.2;">${safeTitle}</h1>
+                    <h1 class="vialoop-title" style="margin:7px 0 0;color:#ffffff;font-size:21px;font-weight:750;letter-spacing:-.3px;line-height:1.2;">${safeTitle}</h1>
                   </td>
                 </tr>
                 <tr>
-                  <td class="vialoop-content" style="padding:30px;background:#ffffff;color:#101828;font-size:14px;line-height:1.65;">
+                  <td class="vialoop-content" style="padding:22px 24px 24px;background:#ffffff;color:#172033;font-size:13px;line-height:1.6;">
                     ${content}
                   </td>
                 </tr>
                 <tr>
-                  <td class="vialoop-footer" style="padding:20px 30px 25px;border-top:1px solid #eaecf0;background:#ffffff;color:#667085;font-size:11px;line-height:1.6;">
+                  <td class="vialoop-footer" style="padding:14px 24px 18px;border-top:1px solid #e5eaf0;background:#f8fafc;color:#64748b;font-size:10.5px;line-height:1.55;">
                     ${
                       footer ??
                       "Vialoop Studio SpA · vialoop.cl<br />Este mensaje fue generado desde el Portal Vialoop."

@@ -7,10 +7,11 @@ export default function NewClientPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>Nuevo registro</span>
-          <h1>Crear cliente</h1>
+          <span className={styles.eyebrow}>Inicio de operación</span>
+          <h1>Nuevo cliente</h1>
           <p>
-            Registra la información comercial y de contacto de la empresa.
+            Registra la empresa y deja preparado el primer contacto de
+            implementación.
           </p>
         </div>
 
@@ -19,14 +20,18 @@ export default function NewClientPage() {
         </Link>
       </header>
 
-      <form action={createClient} className={styles.formPanel}>
-        <section className={styles.formSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Información de la empresa</h2>
-            <p>Datos principales para identificar al cliente.</p>
-          </div>
+      <div className={styles.newClientLayout}>
+        <form action={createClient} className={styles.formPanel}>
+          <section className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionNumber}>01</span>
+              <div>
+                <h2>Información de la empresa</h2>
+                <p>Datos principales para identificar al cliente.</p>
+              </div>
+            </div>
 
-          <div className={styles.formGrid}>
+            <div className={styles.formGrid}>
             <label className={styles.field}>
               <span>Razón social *</span>
               <input
@@ -72,16 +77,19 @@ export default function NewClientPage() {
                 placeholder="Dirección comercial"
               />
             </label>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <section className={styles.formSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Contacto principal</h2>
-            <p>Persona responsable de la coordinación con Vialoop.</p>
-          </div>
+          <section className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionNumber}>02</span>
+              <div>
+                <h2>Contacto principal</h2>
+                <p>Persona responsable de la coordinación con Vialoop.</p>
+              </div>
+            </div>
 
-          <div className={styles.formGrid}>
+            <div className={styles.formGrid}>
             <label className={styles.field}>
               <span>Nombre del contacto</span>
               <input
@@ -108,14 +116,17 @@ export default function NewClientPage() {
                 placeholder="+56 9 1234 5678"
               />
             </label>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <section className={styles.formSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Información interna</h2>
-            <p>Estas observaciones solo serán visibles para Vialoop.</p>
-          </div>
+          <section className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionNumber}>03</span>
+              <div>
+                <h2>Contexto comercial</h2>
+                <p>Estas observaciones solo serán visibles para Vialoop.</p>
+              </div>
+            </div>
 
           <label className={styles.field}>
             <span>Observaciones</span>
@@ -125,18 +136,80 @@ export default function NewClientPage() {
               placeholder="Antecedentes comerciales, servicios contratados o información relevante."
             />
           </label>
-        </section>
+          </section>
 
-        <footer className={styles.formFooter}>
-          <Link className={styles.secondaryButton} href="/clientes">
-            Cancelar
-          </Link>
+          <footer className={styles.formFooter}>
+            <Link className={styles.secondaryButton} href="/clientes">
+              Cancelar
+            </Link>
 
-          <button className={styles.primaryButton} type="submit">
-            Guardar cliente
-          </button>
-        </footer>
-      </form>
+            <div className={styles.formFooterActions}>
+              <button
+                className={styles.secondaryButton}
+                name="nextAction"
+                type="submit"
+                value="detail"
+              >
+                Solo guardar
+              </button>
+
+              <button
+                className={styles.primaryButton}
+                name="nextAction"
+                type="submit"
+                value="welcome"
+              >
+                Guardar y preparar bienvenida
+              </button>
+            </div>
+          </footer>
+        </form>
+
+        <aside className={styles.operationPanel}>
+          <span className={styles.eyebrow}>Nuestra operación</span>
+          <h2>Del registro a la implementación</h2>
+          <p>
+            El alta del cliente abre una secuencia clara para que Comercial y
+            Operaciones trabajen con la misma información.
+          </p>
+
+          <ol className={styles.operationSteps}>
+            <li>
+              <span>01</span>
+              <div>
+                <strong>Alta comercial</strong>
+                <small>Empresa, contacto y contexto del servicio.</small>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <strong>Bienvenida de Doris</strong>
+                <small>Correo editable con fotos y archivos requeridos.</small>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <strong>Recepción de material</strong>
+                <small>Validación de contenidos antes de comenzar.</small>
+              </div>
+            </li>
+            <li>
+              <span>04</span>
+              <div>
+                <strong>Implementación</strong>
+                <small>Proyecto, planificación, revisión y publicación.</small>
+              </div>
+            </li>
+          </ol>
+
+          <div className={styles.operationNote}>
+            Al elegir <strong>Guardar y preparar bienvenida</strong>, se abrirá
+            el correo premium de Doris con el cliente ya registrado.
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }

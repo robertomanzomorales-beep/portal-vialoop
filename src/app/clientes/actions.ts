@@ -6,7 +6,17 @@ import {
   requireAdmin,
   requireUser,
 } from "@/lib/auth";
+import {
+  buildClientWelcomeEmail,
+  DORIS_EMAIL,
+} from "@/lib/client-welcome-email";
+import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
+
+export type WelcomeEmailActionState = {
+  status: "idle" | "success" | "error";
+  message: string;
+};
 
 function getOptionalString(formData: FormData, field: string) {
   const value = formData.get(field);
@@ -64,7 +74,9 @@ function getOptionalAmount(formData: FormData, field: string) {
 }
 
 function validateEmail(email: string | null) {
-  if (email && !email.includes("@")) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (email && !emailPattern.test(email)) {
     throw new Error("El correo ingresado no es válido.");
   }
 }
@@ -78,7 +90,7 @@ export async function createClient(formData: FormData) {
 
   validateEmail(email);
 
-  await prisma.client.create({
+  const client = await prisma.client.create({
     data: {
       businessName,
       tradeName: getOptionalString(formData, "tradeName"),
@@ -96,7 +108,170 @@ export async function createClient(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/clientes");
 
-  redirect("/clientes");
+  const nextAction = getOptionalString(formData, "nextAction");
+
+  if (nextAction === "welcome") {
+    redirect(`/clientes/${client.id}?bienvenida=preparar`);
+  }
+
+  redirect(`/clientes/${client.id}`);
+}
+
+function getWelcomeEmailInteger(
+  formData: FormData,
+  field: string,
+) {
+  const rawValue = getOptionalString(formData, field) ?? "0";
+  const value = Number(rawValue);
+
+  if (!Number.isInteger(value) || value < 0 || value > 500) {
+    throw new Error(`El valor de ${field} no es válido.`);
+  }
+
+  return value;
+}
+
+function getWelcomeEmailRequirements(formData: FormData) {
+  const value = getRequiredString(formData, "requirements");
+
+  if (value.length > 5000) {
+    throw new Error("La lista de materiales requeridos es demasiado extensa.");
+  }
+
+  const requirements = value
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[-•\d.)\s]+/, "").trim())
+    .filter(Boolean)
+    .slice(0, 15);
+
+  if (requirements.length === 0) {
+    throw new Error("Debes indicar al menos un material requerido.");
+  }
+
+  return requirements;
+}
+
+function actionError(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "No fue posible enviar el correo de bienvenida.";
+}
+
+export async function sendClientWelcomeEmail(
+  clientId: string,
+  _previousState: WelcomeEmailActionState,
+  formData: FormData,
+): Promise<WelcomeEmailActionState> {
+  const user = await requireUser();
+
+  try {
+    const client = await prisma.client.findUnique({
+      where: {
+        id: clientId,
+      },
+      select: {
+        id: true,
+        businessName: true,
+        tradeName: true,
+        mainContactName: true,
+        email: true,
+      },
+    });
+
+    if (!client) {
+      return {
+        status: "error",
+        message: "El cliente ya no existe o no está disponible.",
+      };
+    }
+
+    const recipient = getRequiredString(formData, "recipient").toLowerCase();
+    const subject = getRequiredString(formData, "subject");
+    const productName = getRequiredString(formData, "productName");
+    const welcomeMessage = getRequiredString(formData, "welcomeMessage");
+    const additionalNotes = getOptionalString(formData, "additionalNotes") ?? "";
+    const photoCount = getWelcomeEmailInteger(formData, "photoCount");
+    const fileCount = getWelcomeEmailInteger(formData, "fileCount");
+    const requirements = getWelcomeEmailRequirements(formData);
+
+    validateEmail(recipient);
+
+    if (subject.length > 180) {
+      return {
+        status: "error",
+        message: "El asunto no puede superar los 180 caracteres.",
+      };
+    }
+
+    if (
+      productName.length > 160 ||
+      welcomeMessage.length > 3000 ||
+      additionalNotes.length > 3000
+    ) {
+      return {
+        status: "error",
+        message: "El producto o el mensaje de bienvenida es demasiado extenso.",
+      };
+    }
+
+    const email = buildClientWelcomeEmail({
+      clientName: client.tradeName || client.businessName,
+      contactName:
+        getOptionalString(formData, "contactName") ??
+        client.mainContactName ??
+        "",
+      subject,
+      productName,
+      welcomeMessage,
+      photoCount,
+      fileCount,
+      requirements,
+      additionalNotes,
+    });
+
+    const mailResult = await sendEmail({
+      to: recipient,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+      fromEmail: DORIS_EMAIL,
+      fromName: "Doris Loayza G. · Vialoop",
+      replyTo: DORIS_EMAIL,
+    });
+
+    await prisma.activityLog.create({
+      data: {
+        userId: user.id,
+        clientId: client.id,
+        action: "CLIENT_WELCOME_EMAIL_SENT",
+        entityType: "ClientWelcomeEmail",
+        entityId: client.id,
+        description: `Correo de bienvenida enviado por Doris a ${recipient}.`,
+        metadata: {
+          recipient,
+          subject,
+          productName,
+          photoCount,
+          fileCount,
+          smtpMessageId: mailResult.messageId,
+          accepted: mailResult.accepted,
+          rejected: mailResult.rejected,
+        },
+      },
+    });
+
+    revalidatePath(`/clientes/${client.id}`);
+
+    return {
+      status: "success",
+      message: `Bienvenida enviada correctamente a ${recipient}.`,
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message: actionError(error),
+    };
+  }
 }
 
 export async function updateClient(

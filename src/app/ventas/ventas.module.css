@@ -3,14 +3,14 @@
   display: grid;
   max-width: 1760px;
   min-height: 100vh;
-  gap: 24px;
+  gap: 16px;
   margin: 0 auto;
-  padding: 38px clamp(24px, 4vw, 48px) 54px;
+  padding: 28px clamp(20px, 3vw, 36px) 42px;
   width: 100%;
 }
 
 .pageHeader {
-  padding: 8px 0 4px;
+  padding: 3px 0;
 }
 
 .pageHeader,
@@ -116,8 +116,8 @@
 
 .metrics {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .metricCard,
@@ -126,13 +126,13 @@
 .listPanel {
   background: var(--portal-surface);
   border: 1px solid var(--portal-border);
-  border-radius: 18px;
+  border-radius: var(--portal-radius-lg);
 }
 
 .metricCard {
   display: grid;
   gap: 8px;
-  padding: 22px;
+  padding: 17px 18px;
 }
 
 .metricCard > span {
@@ -143,7 +143,7 @@
 
 .metricCard > strong {
   color: var(--portal-text);
-  font-size: clamp(1.45rem, 2.6vw, 2rem);
+  font-size: clamp(1.35rem, 2.1vw, 1.75rem);
   letter-spacing: -0.04em;
 }
 
@@ -153,7 +153,7 @@
 }
 
 .goalPanel {
-  padding: 22px 24px;
+  padding: 17px 19px;
 }
 
 .goalTopline {
@@ -180,7 +180,7 @@
 .progressTrack {
   background: var(--portal-border);
   border-radius: 999px;
-  height: 12px;
+  height: 8px;
   overflow: hidden;
 }
 
@@ -201,7 +201,7 @@
 .chartHeader,
 .listHeader {
   gap: 24px;
-  padding: 24px;
+  padding: 18px 20px;
 }
 
 .chartLegend {
@@ -231,27 +231,27 @@
 }
 
 .legendGoal {
-  border-top: 2px dashed var(--portal-warning);
+  border-top: 2px dashed var(--portal-text-tertiary);
   height: 0;
 }
 
 .chartScroll {
   border-top: 1px solid var(--portal-border);
   overflow-x: auto;
-  padding: 30px 24px 20px;
+  padding: 24px 20px 16px;
 }
 
 .chart {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(12, minmax(58px, 1fr));
-  height: 290px;
+  height: 250px;
   min-width: 820px;
   position: relative;
 }
 
 .goalLine {
-  border-top: 2px dashed var(--portal-warning);
+  border-top: 2px dashed var(--portal-text-tertiary);
   left: 0;
   pointer-events: none;
   position: absolute;
@@ -260,8 +260,8 @@
 }
 
 .goalLine span {
-  background: var(--portal-warning-soft);
-  color: var(--portal-warning);
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
   font-size: 0.68rem;
   font-weight: 800;
   padding: 2px 6px;
@@ -280,7 +280,7 @@
   align-items: flex-end;
   border-bottom: 1px solid var(--portal-border-strong);
   display: flex;
-  height: 250px;
+  height: 210px;
   justify-content: center;
   position: relative;
 }
@@ -330,10 +330,10 @@
 .secondaryButton,
 .manageButton,
 .deleteButton {
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 0.86rem;
   font-weight: 800;
-  padding: 12px 16px;
+  padding: 10px 14px;
 }
 
 .primaryButton {
@@ -378,7 +378,7 @@
 .table th,
 .table td {
   border-bottom: 1px solid var(--portal-border);
-  padding: 15px 18px;
+  padding: 12px 15px;
   text-align: left;
   vertical-align: middle;
 }

@@ -4,11 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseQuotationMetadata } from "@/lib/quotation";
 import DeleteClientButton from "../DeleteClientButton";
+import WelcomeEmailComposer from "../WelcomeEmailComposer";
 import styles from "../clientes.module.css";
 
 type ClientDetailPageProps = {
   params: Promise<{
     id: string;
+  }>;
+  searchParams: Promise<{
+    bienvenida?: string;
   }>;
 };
 
@@ -142,16 +146,20 @@ function getSupportStatusLabel(status: string) {
 
 export default async function ClientDetailPage({
   params,
+  searchParams,
 }: ClientDetailPageProps) {
-  const { id } = await params;
+  const [{ id }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
-  const user = await getCurrentUser();
-
-  const client = await prisma.client.findUnique({
-    where: {
-      id,
-    },
-    include: {
+  const [user, client] = await Promise.all([
+    getCurrentUser(),
+    prisma.client.findUnique({
+      where: {
+        id,
+      },
+      include: {
       projects: {
         orderBy: {
           createdAt: "desc",
@@ -193,15 +201,17 @@ export default async function ClientDetailPage({
         },
       },
 
-      activityLogs: {
-        where: {
-          entityType: "Quotation",
+        activityLogs: {
+          where: {
+            entityType: {
+              in: ["Quotation", "ClientWelcomeEmail"],
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 50,
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 20,
-      },
 
       _count: {
         select: {
@@ -212,8 +222,9 @@ export default async function ClientDetailPage({
           supportRequests: true,
         },
       },
-    },
-  });
+      },
+    }),
+  ]);
 
   if (!client) {
     notFound();
@@ -245,6 +256,7 @@ export default async function ClientDetailPage({
   );
 
   const quotations = client.activityLogs
+    .filter((log) => log.entityType === "Quotation")
     .map((log) => ({
       log,
       metadata: parseQuotationMetadata(
@@ -261,6 +273,10 @@ export default async function ClientDetailPage({
         >;
       } => Boolean(item.metadata),
     );
+
+  const welcomeEmails = client.activityLogs.filter(
+    (log) => log.entityType === "ClientWelcomeEmail",
+  );
 
   return (
     <main className={styles.page}>
@@ -317,6 +333,53 @@ export default async function ClientDetailPage({
           <span>Cotizaciones</span>
           <strong>{quotations.length}</strong>
         </article>
+      </section>
+
+      <section className={styles.clientOperationPanel}>
+        <div>
+          <span className={styles.eyebrow}>Inicio de operación</span>
+          <h2>Bienvenida y recepción de material</h2>
+          <p>
+            Doris puede enviar un correo profesional y editable con las fotos,
+            archivos y contenidos necesarios para comenzar la implementación.
+          </p>
+        </div>
+
+        <div className={styles.clientOperationMeta}>
+          <span>
+            <strong>01</strong>
+            Bienvenida
+          </span>
+          <i aria-hidden="true" />
+          <span>
+            <strong>02</strong>
+            Material
+          </span>
+          <i aria-hidden="true" />
+          <span>
+            <strong>03</strong>
+            Implementación
+          </span>
+        </div>
+
+        <WelcomeEmailComposer
+          clientId={client.id}
+          clientName={client.tradeName || client.businessName}
+          contactName={client.mainContactName ?? ""}
+          initialOpen={resolvedSearchParams.bienvenida === "preparar"}
+          lastSentAt={
+            welcomeEmails[0]
+              ? formatDate(welcomeEmails[0].createdAt)
+              : null
+          }
+          productName={
+            mainProject?.websiteType ||
+            mainProject?.name ||
+            "Sitio web corporativo"
+          }
+          recipient={client.email ?? ""}
+          sentCount={welcomeEmails.length}
+        />
       </section>
 
       <section className={styles.detailGrid}>

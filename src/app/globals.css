@@ -6,30 +6,30 @@
 
 :root {
   color-scheme: light;
-  --portal-bg: #f4f4f6;
+  --portal-bg: #f2f5f9;
   --portal-surface: #ffffff;
   --portal-surface-elevated: #ffffff;
-  --portal-surface-soft: #f7f7f9;
-  --portal-surface-hover: #ececef;
-  --portal-border: rgb(29 29 31 / 9%);
-  --portal-border-strong: rgb(29 29 31 / 16%);
-  --portal-text: #1d1d1f;
-  --portal-text-secondary: #4f4f53;
-  --portal-muted: #6e6e73;
-  --portal-text-tertiary: #8e8e93;
-  --portal-accent: #1d1d1f;
-  --portal-accent-hover: #000000;
-  --portal-accent-soft: rgb(29 29 31 / 6%);
-  --portal-accent-border: rgb(29 29 31 / 16%);
+  --portal-surface-soft: #f7f9fc;
+  --portal-surface-hover: #edf2f8;
+  --portal-border: rgb(33 61 96 / 11%);
+  --portal-border-strong: rgb(33 61 96 / 19%);
+  --portal-text: #172033;
+  --portal-text-secondary: #445066;
+  --portal-muted: #647087;
+  --portal-text-tertiary: #8792a5;
+  --portal-accent: #245bd6;
+  --portal-accent-hover: #1949b5;
+  --portal-accent-soft: rgb(36 91 214 / 9%);
+  --portal-accent-border: rgb(36 91 214 / 24%);
   --portal-on-accent: #ffffff;
-  --portal-contrast-bg: #0b0b0c;
-  --portal-contrast-text: #f5f5f7;
-  --portal-contrast-muted: rgb(245 245 247 / 70%);
-  --portal-focus: rgb(0 0 0 / 18%);
-  --portal-overlay: rgb(0 0 0 / 38%);
-  --portal-shadow-color: rgb(0 0 0 / 8%);
-  --portal-shadow-sm: 0 1px 2px rgb(0 0 0 / 4%), 0 8px 24px rgb(0 0 0 / 4%);
-  --portal-shadow-md: 0 18px 50px rgb(0 0 0 / 10%);
+  --portal-contrast-bg: #10213a;
+  --portal-contrast-text: #f5f8fc;
+  --portal-contrast-muted: rgb(245 248 252 / 72%);
+  --portal-focus: rgb(36 91 214 / 23%);
+  --portal-overlay: rgb(8 20 38 / 46%);
+  --portal-shadow-color: rgb(18 38 64 / 10%);
+  --portal-shadow-sm: 0 1px 2px rgb(18 38 64 / 4%), 0 7px 22px rgb(18 38 64 / 5%);
+  --portal-shadow-md: 0 18px 50px rgb(18 38 64 / 14%);
   --portal-success: #177245;
   --portal-success-soft: #edf8f1;
   --portal-success-border: #c8e8d3;
@@ -39,40 +39,40 @@
   --portal-danger: #b42318;
   --portal-danger-soft: #fff1f0;
   --portal-danger-border: #f2c6c2;
-  --portal-info: #4f4f53;
-  --portal-info-soft: #f1f1f3;
-  --portal-info-border: #d7d7dc;
-  --portal-radius-sm: 9px;
-  --portal-radius-md: 14px;
-  --portal-radius-lg: 20px;
-  --portal-radius-xl: 26px;
-  --portal-motion-fast: 140ms;
-  --portal-motion-base: 200ms;
+  --portal-info: #245bd6;
+  --portal-info-soft: #edf3ff;
+  --portal-info-border: #c8d7f7;
+  --portal-radius-sm: 7px;
+  --portal-radius-md: 10px;
+  --portal-radius-lg: 14px;
+  --portal-radius-xl: 18px;
+  --portal-motion-fast: 130ms;
+  --portal-motion-base: 180ms;
   --portal-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --portal-bg: #09090b;
-  --portal-surface: #18181b;
-  --portal-surface-elevated: #222225;
-  --portal-surface-soft: #121214;
-  --portal-surface-hover: #29292c;
-  --portal-border: rgb(255 255 255 / 10%);
-  --portal-border-strong: rgb(255 255 255 / 18%);
-  --portal-text: #f5f5f7;
-  --portal-text-secondary: #d1d1d6;
-  --portal-muted: #a1a1a6;
-  --portal-text-tertiary: #7c7c80;
-  --portal-accent: #f5f5f7;
-  --portal-accent-hover: #ffffff;
-  --portal-accent-soft: rgb(255 255 255 / 9%);
-  --portal-accent-border: rgb(255 255 255 / 20%);
-  --portal-on-accent: #111113;
-  --portal-contrast-bg: #111113;
-  --portal-contrast-text: #f5f5f7;
-  --portal-contrast-muted: rgb(245 245 247 / 70%);
-  --portal-focus: rgb(255 255 255 / 24%);
+  --portal-bg: #0b121c;
+  --portal-surface: #121c29;
+  --portal-surface-elevated: #192536;
+  --portal-surface-soft: #0e1723;
+  --portal-surface-hover: #1b2a3d;
+  --portal-border: rgb(173 197 229 / 12%);
+  --portal-border-strong: rgb(173 197 229 / 21%);
+  --portal-text: #f2f6fb;
+  --portal-text-secondary: #c8d3e1;
+  --portal-muted: #96a6bb;
+  --portal-text-tertiary: #71839a;
+  --portal-accent: #6f9fff;
+  --portal-accent-hover: #8bb3ff;
+  --portal-accent-soft: rgb(80 132 244 / 15%);
+  --portal-accent-border: rgb(111 159 255 / 31%);
+  --portal-on-accent: #071221;
+  --portal-contrast-bg: #08111d;
+  --portal-contrast-text: #f2f6fb;
+  --portal-contrast-muted: rgb(242 246 251 / 72%);
+  --portal-focus: rgb(111 159 255 / 28%);
   --portal-overlay: rgb(0 0 0 / 68%);
   --portal-shadow-color: rgb(0 0 0 / 42%);
   --portal-shadow-sm: 0 1px 0 rgb(255 255 255 / 3%), 0 12px 32px rgb(0 0 0 / 22%);
@@ -86,9 +86,9 @@ html[data-theme="dark"] {
   --portal-danger: #ff8a80;
   --portal-danger-soft: rgb(255 69 58 / 14%);
   --portal-danger-border: rgb(255 69 58 / 30%);
-  --portal-info: #d1d1d6;
-  --portal-info-soft: rgb(255 255 255 / 8%);
-  --portal-info-border: rgb(255 255 255 / 16%);
+  --portal-info: #8bb3ff;
+  --portal-info-soft: rgb(80 132 244 / 13%);
+  --portal-info-border: rgb(111 159 255 / 27%);
 }
 
 html,
@@ -98,6 +98,7 @@ body {
 
 html {
   background: var(--portal-bg);
+  font-size: 15px;
 }
 
 body {
@@ -153,12 +154,12 @@ a {
 }
 
 main h1 {
-  font-size: clamp(1.8rem, 3.2vw, 2.55rem) !important;
+  font-size: clamp(1.65rem, 2.5vw, 2.1rem) !important;
   letter-spacing: -0.045em;
 }
 
 main h2 {
-  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  font-size: clamp(1rem, 1.45vw, 1.18rem);
 }
 
 .portal-route-loading {
@@ -229,5 +230,11 @@ main h2 {
 
   .portal-route-loading i::after {
     animation: none;
+  }
+}
+
+@media (max-width: 820px) {
+  html {
+    font-size: 16px;
   }
 }

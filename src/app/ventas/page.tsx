@@ -135,6 +135,47 @@ function netFromGross(grossAmount: number) {
   return Math.round(grossAmount / 1.19);
 }
 
+type HostingPaymentCandidate = {
+  description: string;
+  notes: string | null;
+  reference: string | null;
+  subscription: {
+    plan: {
+      name: string;
+      description: string | null;
+    };
+  } | null;
+};
+
+function isHostingPayment(
+  payment: HostingPaymentCandidate,
+  hostingRenewalIds: Set<string>,
+) {
+  const renewalMatch = /^renewal:(.+)$/i.exec(
+    payment.reference?.trim() ?? "",
+  );
+
+  if (renewalMatch) {
+    return hostingRenewalIds.has(renewalMatch[1]);
+  }
+
+  const searchableText = [
+    payment.description,
+    payment.notes,
+    payment.subscription?.plan.name,
+    payment.subscription?.plan.description,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(" ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  return /\b(hosting|alojamiento web|servidor web)\b/.test(
+    searchableText,
+  );
+}
+
 export default async function SalesPage({
   searchParams,
 }: SalesPageProps) {
@@ -158,10 +199,11 @@ export default async function SalesPage({
   const [
     clients,
     monthlySales,
-    monthlyHostingPayments,
+    monthlyPaidPayments,
     chartSales,
-    chartHostingPayments,
+    chartPaidPayments,
     recentSales,
+    hostingRenewals,
     monthlyGoal,
   ] = await Promise.all([
     prisma.client.findMany({
@@ -203,6 +245,7 @@ export default async function SalesPage({
       select: {
         id: true,
         description: true,
+        notes: true,
         amount: true,
         paidAt: true,
         method: true,
@@ -211,6 +254,16 @@ export default async function SalesPage({
           select: {
             businessName: true,
             tradeName: true,
+          },
+        },
+        subscription: {
+          select: {
+            plan: {
+              select: {
+                name: true,
+                description: true,
+              },
+            },
           },
         },
       },
@@ -239,6 +292,19 @@ export default async function SalesPage({
       select: {
         paidAt: true,
         amount: true,
+        description: true,
+        notes: true,
+        reference: true,
+        subscription: {
+          select: {
+            plan: {
+              select: {
+                name: true,
+                description: true,
+              },
+            },
+          },
+        },
       },
     }),
     prisma.sale.findMany({
@@ -282,11 +348,31 @@ export default async function SalesPage({
         },
       },
     }),
+    prisma.renewal.findMany({
+      where: {
+        type: "HOSTING",
+      },
+      select: {
+        id: true,
+      },
+    }),
     getMonthlySalesGoal(
       year,
       month,
     ),
   ]);
+
+  const hostingRenewalIds = new Set(
+    hostingRenewals.map((renewal) => renewal.id),
+  );
+
+  const monthlyHostingPayments = monthlyPaidPayments.filter((payment) =>
+    isHostingPayment(payment, hostingRenewalIds),
+  );
+
+  const chartHostingPayments = chartPaidPayments.filter((payment) =>
+    isHostingPayment(payment, hostingRenewalIds),
+  );
 
   const manualSalesTotal = monthlySales.reduce(
     (total, sale) => total + Number(sale.netAmount),
