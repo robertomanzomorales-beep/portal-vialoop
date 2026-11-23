@@ -73,12 +73,23 @@ export default async function EditPlanPage({
           </p>
         </div>
 
-        <Link
-          className={styles.secondaryButton}
-          href="/planes"
-        >
-          Volver a planes
-        </Link>
+        <div className={styles.headerActions}>
+          <Link
+            className={styles.secondaryButton}
+            href="/planes"
+          >
+            Volver a planes
+          </Link>
+
+          {plan.active && (
+            <Link
+              className={styles.primaryButton}
+              href={`/suscripciones/nuevo?plan=${plan.id}`}
+            >
+              Asignar a cliente
+            </Link>
+          )}
+        </div>
       </header>
 
       {resolvedSearchParams.resultado ===
@@ -131,6 +142,28 @@ export default async function EditPlanPage({
               : "Inactivo"}
           </strong>
         </div>
+      </section>
+
+      <section className={styles.assignmentNotice}>
+        <div>
+          <strong>Este plan es una plantilla comercial reutilizable</strong>
+          <p>
+            Editarlo actualiza el catálogo para futuras asignaciones.
+            No cambia el cliente, proyecto, ciclo ni precio acordado de
+            las {plan._count.subscriptions} suscripciones ya vinculadas.
+          </p>
+        </div>
+
+        {plan.active ? (
+          <Link
+            className={styles.assignButton}
+            href={`/suscripciones/nuevo?plan=${plan.id}`}
+          >
+            Asignar a otro cliente
+          </Link>
+        ) : (
+          <span>Activa el plan para crear nuevas asignaciones.</span>
+        )}
       </section>
 
       <form

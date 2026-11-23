@@ -6,7 +6,10 @@ import styles from "../suscripciones.module.css";
 
 type NewSubscriptionPageProps = {
   searchParams: Promise<{
+    cliente?: string;
     error?: string;
+    plan?: string;
+    resultado?: string;
   }>;
 };
 
@@ -89,6 +92,18 @@ export default async function NewSubscriptionPage({
       active: plan.active,
     }));
 
+  const selectedClient = clients.find(
+    (client) => client.id === resolvedSearchParams.cliente,
+  );
+
+  const selectedPlan = plans.find(
+    (plan) => plan.id === resolvedSearchParams.plan,
+  );
+
+  const requestedUnavailablePlan = Boolean(
+    resolvedSearchParams.plan && !selectedPlan,
+  );
+
   const canCreate =
     clients.length > 0 &&
     plans.length > 0;
@@ -102,17 +117,17 @@ export default async function NewSubscriptionPage({
           <span
             className={styles.eyebrow}
           >
-            Nuevo servicio recurrente
+            Asignación comercial
           </span>
 
           <h1>
-            Crear suscripción
+            {selectedPlan ? "Asignar plan a cliente" : "Crear suscripción"}
           </h1>
 
           <p>
-            Vincula un cliente con un plan,
-            proyecto, ciclo de cobro y precio
-            comercial acordado.
+            {selectedPlan
+              ? `Selecciona el cliente para ${selectedPlan.name} y define las condiciones particulares del acuerdo.`
+              : "Vincula un cliente con un plan, proyecto opcional, ciclo de cobro y precio comercial acordado."}
           </p>
         </div>
 
@@ -120,11 +135,25 @@ export default async function NewSubscriptionPage({
           className={
             styles.secondaryButton
           }
-          href="/suscripciones"
+          href={selectedPlan ? "/planes" : "/suscripciones"}
         >
-          Volver a suscripciones
+          {selectedPlan ? "Volver a planes" : "Volver a suscripciones"}
         </Link>
       </header>
+
+      {resolvedSearchParams.resultado === "plan-creado" && selectedPlan && (
+        <div className={styles.successMessage}>
+          <strong>{selectedPlan.name} fue creado correctamente.</strong>{" "}
+          Ahora selecciona el cliente para completar la asignación.
+        </div>
+      )}
+
+      {requestedUnavailablePlan && (
+        <div className={styles.warningMessage}>
+          El plan solicitado no está disponible para nuevas asignaciones.
+          Selecciona otro plan activo.
+        </div>
+      )}
 
       {resolvedSearchParams.error ===
         "duplicada" && (
@@ -167,13 +196,12 @@ export default async function NewSubscriptionPage({
             }
           >
             <h2>
-              Información de la suscripción
+              Cliente y condiciones del acuerdo
             </h2>
 
             <p>
-              Define el cliente, plan,
-              condiciones comerciales y fechas
-              de vigencia.
+              El plan es reutilizable; esta suscripción conserva sus
+              propias condiciones comerciales y fechas de vigencia.
             </p>
           </div>
 
@@ -182,13 +210,15 @@ export default async function NewSubscriptionPage({
               serializedClients
             }
             initialValues={{
-              clientId: "",
+              clientId: selectedClient?.id ?? "",
               projectId: "",
-              planId: "",
+              planId: selectedPlan?.id ?? "",
               status: "ACTIVE",
               billingCycle:
                 "MONTHLY",
-              agreedPrice: "",
+              agreedPrice: selectedPlan
+                ? String(Math.round(Number(selectedPlan.monthlyPrice)))
+                : "",
               requestsUsed: "0",
               startsAt:
                 formatDateInput(
@@ -228,7 +258,7 @@ export default async function NewSubscriptionPage({
             className={
               styles.secondaryButton
             }
-            href="/suscripciones"
+            href={selectedPlan ? "/planes" : "/suscripciones"}
           >
             Cancelar
           </Link>
@@ -240,7 +270,7 @@ export default async function NewSubscriptionPage({
             disabled={!canCreate}
             type="submit"
           >
-            Guardar suscripción
+            Asignar plan al cliente
           </button>
         </footer>
       </form>

@@ -242,9 +242,9 @@ export default async function PlansPage({
           <h1>Planes</h1>
 
           <p>
-            Administra precios, solicitudes incluidas,
-            tiempos de respuesta y disponibilidad de los
-            planes comerciales de Vialoop.
+            Crea el producto comercial una sola vez y asígnalo a
+            los clientes que lo contraten, conservando en cada
+            suscripción su propio precio y ciclo de cobro.
           </p>
         </div>
 
@@ -271,13 +271,43 @@ export default async function PlansPage({
         </div>
       )}
 
+      <section className={styles.workflowPanel}>
+        <div className={styles.workflowIntro}>
+          <span className={styles.eyebrow}>Flujo recomendado</span>
+          <h2>Del catálogo al cliente, sin duplicar información</h2>
+          <p>
+            El plan define la oferta de Vialoop. La suscripción es
+            el acuerdo particular con cada cliente.
+          </p>
+        </div>
+
+        <div className={styles.workflowSteps}>
+          <div>
+            <strong>Plan comercial</strong>
+            <span>Nombre, alcance, precio base y nivel de servicio.</span>
+          </div>
+          <div>
+            <strong>Asignación al cliente</strong>
+            <span>Cliente y proyecto asociado, cuando corresponda.</span>
+          </div>
+          <div>
+            <strong>Suscripción</strong>
+            <span>Ciclo, precio acordado, vigencia y renovación.</span>
+          </div>
+        </div>
+
+        <Link className={styles.workflowAction} href="/suscripciones/nuevo">
+          Asignar plan existente
+        </Link>
+      </section>
+
       <section className={styles.summary}>
         <article>
           <span>Planes registrados</span>
 
           <strong>{plans.length}</strong>
 
-          <p>Total almacenado en el sistema</p>
+          <p>Total disponible en el catálogo</p>
         </article>
 
         <article>
@@ -518,6 +548,15 @@ export default async function PlansPage({
 
                       <td>
                         <div className={styles.actions}>
+                          {plan.active && (
+                            <Link
+                              className={styles.assignButton}
+                              href={`/suscripciones/nuevo?plan=${plan.id}`}
+                            >
+                              Asignar
+                            </Link>
+                          )}
+
                           <Link
                             className={styles.editButton}
                             href={`/planes/${plan.id}/editar`}

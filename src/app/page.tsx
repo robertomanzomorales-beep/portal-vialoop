@@ -47,6 +47,19 @@ function formatCurrency(value: unknown) {
   }).format(amount);
 }
 
+function formatCompactCurrency(value: number) {
+  if (!Number.isFinite(value) || value === 0) {
+    return "$0";
+  }
+
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 function formatDate(date: Date | null | undefined) {
   if (!date) {
     return "Sin fecha";
@@ -245,6 +258,7 @@ export default async function Home() {
     monthlySalesTarget,
     trendSales,
     trendHostingPayments,
+    activeSubscriptions,
   ] = await Promise.all([
     prisma.client.count({
       where: { status: "ACTIVE" },
@@ -419,6 +433,22 @@ export default async function Home() {
         amount: true,
       },
     }),
+    prisma.subscription.findMany({
+      where: {
+        status: "ACTIVE",
+        client: { status: "ACTIVE" },
+      },
+      select: {
+        agreedPrice: true,
+        billingCycle: true,
+        plan: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    }),
   ]);
 
   const prospects = prospectLogs
@@ -581,6 +611,54 @@ export default async function Home() {
     monthlySalesTarget - monthlySalesAmount,
     0,
   );
+  const directSalesShare =
+    monthlySalesAmount > 0
+      ? Math.round((monthlyDirectSalesAmount / monthlySalesAmount) * 100)
+      : 0;
+  const hostingSalesShare = monthlySalesAmount > 0 ? 100 - directSalesShare : 0;
+  const recurringPlanMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      monthlyRevenue: number;
+      subscriptions: number;
+    }
+  >();
+
+  for (const subscription of activeSubscriptions) {
+    const cycleFactor =
+      subscription.billingCycle === "ANNUAL"
+        ? 12
+        : subscription.billingCycle === "SEMIANNUAL"
+          ? 6
+          : 1;
+    const monthlyRevenue = Math.round(
+      Number(subscription.agreedPrice) / cycleFactor,
+    );
+    const currentPlan = recurringPlanMap.get(subscription.plan.id) ?? {
+      id: subscription.plan.id,
+      name: subscription.plan.name,
+      monthlyRevenue: 0,
+      subscriptions: 0,
+    };
+
+    currentPlan.monthlyRevenue += monthlyRevenue;
+    currentPlan.subscriptions += 1;
+    recurringPlanMap.set(subscription.plan.id, currentPlan);
+  }
+
+  const recurringPlanMix = [...recurringPlanMap.values()].toSorted(
+    (first, second) => second.monthlyRevenue - first.monthlyRevenue,
+  );
+  const monthlyRecurringRevenue = recurringPlanMix.reduce(
+    (total, plan) => total + plan.monthlyRevenue,
+    0,
+  );
+  const recurringPlanMaximum = Math.max(
+    1,
+    ...recurringPlanMix.map((plan) => plan.monthlyRevenue),
+  );
   const salesTrend = Array.from({ length: 6 }, (_, index) => {
     const monthDate = new Date(
       Date.UTC(
@@ -620,6 +698,16 @@ export default async function Home() {
     1,
     ...salesTrend.map((item) => item.total),
   );
+  const currentTrendTotal = salesTrend.at(-1)?.total ?? 0;
+  const previousTrendTotal = salesTrend.at(-2)?.total ?? 0;
+  const monthOverMonthChange =
+    previousTrendTotal > 0
+      ? Math.round(
+          ((currentTrendTotal - previousTrendTotal) / previousTrendTotal) * 100,
+        )
+      : currentTrendTotal > 0
+        ? 100
+        : 0;
   const agendaCount = overdueFollowUps.length + immediateFollowUps.length;
   const metrics = [
     {
@@ -694,6 +782,208 @@ export default async function Home() {
             <p>{metric.detail}</p>
           </Link>
         ))}
+      </section>
+
+      <section aria-label="Pulso del negocio" className={styles.performanceGrid}>
+        <article className={styles.goalPanel}>
+          <div className={styles.goalHeader}>
+            <div>
+              <span className={styles.panelEyebrow}>Pulso del mes</span>
+              <h2>Ventas frente a la meta</h2>
+            </div>
+            <Link className={styles.textAction} href="/ventas">
+              Ver ventas
+            </Link>
+          </div>
+
+          <div className={styles.goalBody}>
+            <div
+              aria-label={`${monthlySalesProgress}% de la meta mensual alcanzada`}
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={Math.min(monthlySalesProgress, 100)}
+              className={styles.goalRing}
+              role="progressbar"
+              style={{
+                background: `conic-gradient(var(--portal-accent) ${Math.min(
+                  monthlySalesProgress,
+                  100,
+                )}%, var(--portal-border) 0)`,
+              }}
+            >
+              <span>
+                <strong>{monthlySalesProgress}%</strong>
+                <small>de la meta</small>
+              </span>
+            </div>
+
+            <div className={styles.goalSummary}>
+              <span>Venta neta confirmada</span>
+              <strong>{formatCurrency(monthlySalesAmount)}</strong>
+              <p>
+                Meta {formatCurrency(monthlySalesTarget)} · {monthlyCommercialCount}{" "}
+                movimiento{monthlyCommercialCount === 1 ? "" : "s"}
+              </p>
+              <b>
+                {monthlySalesRemaining > 0
+                  ? `Faltan ${formatCurrency(monthlySalesRemaining)}`
+                  : "Meta mensual cumplida"}
+              </b>
+            </div>
+          </div>
+
+          <div className={styles.salesMix}>
+            <div className={styles.salesMixHeader}>
+              <span>Composición de la venta neta</span>
+              <small>Mes actual</small>
+            </div>
+            <div aria-hidden="true" className={styles.salesMixTrack}>
+              <i
+                className={styles.directMix}
+                style={{ width: `${directSalesShare}%` }}
+              />
+              <i
+                className={styles.hostingMix}
+                style={{ width: `${hostingSalesShare}%` }}
+              />
+            </div>
+            <div className={styles.salesMixLegend}>
+              <span>
+                <i className={styles.directDot} />
+                Proyectos {formatCurrency(monthlyDirectSalesAmount)}
+              </span>
+              <span>
+                <i className={styles.hostingDot} />
+                Hosting y renovaciones {formatCurrency(monthlyHostingSalesAmount)}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.pulseMetrics}>
+            <Link href="/ventas">
+              <small>Caja cobrada</small>
+              <strong>{formatCurrency(monthlyCashCollected)}</strong>
+            </Link>
+            <Link href="/pagos">
+              <small>Cartera pendiente</small>
+              <strong>{formatCurrency(pendingPaymentAmount)}</strong>
+            </Link>
+            <Link href="/ventas">
+              <small>IVA neto estimado</small>
+              <strong>{formatCurrency(monthlyVatPayable)}</strong>
+            </Link>
+            <Link href="/gastos">
+              <small>Resultado operativo</small>
+              <strong>{formatCurrency(monthlyOperatingResult)}</strong>
+            </Link>
+          </div>
+        </article>
+
+        <article className={styles.trendPanel}>
+          <div className={styles.trendHeader}>
+            <div>
+              <span className={styles.panelEyebrow}>Últimos 6 meses</span>
+              <h2>Evolución de ventas</h2>
+            </div>
+            <span
+              className={`${styles.trendSignal} ${
+                monthOverMonthChange >= 0
+                  ? styles.trendSignalPositive
+                  : styles.trendSignalNegative
+              }`}
+            >
+              {monthOverMonthChange > 0 ? "+" : ""}
+              {monthOverMonthChange}% vs. mes anterior
+            </span>
+          </div>
+
+          <div className={styles.trendChart}>
+            {salesTrend.map((item, index) => {
+              const height =
+                item.total > 0
+                  ? Math.max(8, (item.total / salesTrendMaximum) * 100)
+                  : 0;
+              const isCurrentMonth = index === salesTrend.length - 1;
+
+              return (
+                <div
+                  aria-label={`${item.label}: ${formatCurrency(item.total)}`}
+                  className={`${styles.trendColumn} ${
+                    isCurrentMonth ? styles.trendColumnCurrent : ""
+                  }`}
+                  key={item.key}
+                >
+                  <span>{formatCompactCurrency(item.total)}</span>
+                  <div className={styles.trendTrack}>
+                    <i style={{ height: `${height}%` }} />
+                  </div>
+                  <strong>{item.label}</strong>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className={styles.trendFooter}>
+            <span>Venta neta, incluyendo hosting y renovaciones pagadas.</span>
+            <strong>{formatCurrency(currentTrendTotal)} este mes</strong>
+          </div>
+        </article>
+
+        <article className={styles.recurringPanel}>
+          <div className={styles.trendHeader}>
+            <div>
+              <span className={styles.panelEyebrow}>Base recurrente</span>
+              <h2>Ingreso por planes</h2>
+            </div>
+            <Link className={styles.textAction} href="/suscripciones">
+              Gestionar
+            </Link>
+          </div>
+
+          <div className={styles.recurringSummary}>
+            <span>Ingreso mensual equivalente</span>
+            <strong>{formatCurrency(monthlyRecurringRevenue)}</strong>
+            <p>
+              {activeSubscriptions.length} suscripción
+              {activeSubscriptions.length === 1 ? "" : "es"} activa
+              {activeSubscriptions.length === 1 ? "" : "s"}
+            </p>
+          </div>
+
+          {recurringPlanMix.length === 0 ? (
+            <div className={styles.recurringEmpty}>
+              <p>Aún no hay planes asignados a clientes activos.</p>
+              <Link href="/suscripciones/nuevo">Asignar primer plan</Link>
+            </div>
+          ) : (
+            <div className={styles.planMixList}>
+              {recurringPlanMix.slice(0, 4).map((plan) => (
+                <div className={styles.planMixRow} key={plan.id}>
+                  <div>
+                    <strong>{plan.name}</strong>
+                    <span>
+                      {plan.subscriptions} suscripción
+                      {plan.subscriptions === 1 ? "" : "es"}
+                    </span>
+                  </div>
+                  <div className={styles.planMixValue}>
+                    <strong>{formatCompactCurrency(plan.monthlyRevenue)}</strong>
+                    <i>
+                      <b
+                        style={{
+                          width: `${Math.max(
+                            5,
+                            (plan.monthlyRevenue / recurringPlanMaximum) * 100,
+                          )}%`,
+                        }}
+                      />
+                    </i>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </article>
       </section>
 
       <CompanyDataCards />
@@ -820,94 +1110,6 @@ export default async function Home() {
             </Link>
           )}
         </aside>
-      </section>
-
-      <section className={styles.performanceGrid}>
-        <article className={styles.goalPanel}>
-          <div className={styles.goalHeader}>
-            <div>
-              <span className={styles.panelEyebrow}>Mes actual</span>
-              <h2>Meta comercial</h2>
-            </div>
-            <strong>{monthlySalesProgress}%</strong>
-          </div>
-
-          <div className={styles.goalAmount}>
-            <strong>{formatCurrency(monthlySalesAmount)}</strong>
-            <span>de {formatCurrency(monthlySalesTarget)}</span>
-          </div>
-          <div
-            aria-label={`${monthlySalesProgress}% de la meta mensual alcanzada`}
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={Math.min(monthlySalesProgress, 100)}
-            className={styles.progressTrack}
-            role="progressbar"
-          >
-            <span
-              className={styles.progressValue}
-              style={{ width: `${Math.min(monthlySalesProgress, 100)}%` }}
-            />
-          </div>
-          <div className={styles.goalFooter}>
-            <span>{monthlyCommercialCount} movimientos confirmados</span>
-            <strong>
-              {monthlySalesRemaining > 0
-                ? `${formatCurrency(monthlySalesRemaining)} pendientes`
-                : "Meta cumplida"}
-            </strong>
-          </div>
-
-          <Link className={styles.financialPulse} href="/ventas">
-            <span>
-              <small>IVA neto estimado</small>
-              <strong>{formatCurrency(monthlyVatPayable)}</strong>
-            </span>
-            <span>
-              <small>Caja cobrada</small>
-              <strong>{formatCurrency(monthlyCashCollected)}</strong>
-            </span>
-            <span>
-              <small>Resultado operativo</small>
-              <strong>{formatCurrency(monthlyOperatingResult)}</strong>
-            </span>
-          </Link>
-        </article>
-
-        <article className={styles.trendPanel}>
-          <div className={styles.trendHeader}>
-            <div>
-              <span className={styles.panelEyebrow}>Últimos 6 meses</span>
-              <h2>Evolución de ventas</h2>
-            </div>
-            <Link className={styles.textAction} href="/ventas">
-              Ver ventas
-            </Link>
-          </div>
-
-          <div className={styles.trendChart}>
-            {salesTrend.map((item) => {
-              const height =
-                item.total > 0
-                  ? Math.max(8, (item.total / salesTrendMaximum) * 100)
-                  : 0;
-
-              return (
-                <div
-                  aria-label={`${item.label}: ${formatCurrency(item.total)}`}
-                  className={styles.trendColumn}
-                  key={item.key}
-                >
-                  <span>{formatCurrency(item.total)}</span>
-                  <div className={styles.trendTrack}>
-                    <i style={{ height: `${height}%` }} />
-                  </div>
-                  <strong>{item.label}</strong>
-                </div>
-              );
-            })}
-          </div>
-        </article>
       </section>
 
       <section className={styles.activityGrid}>

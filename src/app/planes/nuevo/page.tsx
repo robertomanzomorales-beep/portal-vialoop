@@ -25,8 +25,8 @@ export default async function NewPlanPage({
           <h1>Crear plan</h1>
 
           <p>
-            Registra el precio, nivel de servicio y condiciones
-            generales de un nuevo plan de Vialoop.
+            Define el producto comercial. Al guardarlo podrás
+            seleccionar inmediatamente el cliente que lo contrata.
           </p>
         </div>
 
@@ -45,6 +45,12 @@ export default async function NewPlanPage({
           plan existente o selecciona otro tipo disponible.
         </div>
       )}
+
+      <div className={`${styles.informationBox} ${styles.creationNotice}`}>
+        Este registro será una plantilla reutilizable. La asignación
+        al cliente se realiza en el paso siguiente y conserva su
+        propio precio, ciclo de cobro, proyecto y fechas.
+      </div>
 
       <form
         action={createPlan}
@@ -103,7 +109,7 @@ export default async function NewPlanPage({
               </select>
 
               <small>
-                El sistema permite un único plan por cada tipo.
+                El catálogo permite un único plan por cada tipo.
               </small>
             </label>
 
@@ -194,7 +200,8 @@ export default async function NewPlanPage({
 
               <span>
                 El plan podrá utilizarse en nuevas suscripciones
-                y aparecerá en el dashboard.
+                y, al guardarlo, continuarás con la asignación a un
+                cliente.
               </span>
             </div>
 
@@ -222,7 +229,7 @@ export default async function NewPlanPage({
             className={styles.primaryButton}
             type="submit"
           >
-            Guardar plan
+            Crear y asignar
           </button>
         </footer>
       </form>

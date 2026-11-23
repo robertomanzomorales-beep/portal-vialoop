@@ -226,9 +226,9 @@ export async function createPlan(
     );
   }
 
-  await prisma.$transaction(
+  const plan = await prisma.$transaction(
     async (transaction) => {
-      const plan =
+      const createdPlan =
         await transaction.plan.create({
           data: {
             name,
@@ -245,7 +245,7 @@ export async function createPlan(
         data: {
           action: "PLAN_CREATED",
           entityType: "Plan",
-          entityId: plan.id,
+          entityId: createdPlan.id,
           description: `${name} fue creado como plan ${getPlanTypeLabel(
             type,
           ).toLowerCase()}.`,
@@ -259,13 +259,19 @@ export async function createPlan(
           },
         },
       });
+
+      return createdPlan;
     },
   );
 
   revalidatePath("/");
   revalidatePath("/planes");
 
-  redirect("/planes?resultado=creado");
+  redirect(
+    active
+      ? `/suscripciones/nuevo?plan=${encodeURIComponent(plan.id)}&resultado=plan-creado`
+      : "/planes?resultado=creado",
+  );
 }
 
 export async function updatePlan(

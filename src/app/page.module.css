@@ -104,7 +104,8 @@
 .metricCard,
 .panel,
 .goalPanel,
-.trendPanel {
+.trendPanel,
+.recurringPanel {
   border: 1px solid var(--portal-border);
   border-radius: var(--portal-radius-lg);
   background: var(--portal-surface);
@@ -259,9 +260,17 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.performanceGrid {
+  grid-template-columns:
+    minmax(410px, 1.22fr)
+    minmax(360px, 1fr)
+    minmax(275px, 0.76fr);
+}
+
 .panel,
 .goalPanel,
-.trendPanel {
+.trendPanel,
+.recurringPanel {
   min-width: 0;
   overflow: hidden;
 }
@@ -491,124 +500,254 @@
 }
 
 .goalPanel,
-.trendPanel {
+.trendPanel,
+.recurringPanel {
   padding: 20px;
 }
 
-.goalHeader strong {
-  color: var(--portal-accent);
-  font-size: 23px;
-  letter-spacing: -0.04em;
+.goalBody {
+  display: grid;
+  grid-template-columns: 102px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin-top: 17px;
 }
 
-.goalAmount {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 24px;
+.goalRing {
+  position: relative;
+  display: grid;
+  width: 98px;
+  height: 98px;
+  place-items: center;
+  border-radius: 50%;
 }
 
-.goalAmount strong {
+.goalRing::before {
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: var(--portal-surface);
+  box-shadow: inset 0 0 0 1px var(--portal-border);
+  content: "";
+}
+
+.goalRing > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1px;
+  text-align: center;
+}
+
+.goalRing strong {
   color: var(--portal-text);
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: 21px;
   letter-spacing: -0.05em;
 }
 
-.goalAmount span {
-  color: var(--portal-muted);
-  font-size: 11px;
+.goalRing small {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 680;
 }
 
-.progressTrack {
+.goalSummary {
+  min-width: 0;
+}
+
+.goalSummary > span {
+  color: var(--portal-muted);
+  font-size: 9px;
+  font-weight: 670;
+}
+
+.goalSummary > strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--portal-text);
+  font-size: clamp(24px, 2.6vw, 34px);
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goalSummary p {
+  margin: 6px 0 0;
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.goalSummary b {
+  display: inline-block;
+  margin-top: 7px;
+  border-radius: 6px;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+  padding: 4px 7px;
+  font-size: 9px;
+}
+
+.salesMix {
+  margin-top: 15px;
+}
+
+.salesMixHeader,
+.salesMixLegend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.salesMixHeader span {
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  font-weight: 690;
+}
+
+.salesMixHeader small {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+}
+
+.salesMixTrack {
+  display: flex;
   height: 8px;
   overflow: hidden;
-  margin-top: 17px;
+  margin-top: 7px;
   border-radius: 999px;
   background: var(--portal-border);
 }
 
-.progressValue {
+.salesMixTrack i {
   display: block;
   height: 100%;
-  border-radius: inherit;
-  background: var(--portal-accent);
   transition: width 300ms ease;
 }
 
-.goalFooter {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 10px;
+.directMix {
+  background: var(--portal-accent);
+}
+
+.hostingMix {
+  background: var(--portal-text-tertiary);
+}
+
+.salesMixLegend {
+  margin-top: 7px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: 8px;
 }
 
-.goalFooter strong {
-  color: var(--portal-text-secondary);
+.salesMixLegend span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
 }
 
-.financialPulse {
+.salesMixLegend i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+}
+
+.directDot {
+  background: var(--portal-accent);
+}
+
+.hostingDot {
+  background: var(--portal-text-tertiary);
+}
+
+.pulseMetrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 15px;
   border: 1px solid var(--portal-border);
   border-radius: 10px;
   background: var(--portal-surface-soft);
-  color: inherit;
-  text-decoration: none;
 }
 
-.financialPulse > span {
+.pulseMetrics a {
   display: grid;
   min-width: 0;
   gap: 4px;
-  padding: 11px 12px;
   border-left: 1px solid var(--portal-border);
+  padding: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms ease;
 }
 
-.financialPulse > span:first-child {
+.pulseMetrics a:first-child {
   border-left: 0;
 }
 
-.financialPulse small {
-  overflow: hidden;
-  color: var(--portal-muted);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.financialPulse strong {
-  overflow: hidden;
-  color: var(--portal-text);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.financialPulse:hover {
-  border-color: var(--portal-accent-border);
+.pulseMetrics a:hover {
   background: var(--portal-accent-soft);
+}
+
+.pulseMetrics small,
+.pulseMetrics strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulseMetrics small {
+  color: var(--portal-muted);
+  font-size: 8px;
+}
+
+.pulseMetrics strong {
+  color: var(--portal-text);
+  font-size: 10px;
 }
 
 .trendHeader {
   align-items: center;
 }
 
+.trendSignal {
+  flex: 0 0 auto;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 999px;
+  padding: 5px 7px;
+  font-size: 8px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.trendSignalPositive {
+  border-color: var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.trendSignalNegative {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
 .trendChart {
   display: grid;
-  min-height: 166px;
+  min-height: 188px;
   grid-template-columns: repeat(6, minmax(48px, 1fr));
   gap: clamp(7px, 1.4vw, 16px);
-  margin-top: 13px;
+  margin-top: 18px;
 }
 
 .trendColumn {
   display: grid;
   min-width: 0;
-  grid-template-rows: 19px 112px 16px;
+  grid-template-rows: 21px 134px 18px;
   gap: 5px;
   text-align: center;
 }
@@ -617,7 +756,7 @@
   overflow: hidden;
   color: var(--portal-text-tertiary);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 7px;
+  font-size: 8px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -643,10 +782,164 @@
   transition: height 300ms ease;
 }
 
+.trendColumnCurrent .trendTrack {
+  border-bottom-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+}
+
+.trendColumnCurrent .trendTrack i {
+  opacity: 1;
+}
+
+.trendColumnCurrent > span,
+.trendColumnCurrent > strong {
+  color: var(--portal-accent);
+  font-weight: 760;
+}
+
 .trendColumn > strong {
   color: var(--portal-text-secondary);
   font-size: 9px;
   font-weight: 700;
+}
+
+.trendFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--portal-border);
+  padding-top: 11px;
+}
+
+.trendFooter span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.trendFooter strong {
+  flex: 0 0 auto;
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+}
+
+.recurringSummary {
+  margin-top: 18px;
+  border-bottom: 1px solid var(--portal-border);
+  padding-bottom: 14px;
+}
+
+.recurringSummary > span {
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.recurringSummary > strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  color: var(--portal-text);
+  font-size: clamp(23px, 2.5vw, 31px);
+  letter-spacing: -0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurringSummary p {
+  margin: 5px 0 0;
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
+}
+
+.planMixList {
+  margin-top: 5px;
+}
+
+.planMixRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 0.8fr);
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--portal-border);
+  padding: 10px 0;
+}
+
+.planMixRow:last-child {
+  border-bottom: 0;
+}
+
+.planMixRow > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.planMixRow > div:first-child strong,
+.planMixRow > div:first-child span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planMixRow > div:first-child strong {
+  color: var(--portal-text);
+  font-size: 10px;
+}
+
+.planMixRow > div:first-child span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+}
+
+.planMixValue {
+  display: grid;
+  gap: 5px;
+  text-align: right;
+}
+
+.planMixValue > strong {
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+}
+
+.planMixValue > i {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--portal-border);
+}
+
+.planMixValue > i > b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--portal-accent);
+}
+
+.recurringEmpty {
+  display: grid;
+  min-height: 150px;
+  place-content: center;
+  text-align: center;
+}
+
+.recurringEmpty p {
+  max-width: 210px;
+  margin: 0;
+  color: var(--portal-text-tertiary);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.recurringEmpty a {
+  margin-top: 8px;
+  color: var(--portal-accent);
+  font-size: 10px;
+  font-weight: 720;
+  text-decoration: none;
 }
 
 .priorityItem,
@@ -828,6 +1121,16 @@
   line-height: 1.45;
 }
 
+@media (max-width: 1280px) {
+  .performanceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .goalPanel {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 1120px) {
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -852,6 +1155,10 @@
   .performanceGrid,
   .activityGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .goalPanel {
+    grid-column: auto;
   }
 
   .agendaItem {
@@ -888,18 +1195,26 @@
     padding: 16px;
   }
 
-  .financialPulse {
-    grid-template-columns: 1fr;
+  .pulseMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .financialPulse > span,
-  .financialPulse > span:first-child {
+  .pulseMetrics a,
+  .pulseMetrics a:first-child {
     border-top: 1px solid var(--portal-border);
     border-left: 0;
   }
 
-  .financialPulse > span:first-child {
+  .pulseMetrics a:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .pulseMetrics a:nth-child(-n + 2) {
     border-top: 0;
+  }
+
+  .pulseMetrics a:nth-child(even) {
+    border-left: 1px solid var(--portal-border);
   }
 
   .companyDataContent {
@@ -908,7 +1223,8 @@
 
   .panel,
   .goalPanel,
-  .trendPanel {
+  .trendPanel,
+  .recurringPanel {
     padding: 17px;
   }
 
@@ -929,11 +1245,6 @@
     grid-template-columns: repeat(6, minmax(54px, 1fr));
     overflow-x: auto;
   }
-
-  .goalAmount {
-    flex-direction: column;
-    gap: 2px;
-  }
 }
 
 @media (max-width: 430px) {
@@ -948,6 +1259,27 @@
   .panelHeader {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .goalHeader,
+  .trendHeader,
+  .trendFooter,
+  .salesMixLegend {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .goalBody {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .goalRing {
+    width: 84px;
+    height: 84px;
+  }
+
+  .goalSummary > strong {
+    font-size: 24px;
   }
 
   .priorityTopline {
@@ -974,8 +1306,9 @@
   .primaryButton,
   .secondaryButton,
   .metricCard,
-  .progressValue,
-  .trendTrack i {
+  .trendTrack i,
+  .salesMixTrack i,
+  .planMixValue > i > b {
     transition: none;
   }
 }

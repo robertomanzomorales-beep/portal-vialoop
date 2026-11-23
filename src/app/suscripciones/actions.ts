@@ -459,7 +459,7 @@ export async function createSubscription(
 
   if (duplicatedSubscription) {
     redirect(
-      "/suscripciones/nuevo?error=duplicada",
+      `/suscripciones/nuevo?error=duplicada&plan=${encodeURIComponent(planId)}&cliente=${encodeURIComponent(clientId)}`,
     );
   }
 

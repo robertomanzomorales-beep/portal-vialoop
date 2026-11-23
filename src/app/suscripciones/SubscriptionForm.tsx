@@ -319,7 +319,7 @@ export default function SubscriptionForm({
         />
 
         <small>
-          El sistema sugiere el valor del
+          El software sugiere el valor del
           plan según el ciclo. Puedes
           modificarlo si existe un acuerdo
           especial.
