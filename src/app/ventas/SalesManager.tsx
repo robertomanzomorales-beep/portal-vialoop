@@ -41,17 +41,20 @@ export type SaleListItem = SaleFinancialItem & {
 
 type SalesManagerProps = {
   clients: SaleClientOption[];
+  defaultClientId?: string;
   sales: SaleListItem[];
   today: string;
 };
 
 function SaleEditor({
   clients,
+  defaultClientId,
   sale,
   today,
   onClose,
 }: {
   clients: SaleClientOption[];
+  defaultClientId?: string;
   sale: SaleListItem | null;
   today: string;
   onClose: () => void;
@@ -103,7 +106,7 @@ function SaleEditor({
           <label className={styles.field}>
             <span>Cliente</span>
             <select
-              defaultValue={sale?.clientId ?? ""}
+              defaultValue={sale?.clientId ?? defaultClientId ?? ""}
               name="clientId"
               required
             >
@@ -228,10 +231,11 @@ function SaleEditor({
 
 export default function SalesManager({
   clients,
+  defaultClientId,
   sales,
   today,
 }: SalesManagerProps) {
-  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(Boolean(defaultClientId));
   const [selectedSale, setSelectedSale] =
     useState<SaleListItem | null>(null);
   const [financialSale, setFinancialSale] =
@@ -419,6 +423,7 @@ export default function SalesManager({
       {editorOpen ? (
         <SaleEditor
           clients={clients}
+          defaultClientId={defaultClientId}
           onClose={closeEditor}
           sale={selectedSale}
           today={today}

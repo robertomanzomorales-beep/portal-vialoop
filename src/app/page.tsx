@@ -704,7 +704,7 @@ export default async function Home() {
               <p>Contactos vencidos y programados para los próximos 30 días.</p>
             </div>
             <Link className={styles.textAction} href="/seguimiento">
-              Ver calendario →
+              Ver calendario
             </Link>
           </div>
 
@@ -878,7 +878,7 @@ export default async function Home() {
               <h2>Evolución de ventas</h2>
             </div>
             <Link className={styles.textAction} href="/ventas">
-              Ver ventas →
+              Ver ventas
             </Link>
           </div>
 
@@ -916,7 +916,7 @@ export default async function Home() {
               <p>Sólo clientes y proyectos que continúan vigentes.</p>
             </div>
             <Link className={styles.textAction} href="/renovaciones">
-              Ver todas →
+              Ver todas
             </Link>
           </div>
 
@@ -978,7 +978,7 @@ export default async function Home() {
               <p>Avance, siguiente hito y riesgos de los nuevos clientes.</p>
             </div>
             <Link className={styles.textAction} href="/planificacion">
-              Abrir agenda →
+              Abrir agenda
             </Link>
           </div>
 

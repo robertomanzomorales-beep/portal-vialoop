@@ -154,14 +154,14 @@
 
 .calendarNavigation {
   display: grid;
-  grid-template-columns: 34px minmax(145px, auto) 34px auto;
+  grid-template-columns: auto minmax(145px, auto) auto auto;
   align-items: center;
   gap: 7px;
 }
 
 .calendarNavigation button {
   display: inline-grid;
-  min-width: 34px;
+  min-width: 72px;
   height: 34px;
   place-items: center;
   border: 1px solid var(--portal-border-strong);
@@ -1069,7 +1069,7 @@
 
   .calendarNavigation {
     width: 100%;
-    grid-template-columns: 34px 1fr 34px auto;
+    grid-template-columns: auto 1fr auto auto;
   }
 
   .overdueStrip {
@@ -1150,7 +1150,7 @@
   }
 
   .calendarNavigation {
-    grid-template-columns: 34px 1fr 34px;
+    grid-template-columns: auto 1fr auto;
   }
 
   .calendarNavigation .todayButton {

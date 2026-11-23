@@ -20,6 +20,7 @@ const CHILE_TIME_ZONE = "America/Santiago";
 
 type SalesPageProps = {
   searchParams: Promise<{
+    cliente?: string;
     periodo?: string;
   }>;
 };
@@ -492,6 +493,11 @@ export default async function SalesPage({
       })),
     };
   });
+  const defaultClientId = clients.some(
+    (client) => client.id === resolvedSearchParams.cliente,
+  )
+    ? resolvedSearchParams.cliente
+    : undefined;
 
   return (
     <main className={styles.content}>
@@ -784,6 +790,8 @@ export default async function SalesPage({
             id: client.id,
             name: client.tradeName || client.businessName,
           }))}
+          defaultClientId={defaultClientId}
+          key={`sales-${defaultClientId ?? "all"}`}
           sales={saleItems}
           today={getChileDateKey()}
         />

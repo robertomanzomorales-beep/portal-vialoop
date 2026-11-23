@@ -64,32 +64,38 @@ const navigationGroups: NavigationGroup[] = [
   {
     label: "Comercial",
     items: [
+      { label: "Clientes", href: "/clientes", icon: "clients" },
       { label: "Seguimiento", href: "/seguimiento", icon: "followup" },
       { label: "Cotizaciones", href: "/cotizaciones", icon: "quote" },
       { label: "Ventas", href: "/ventas", icon: "sale" },
-      { label: "Gastos", href: "/gastos", icon: "expense" },
-      { label: "Cobros manuales", href: "/cobros", icon: "charge" },
     ],
   },
   {
     label: "Operación",
     items: [
-      { label: "Clientes", href: "/clientes", icon: "clients" },
       { label: "Agenda operativa", href: "/planificacion", icon: "planning" },
       { label: "Solicitudes", href: "/solicitudes", icon: "support" },
+      { label: "Servicios técnicos", href: "/proyectos", icon: "project" },
     ],
   },
   {
-    label: "Servicios recurrentes",
+    label: "Finanzas",
     items: [
-      { label: "Planes", href: "/planes", icon: "plan" },
+      { label: "Cobros", href: "/cobros", icon: "charge" },
+      { label: "Pagos y hosting", href: "/pagos", icon: "payment" },
+      { label: "Gastos", href: "/gastos", icon: "expense" },
+    ],
+  },
+  {
+    label: "Recurrentes",
+    items: [
       {
         label: "Suscripciones",
         href: "/suscripciones",
         icon: "subscription",
       },
       { label: "Renovaciones", href: "/renovaciones", icon: "renewal" },
-      { label: "Pagos de hosting", href: "/pagos", icon: "payment" },
+      { label: "Planes", href: "/planes", icon: "plan" },
     ],
   },
   {
@@ -259,6 +265,25 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
       <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
         {icon}
       </g>
+    </svg>
+  );
+}
+
+function SidebarToggleIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg aria-hidden="true" fill="none" viewBox="0 0 20 20">
+      <rect height="15" rx="2" width="15" x="2.5" y="2.5" />
+      <path d="M7 2.5v15" />
+      <path d={collapsed ? "m10 7 3 3-3 3" : "m13 7-3 3 3 3"} />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" viewBox="0 0 20 20">
+      <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8" />
+      <path d="M11 6.5 14.5 10 11 13.5M6.5 10h8" />
     </svg>
   );
 }
@@ -441,7 +466,7 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
             title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
             type="button"
           >
-            {sidebarCollapsed ? "→" : "←"}
+            <SidebarToggleIcon collapsed={sidebarCollapsed} />
           </button>
 
           <button
@@ -527,7 +552,9 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
           <form action={logout}>
             <button className={styles.logoutButton} type="submit">
               <span className={styles.logoutLabel}>Cerrar sesión</span>
-              <span aria-hidden="true" className={styles.logoutIcon}>↪</span>
+              <span className={styles.logoutIcon}>
+                <LogoutIcon />
+              </span>
             </button>
           </form>
         </div>

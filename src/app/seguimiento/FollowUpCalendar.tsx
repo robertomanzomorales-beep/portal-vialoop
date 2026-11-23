@@ -230,7 +230,7 @@ export default function FollowUpCalendar({
             }
             type="button"
           >
-            ←
+            Anterior
           </button>
           <strong>{monthLabel(visibleMonth)}</strong>
           <button
@@ -242,7 +242,7 @@ export default function FollowUpCalendar({
             }
             type="button"
           >
-            →
+            Siguiente
           </button>
           <button
             className={styles.todayButton}

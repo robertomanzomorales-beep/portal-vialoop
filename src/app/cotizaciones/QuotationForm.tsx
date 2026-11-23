@@ -50,12 +50,17 @@ function currency(value: number) {
 
 export default function QuotationForm({
   clients,
+  defaultClientId,
   initialValue,
 }: {
   clients: ClientOption[];
+  defaultClientId?: string;
   initialValue?: QuotationFormInitialValue;
 }) {
   const initialQuotation = initialValue?.metadata;
+  const defaultClient = clients.find(
+    (client) => client.id === defaultClientId,
+  );
   const [
     state,
     formAction,
@@ -66,11 +71,11 @@ export default function QuotationForm({
   );
 
   const [clientId, setClientId] =
-    useState(initialQuotation?.clientId ?? "");
+    useState(initialQuotation?.clientId ?? defaultClient?.id ?? "");
   const [contactName, setContactName] =
-    useState(initialQuotation?.contactName ?? "");
+    useState(initialQuotation?.contactName ?? defaultClient?.contactName ?? "");
   const [recipientEmail, setRecipientEmail] =
-    useState(initialQuotation?.recipientEmail ?? "");
+    useState(initialQuotation?.recipientEmail ?? defaultClient?.email ?? "");
   const [referenceName, setReferenceName] =
     useState(initialQuotation?.referenceName ?? initialQuotation?.projectName ?? "");
   const [projectName, setProjectName] =
@@ -228,7 +233,6 @@ export default function QuotationForm({
           </div>
         )}
         <div className={styles.sectionHeading}>
-          <span>01</span>
           <div>
             <h2>Cliente y envío</h2>
             <p>
@@ -347,7 +351,6 @@ export default function QuotationForm({
 
           <div className={styles.formSection}>
         <div className={styles.sectionHeading}>
-          <span>02</span>
           <div>
             <h2>Servicios y valores</h2>
             <p>
@@ -504,7 +507,6 @@ export default function QuotationForm({
 
           <div className={styles.formSection}>
         <div className={styles.sectionHeading}>
-          <span>03</span>
           <div>
             <h2>Condiciones</h2>
             <p>

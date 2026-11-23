@@ -152,22 +152,6 @@
 .sectionHeading {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-}
-
-.sectionHeading > span {
-  display: block;
-  width: 34px;
-  height: auto;
-  flex: 0 0 34px;
-  border: 0;
-  border-bottom: 2px solid var(--portal-text);
-  border-radius: 0;
-  background: transparent;
-  padding: 3px 0 8px;
-  color: #175cd3;
-  font-size: 0.6rem;
-  font-weight: 820;
 }
 
 .sectionHeading h2 {

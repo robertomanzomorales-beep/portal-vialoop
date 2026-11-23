@@ -114,8 +114,16 @@
   background: var(--portal-surface-soft);
   color: var(--portal-muted);
   font: inherit;
-  font-size: 11px;
   cursor: pointer;
+}
+
+.collapseButton svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
 }
 
 .navigation {
@@ -140,7 +148,7 @@
 .navigationLabel {
   margin: 13px 10px 5px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 720;
   letter-spacing: 0.075em;
   text-transform: uppercase;
@@ -159,7 +167,7 @@
   border-radius: 8px;
   padding: 7px 9px;
   color: var(--portal-text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 570;
   line-height: 1.25;
   text-decoration: none;
@@ -269,20 +277,20 @@
 
 .userDetails strong {
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 680;
 }
 
 .userDetails span {
   margin-top: 2px;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .userDetails small {
   margin-top: 2px;
   color: var(--portal-text-tertiary);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .themeArea {
@@ -294,7 +302,7 @@
 .themeLabel {
   padding-left: 2px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 650;
 }
 
@@ -314,7 +322,7 @@
   border-radius: 7px;
   background: transparent;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   cursor: pointer;
   transition:
@@ -347,7 +355,7 @@
   border-radius: 9px;
   background: transparent;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   cursor: pointer;
   transition:
@@ -364,7 +372,15 @@
 
 .logoutIcon {
   display: none;
-  font-size: 15px;
+}
+
+.logoutIcon svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
 }
 
 .main {
@@ -558,15 +574,18 @@
   }
 
   .sidebar {
-    width: min(88vw, 300px);
+    inset: 0 0 0 auto;
+    width: 100vw;
     padding: 18px 14px 14px;
-    box-shadow: 24px 0 70px var(--portal-shadow-color);
-    transform: translateX(-105%);
+    border-right: 0;
+    border-left: 1px solid var(--portal-border);
+    box-shadow: -24px 0 70px var(--portal-shadow-color);
+    transform: translateX(105%);
     will-change: transform;
   }
 
   .sidebar.sidebarCollapsed {
-    width: min(88vw, 300px);
+    width: 100vw;
     padding: 18px 14px 14px;
   }
 

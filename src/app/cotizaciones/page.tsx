@@ -29,6 +29,7 @@ function formatDate(date: Date) {
 
 type QuotationsPageProps = {
   searchParams: Promise<{
+    cliente?: string;
     editar?: string;
     duplicar?: string;
   }>;
@@ -115,6 +116,11 @@ export default async function QuotationsPage({
           metadata: sourceMetadata,
         }
       : undefined;
+  const defaultClientId = clients.some(
+    (client) => client.id === resolvedSearchParams.cliente,
+  )
+    ? resolvedSearchParams.cliente
+    : undefined;
 
   return (
     <main className={styles.page}>
@@ -155,6 +161,7 @@ export default async function QuotationsPage({
             client.mainContactName ?? "",
           email: client.email ?? "",
         }))}
+        defaultClientId={defaultClientId}
         initialValue={initialValue}
       />
 
