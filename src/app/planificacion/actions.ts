@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/auth";
 import {
+  getScheduledTaskStatusLabel,
   isScheduledTaskStatus,
   parseScheduledTaskMetadata,
   type ScheduledTaskMetadata,
@@ -124,6 +125,7 @@ export async function saveTask(
     responsible,
     notes,
     source: previous?.source ?? "MANUAL",
+    workflow: previous?.workflow ?? null,
     updatedAt: new Date().toISOString(),
   };
 
@@ -156,6 +158,9 @@ export async function saveTask(
   revalidatePath("/");
   revalidatePath("/planificacion");
   revalidatePath("/seguimiento");
+  if (linkedClient?.id) {
+    revalidatePath(`/clientes/${linkedClient.id}`);
+  }
 
   return {
     ok: true,
@@ -185,6 +190,7 @@ function parseImportedDate(
 function importedStatus(value: unknown): ScheduledTaskStatus {
   const normalized = normalize(typeof value === "string" ? value : "");
   if (normalized.includes("complet") || normalized.includes("termin")) return "COMPLETED";
+  if (normalized.includes("esper") && normalized.includes("client")) return "WAITING_CLIENT";
   if (normalized.includes("bloque")) return "BLOCKED";
   if (normalized.includes("curso") || normalized.includes("proceso")) return "IN_PROGRESS";
   return "PENDING";
@@ -300,6 +306,7 @@ export async function importTasks(
         responsible: typeof responsibleValue === "string" ? responsibleValue.trim() : "",
         notes: typeof notesValue === "string" ? notesValue.trim() : "",
         source: "EXCEL",
+        workflow: null,
         updatedAt: now,
       };
       return [{ metadata, clientId: client?.id }];
@@ -353,11 +360,19 @@ export async function importTasks(
   }
 }
 
-export async function completeTask(id: string): Promise<TaskActionState> {
+export async function setTaskStatus(
+  id: string,
+  status: ScheduledTaskStatus,
+): Promise<TaskActionState> {
   const user = await requireUser();
+
+  if (!isScheduledTaskStatus(status)) {
+    return { ok: false, message: "El estado seleccionado no es válido." };
+  }
+
   const existing = await prisma.activityLog.findFirst({
     where: { id, entityType: "ScheduledTask" },
-    select: { id: true, metadata: true },
+    select: { id: true, clientId: true, metadata: true },
   });
   const task = existing ? parseScheduledTaskMetadata(existing.metadata) : null;
   if (!existing || !task) return { ok: false, message: "El trabajo ya no existe." };
@@ -366,16 +381,81 @@ export async function completeTask(id: string): Promise<TaskActionState> {
     where: { id },
     data: {
       userId: user.id,
-      action: "SCHEDULED_TASK_COMPLETED",
-      description: `${task.title} marcado como completado.`,
-      metadata: json({ ...task, status: "COMPLETED", updatedAt: new Date().toISOString() }),
+      action:
+        status === "COMPLETED"
+          ? "SCHEDULED_TASK_COMPLETED"
+          : "SCHEDULED_TASK_STATUS_UPDATED",
+      description: `${task.title} cambió a ${getScheduledTaskStatusLabel(status)}.`,
+      metadata: json({ ...task, status, updatedAt: new Date().toISOString() }),
     },
   });
+
+  if (
+    status === "COMPLETED" &&
+    task.workflow?.type === "CLIENT_ONBOARDING" &&
+    existing.clientId
+  ) {
+    const workflow = task.workflow;
+    const workflowLogs = await prisma.activityLog.findMany({
+      where: {
+        clientId: existing.clientId,
+        entityType: "ScheduledTask",
+      },
+      select: { id: true, metadata: true },
+      take: 250,
+    });
+    const workflowTasks = workflowLogs
+      .flatMap((log) => {
+        const metadata = parseScheduledTaskMetadata(log.metadata);
+        return metadata ? [{ id: log.id, metadata }] : [];
+      })
+      .filter(
+        (candidate) => candidate.metadata.workflow?.id === workflow.id,
+      )
+      .toSorted(
+        (first, second) =>
+          (first.metadata.workflow?.order ?? 0) -
+          (second.metadata.workflow?.order ?? 0),
+      );
+    const firstOpenTask = workflowTasks.find(
+      (candidate) => candidate.metadata.status !== "COMPLETED",
+    );
+    const nextTask =
+      firstOpenTask?.metadata.status === "PENDING" ? firstOpenTask : null;
+
+    if (nextTask) {
+      await prisma.activityLog.update({
+        where: { id: nextTask.id },
+        data: {
+          userId: user.id,
+          action: "CLIENT_OPERATION_STEP_STARTED",
+          description: `${nextTask.metadata.title} iniciado automáticamente.`,
+          metadata: json({
+            ...nextTask.metadata,
+            status: "IN_PROGRESS",
+            updatedAt: new Date().toISOString(),
+          }),
+        },
+      });
+    }
+  }
 
   revalidatePath("/");
   revalidatePath("/planificacion");
   revalidatePath("/seguimiento");
-  return { ok: true, message: `${task.title} completado.`, savedId: id };
+  if (existing.clientId) {
+    revalidatePath(`/clientes/${existing.clientId}`);
+  }
+
+  return {
+    ok: true,
+    message: `${task.title}: estado actualizado correctamente.`,
+    savedId: id,
+  };
+}
+
+export async function completeTask(id: string): Promise<TaskActionState> {
+  return setTaskStatus(id, "COMPLETED");
 }
 
 export async function deleteTask(id: string): Promise<TaskActionState> {

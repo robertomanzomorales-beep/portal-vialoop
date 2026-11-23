@@ -129,34 +129,34 @@ export async function sendSupportAcknowledgement({
     reference: requestCode,
     preheader: `${requestCode} · ${requestSubject} · Solicitud recibida`,
     content: `
-      <p style="margin:0 0 18px;color:#2c2c2e;font-size:14px;line-height:1.7;">
+      <p style="margin:0 0 8px;color:#172033;font-size:14px;font-weight:700;line-height:1.55;">
         Estimado/a <strong>${safeName}</strong>:
       </p>
-      <p style="margin:0 0 24px;color:#636366;font-size:14px;line-height:1.75;">
+      <p style="margin:0 0 16px;color:#475569;font-size:13px;line-height:1.65;">
         Hemos recibido correctamente su solicitud. Nuestro equipo revisará los antecedentes y se comunicará con usted por este mismo medio.
       </p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;border-top:1px solid #dedee3;border-bottom:1px solid #dedee3;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #dfe6ee;border-collapse:collapse;background:#ffffff;">
         <tr>
-          <td style="padding:14px 0;color:#8e8e93;font-size:12px;">Número de atención</td>
-          <td align="right" style="padding:14px 0;color:#1d1d1f;font-size:15px;font-weight:800;">${requestCode}</td>
+          <td style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Número de atención</td>
+          <td align="right" style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#172033;font-size:12px;font-weight:800;">${requestCode}</td>
         </tr>
         <tr>
-          <td style="padding:14px 0;border-top:1px solid #ececf0;color:#8e8e93;font-size:12px;">Asunto</td>
-          <td align="right" style="padding:14px 0;border-top:1px solid #ececf0;color:#1d1d1f;font-size:12px;font-weight:700;">${safeSubject}</td>
+          <td style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Asunto</td>
+          <td align="right" style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:700;">${safeSubject}</td>
         </tr>
         <tr>
-          <td style="padding:14px 0;border-top:1px solid #ececf0;color:#8e8e93;font-size:12px;">Estado</td>
-          <td align="right" style="padding:14px 0;border-top:1px solid #ececf0;color:#1d1d1f;font-size:12px;font-weight:800;">Recibida</td>
+          <td style="padding:9px 13px;color:#64748b;font-size:11px;">Estado</td>
+          <td align="right" style="padding:9px 13px;color:#245bd6;font-size:11px;font-weight:800;">Recibida</td>
         </tr>
       </table>
-      <p style="margin:23px 0 10px;color:#636366;font-size:13px;line-height:1.7;">
+      <p style="margin:16px 0 8px;color:#475569;font-size:12px;line-height:1.65;">
         Para mantener el seguimiento, conserve <strong>${requestCode}</strong> en el asunto de sus respuestas.
       </p>
-      <p style="margin:0;color:#8e8e93;font-size:12px;line-height:1.7;">
+      <p style="margin:0;color:#64748b;font-size:11px;line-height:1.65;">
         Por seguridad, no envíe contraseñas, claves bancarias ni credenciales de acceso por correo electrónico.
       </p>
     `,
-    footer: `<strong style="color:#1d1d1f;">Soporte Hosting Vialoop</strong><br />${escapeHtml(supportEmail)} · Lunes a viernes, de 08:00 a 20:00 horas.`,
+    footer: `<strong style="color:#172033;">Soporte Hosting Vialoop</strong><br />${escapeHtml(supportEmail)} · Lunes a viernes, de 08:00 a 20:00 horas.`,
   });
 
   return getTransporter().sendMail({

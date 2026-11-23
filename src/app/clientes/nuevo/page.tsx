@@ -1,8 +1,38 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  clientOperationServiceTypes,
+  getClientOperationServiceTypeLabel,
+} from "@/lib/scheduled-task";
 import { createClient } from "../actions";
 import styles from "../clientes.module.css";
 
-export default function NewClientPage() {
+function operationTargetDate() {
+  const current = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Santiago",
+  }).format(new Date());
+  const target = new Date(`${current}T12:00:00.000Z`);
+  target.setUTCDate(target.getUTCDate() + 30);
+  return target.toISOString().slice(0, 10);
+}
+
+export default async function NewClientPage() {
+  const [user, teamMembers] = await Promise.all([
+    getCurrentUser(),
+    prisma.user.findMany({
+      where: {
+        active: true,
+        role: { in: ["ADMIN", "COLLABORATOR"] },
+      },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -24,7 +54,6 @@ export default function NewClientPage() {
         <form action={createClient} className={styles.formPanel}>
           <section className={styles.formSection}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionNumber}>01</span>
               <div>
                 <h2>Información de la empresa</h2>
                 <p>Datos principales para identificar al cliente.</p>
@@ -82,7 +111,6 @@ export default function NewClientPage() {
 
           <section className={styles.formSection}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionNumber}>02</span>
               <div>
                 <h2>Contacto principal</h2>
                 <p>Persona responsable de la coordinación con Vialoop.</p>
@@ -121,7 +149,72 @@ export default function NewClientPage() {
 
           <section className={styles.formSection}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionNumber}>03</span>
+              <div>
+                <h2>Servicio y control operativo</h2>
+                <p>
+                  Define desde el alta qué se hará, quién responde y cuándo debe
+                  estar listo.
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.formGrid}>
+              <label className={styles.field}>
+                <span>Tipo de servicio *</span>
+                <select defaultValue="WEB" name="serviceType" required>
+                  {clientOperationServiceTypes.map((serviceType) => (
+                    <option key={serviceType} value={serviceType}>
+                      {getClientOperationServiceTypeLabel(serviceType)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>Responsable interno *</span>
+                <select
+                  defaultValue={user?.id ?? teamMembers[0]?.id ?? ""}
+                  name="responsibleUserId"
+                  required
+                >
+                  {teamMembers.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={`${styles.field} ${styles.fullWidth}`}>
+                <span>Servicio contratado o alcance principal *</span>
+                <input
+                  maxLength={160}
+                  name="serviceName"
+                  placeholder="Ej. Sitio web corporativo, software de operaciones o hosting 10 GB"
+                  required
+                  type="text"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Fecha objetivo *</span>
+                <input
+                  defaultValue={operationTargetDate()}
+                  name="operationTargetDate"
+                  required
+                  type="date"
+                />
+              </label>
+
+              <div className={styles.operationFormNote}>
+                Se crearán automáticamente hitos en la Agenda operativa. No es
+                necesario registrar un proyecto para comenzar.
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.formSection}>
+            <div className={styles.sectionHeader}>
               <div>
                 <h2>Contexto comercial</h2>
                 <p>Estas observaciones solo serán visibles para Vialoop.</p>
@@ -175,31 +268,31 @@ export default function NewClientPage() {
 
           <ol className={styles.operationSteps}>
             <li>
-              <span>01</span>
+              <span />
               <div>
                 <strong>Alta comercial</strong>
-                <small>Empresa, contacto y contexto del servicio.</small>
+                <small>Ficha única, servicio, responsable y fecha objetivo.</small>
               </div>
             </li>
             <li>
-              <span>02</span>
+              <span />
               <div>
-                <strong>Bienvenida de Doris</strong>
-                <small>Correo editable con fotos y archivos requeridos.</small>
+                <strong>Condiciones y bienvenida</strong>
+                <small>Pago inicial y correo editable de Doris.</small>
               </div>
             </li>
             <li>
-              <span>03</span>
+              <span />
               <div>
                 <strong>Recepción de material</strong>
-                <small>Validación de contenidos antes de comenzar.</small>
+                <small>Contenidos y accesos validados antes de ejecutar.</small>
               </div>
             </li>
             <li>
-              <span>04</span>
+              <span />
               <div>
-                <strong>Implementación</strong>
-                <small>Proyecto, planificación, revisión y publicación.</small>
+                <strong>Implementación y revisión</strong>
+                <small>Hitos visibles en agenda, aprobación y entrega.</small>
               </div>
             </li>
           </ol>

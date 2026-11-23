@@ -644,6 +644,16 @@
   gap: 8px;
 }
 
+.operationFormNote {
+  align-self: end;
+  border-left: 3px solid var(--portal-accent);
+  background: var(--portal-accent-soft);
+  padding: 10px 12px;
+  color: var(--portal-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .operationPanel {
   position: sticky;
   top: 20px;
@@ -706,10 +716,14 @@
   border: 1px solid rgb(139 179 255 / 35%);
   border-radius: 50%;
   background: rgb(111 159 255 / 12%);
-  color: #b8d0ff;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+}
+
+.operationSteps li > span::after {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b8d0ff;
+  content: "";
 }
 
 .operationSteps strong,
@@ -740,6 +754,306 @@
 
 .operationNote strong {
   color: var(--portal-contrast-text);
+}
+
+/* Flujo real de implementación, conectado a Agenda operativa */
+
+.operationBoard,
+.operationBoardEmpty {
+  margin-bottom: 12px;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.operationBoardEmpty {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.6fr);
+  align-items: start;
+  gap: 24px;
+  padding: 20px;
+}
+
+.operationBoardEmpty h2,
+.operationBoardHeader h2 {
+  margin: 6px 0 5px;
+  color: var(--portal-text);
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+
+.operationBoardEmpty > div > p,
+.operationBoardHeader p {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.operationStartForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.operationStartForm label {
+  display: grid;
+  gap: 6px;
+}
+
+.operationStartForm label > span {
+  color: var(--portal-text-secondary);
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.operationStartForm input,
+.operationStartForm select,
+.operationStageStatus select {
+  min-height: 38px;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 8px;
+  background: var(--portal-surface);
+  padding: 0 11px;
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.operationStartForm input:focus,
+.operationStartForm select:focus,
+.operationStageStatus select:focus {
+  border-color: var(--portal-accent);
+  box-shadow: 0 0 0 3px var(--portal-focus);
+}
+
+.operationStartWide,
+.operationStartForm > button,
+.operationStartForm > p {
+  grid-column: 1 / -1;
+}
+
+.operationFeedbackSuccess,
+.operationFeedbackError {
+  margin: 0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.operationFeedbackSuccess {
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.operationFeedbackError {
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.operationBoard {
+  overflow: hidden;
+}
+
+.operationBoardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 19px 20px 15px;
+}
+
+.operationBoardMeta {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: end;
+  gap: 4px 10px;
+  text-align: right;
+}
+
+.operationBoardMeta > span {
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.operationBoardMeta > strong {
+  color: var(--portal-text);
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.operationBoardMeta > small {
+  grid-column: 1 / -1;
+  color: var(--portal-muted);
+  font-size: 10px;
+}
+
+.operationHealthactive {
+  border-color: var(--portal-accent-border) !important;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+}
+
+.operationHealthwaiting,
+.operationHealthlate {
+  border-color: var(--portal-warning-border) !important;
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
+}
+
+.operationHealthblocked {
+  border-color: var(--portal-danger-border) !important;
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.operationHealthcomplete {
+  border-color: var(--portal-success-border) !important;
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.operationProgress {
+  height: 5px;
+  overflow: hidden;
+  background: var(--portal-border);
+}
+
+.operationProgress span {
+  display: block;
+  height: 100%;
+  background: var(--portal-accent);
+  transition: width 240ms ease;
+}
+
+.operationStageList {
+  border-top: 1px solid var(--portal-border);
+}
+
+.operationStage {
+  display: grid;
+  grid-template-columns: 18px minmax(220px, 1fr) minmax(105px, 0.28fr) minmax(165px, 0.35fr);
+  align-items: center;
+  gap: 13px;
+  min-height: 67px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--portal-border);
+}
+
+.operationStageMarker {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--portal-border-strong);
+  border-radius: 50%;
+  background: var(--portal-surface);
+}
+
+.operationStageMarkerIN_PROGRESS {
+  border-color: var(--portal-accent);
+  background: var(--portal-accent);
+  box-shadow: 0 0 0 4px var(--portal-accent-soft);
+}
+
+.operationStageMarkerWAITING_CLIENT {
+  border-color: var(--portal-warning);
+  background: var(--portal-warning-soft);
+}
+
+.operationStageMarkerBLOCKED {
+  border-color: var(--portal-danger);
+  background: var(--portal-danger-soft);
+}
+
+.operationStageMarkerCOMPLETED {
+  border-color: var(--portal-success);
+  background: var(--portal-success);
+}
+
+.operationStageMain {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.operationStageMain strong {
+  color: var(--portal-text);
+  font-size: 12.5px;
+}
+
+.operationStageMain small {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operationStageDate,
+.operationStageLate {
+  display: grid;
+  gap: 3px;
+}
+
+.operationStageDate span,
+.operationStageLate span {
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.operationStageDate strong,
+.operationStageLate strong {
+  color: var(--portal-text-secondary);
+  font-size: 11px;
+}
+
+.operationStageLate span,
+.operationStageLate strong {
+  color: var(--portal-danger);
+}
+
+.operationStageStatus select {
+  width: 100%;
+  min-height: 34px;
+  font-size: 11px;
+}
+
+.operationBoardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 20px;
+  background: var(--portal-surface-soft);
+}
+
+.operationBoardFooter > div {
+  display: grid;
+  gap: 3px;
+}
+
+.operationBoardFooter strong {
+  color: var(--portal-text);
+  font-size: 11px;
+}
+
+.operationBoardFooter span {
+  color: var(--portal-muted);
+  font-size: 10px;
+}
+
+.operationBoardFooter .secondaryButton {
+  min-height: 34px;
+  font-size: 11px;
 }
 
 .clientOperationPanel {
@@ -1048,6 +1362,15 @@
   .summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .operationStage {
+    grid-template-columns: 18px minmax(210px, 1fr) minmax(155px, 0.45fr);
+  }
+
+  .operationStageDate,
+  .operationStageLate {
+    display: none;
+  }
 }
 
 @media (max-width: 800px) {
@@ -1067,6 +1390,35 @@
   .clientOperationPanel {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .operationBoardEmpty {
+    grid-template-columns: 1fr;
+  }
+
+  .operationBoardHeader,
+  .operationBoardFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operationBoardMeta {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .operationStage {
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px 17px;
+  }
+
+  .operationStageStatus {
+    grid-column: 2;
+  }
+
+  .operationStageMain small {
+    white-space: normal;
   }
 
   .clientQuickActions {
@@ -1112,11 +1464,18 @@
   }
 
   .summary,
-  .formGrid {
+  .formGrid,
+  .operationStartForm {
     grid-template-columns: 1fr;
   }
 
   .fullWidth {
+    grid-column: auto;
+  }
+
+  .operationStartWide,
+  .operationStartForm > button,
+  .operationStartForm > p {
     grid-column: auto;
   }
 

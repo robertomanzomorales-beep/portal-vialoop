@@ -49,13 +49,13 @@ export function buildVialoopEmailLayout({
         <style>
           :root { color-scheme: light only; }
           @media only screen and (max-width: 640px) {
-            .vialoop-shell { padding: 8px 6px !important; }
-            .vialoop-sheet { border-radius: 10px !important; }
-            .vialoop-header { padding: 18px 17px 19px !important; }
-            .vialoop-content { padding: 20px 17px 22px !important; }
-            .vialoop-footer { padding: 14px 17px 17px !important; }
-            .vialoop-title { font-size: 20px !important; line-height: 1.2 !important; }
-            .vialoop-reference { display: block !important; padding: 9px 0 0 !important; text-align: left !important; }
+            .vialoop-shell { padding: 7px 5px !important; }
+            .vialoop-sheet { border-radius: 8px !important; }
+            .vialoop-header { padding: 17px 16px 18px !important; }
+            .vialoop-content { padding: 19px 16px 21px !important; }
+            .vialoop-footer { padding: 13px 16px 16px !important; }
+            .vialoop-title { font-size: 19px !important; line-height: 1.22 !important; }
+            .vialoop-reference { font-size: 9px !important; }
             .quote-meta-cell,
             .quote-item-copy,
             .quote-item-value,
@@ -99,17 +99,17 @@ export function buildVialoopEmailLayout({
         }
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;background:#eef2f6;">
           <tr>
-            <td class="vialoop-shell" align="center" style="padding:22px 12px;">
-              <table class="vialoop-sheet" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:650px;overflow:hidden;border:1px solid #dfe6ee;border-radius:12px;border-collapse:separate;border-spacing:0;background:#ffffff;box-shadow:0 8px 24px rgba(20,45,78,.07);">
+            <td class="vialoop-shell" align="center" style="padding:16px 10px;">
+              <table class="vialoop-sheet" width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:620px;overflow:hidden;border:1px solid #d9e1eb;border-radius:9px;border-collapse:separate;border-spacing:0;background:#ffffff;box-shadow:0 6px 20px rgba(20,45,78,.06);">
                 <tr>
                   <td style="height:3px;background:#2f6fed;font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
                 <tr>
-                  <td class="vialoop-header" style="padding:19px 24px 21px;background:#10213a;color:#ffffff;">
+                  <td class="vialoop-header" style="padding:18px 22px 20px;background:#10213a;color:#ffffff;">
                     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;">
                       <tr>
                         <td valign="top">
-                          <div style="color:#9fc0ff;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;">${escapeEmailHtml(eyebrow)}</div>
+                          <div style="color:#ffffff;font-size:12px;font-weight:800;letter-spacing:.13em;line-height:1;text-transform:uppercase;">VIALOOP</div>
                         </td>
                         ${
                           reference
@@ -118,16 +118,17 @@ export function buildVialoopEmailLayout({
                         }
                       </tr>
                     </table>
-                    <h1 class="vialoop-title" style="margin:7px 0 0;color:#ffffff;font-size:21px;font-weight:750;letter-spacing:-.3px;line-height:1.2;">${safeTitle}</h1>
+                    <div style="margin-top:15px;color:#9fc0ff;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;">${escapeEmailHtml(eyebrow)}</div>
+                    <h1 class="vialoop-title" style="margin:6px 0 0;color:#ffffff;font-size:20px;font-weight:750;letter-spacing:-.25px;line-height:1.22;">${safeTitle}</h1>
                   </td>
                 </tr>
                 <tr>
-                  <td class="vialoop-content" style="padding:22px 24px 24px;background:#ffffff;color:#172033;font-size:13px;line-height:1.6;">
+                  <td class="vialoop-content" style="padding:20px 22px 22px;background:#ffffff;color:#172033;font-size:13px;line-height:1.6;">
                     ${content}
                   </td>
                 </tr>
                 <tr>
-                  <td class="vialoop-footer" style="padding:14px 24px 18px;border-top:1px solid #e5eaf0;background:#f8fafc;color:#64748b;font-size:10.5px;line-height:1.55;">
+                  <td class="vialoop-footer" style="padding:13px 22px 16px;border-top:1px solid #e5eaf0;background:#f8fafc;color:#64748b;font-size:10.5px;line-height:1.55;">
                     ${
                       footer ??
                       "Vialoop Studio SpA · vialoop.cl<br />Este mensaje fue generado desde el Portal Vialoop."

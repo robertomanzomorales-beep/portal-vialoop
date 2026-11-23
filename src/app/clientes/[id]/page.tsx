@@ -2,11 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import {
+  getLatestClientOperationTasks,
+  type ClientOperationTaskRecord,
+} from "@/lib/client-operation";
 import { parseQuotationMetadata } from "@/lib/quotation";
 import {
   getScheduledTaskStatusLabel,
+  isClientOperationTask,
   parseScheduledTaskMetadata,
 } from "@/lib/scheduled-task";
+import ClientOperationBoard from "../ClientOperationBoard";
 import DeleteClientButton from "../DeleteClientButton";
 import WelcomeEmailComposer from "../WelcomeEmailComposer";
 import styles from "../clientes.module.css";
@@ -30,6 +36,15 @@ function formatDate(date: Date | null | undefined) {
     month: "long",
     year: "numeric",
   }).format(date);
+}
+
+function chileDateKey() {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Santiago",
+  }).format(new Date());
 }
 
 function formatCurrency(value: unknown) {
@@ -157,7 +172,7 @@ export default async function ClientDetailPage({
     searchParams,
   ]);
 
-  const [user, client] = await Promise.all([
+  const [user, client, teamMembers] = await Promise.all([
     getCurrentUser(),
     prisma.client.findUnique({
       where: {
@@ -214,7 +229,7 @@ export default async function ClientDetailPage({
           orderBy: {
             createdAt: "desc",
           },
-          take: 50,
+          take: 250,
         },
 
       _count: {
@@ -227,6 +242,14 @@ export default async function ClientDetailPage({
         },
       },
       },
+    }),
+    prisma.user.findMany({
+      where: {
+        active: true,
+        role: { in: ["ADMIN", "COLLABORATOR"] },
+      },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
     }),
   ]);
 
@@ -281,20 +304,27 @@ export default async function ClientDetailPage({
   const welcomeEmails = client.activityLogs.filter(
     (log) => log.entityType === "ClientWelcomeEmail",
   );
-  const scheduledTasks = client.activityLogs
+  const scheduledTasks: ClientOperationTaskRecord[] = client.activityLogs
     .filter((log) => log.entityType === "ScheduledTask")
-    .map((log) => ({ log, metadata: parseScheduledTaskMetadata(log.metadata) }))
+    .map((log) => ({
+      id: log.id,
+      createdAt: log.createdAt.toISOString(),
+      metadata: parseScheduledTaskMetadata(log.metadata),
+    }))
     .filter(
-      (item): item is {
-        log: (typeof client.activityLogs)[number];
-        metadata: NonNullable<ReturnType<typeof parseScheduledTaskMetadata>>;
-      } => Boolean(item.metadata),
+      (item): item is ClientOperationTaskRecord => Boolean(item.metadata),
     )
     .sort((first, second) =>
       first.metadata.dueDate.localeCompare(second.metadata.dueDate),
     );
+  const latestOperationTasks = getLatestClientOperationTasks(
+    scheduledTasks.filter((task) => isClientOperationTask(task.metadata)),
+  );
   const openScheduledTasks = scheduledTasks.filter(
     ({ metadata }) => metadata.status !== "COMPLETED",
+  );
+  const openGeneralScheduledTasks = openScheduledTasks.filter(
+    ({ metadata }) => !isClientOperationTask(metadata),
   );
 
   return (
@@ -353,6 +383,20 @@ export default async function ClientDetailPage({
           <strong>{quotations.length}</strong>
         </article>
       </section>
+
+      <ClientOperationBoard
+        clientId={client.id}
+        clientName={client.tradeName || client.businessName}
+        currentUserId={user?.id ?? teamMembers[0]?.id ?? ""}
+        defaultServiceName={
+          mainProject?.websiteType ||
+          mainProject?.name ||
+          "Servicio Vialoop"
+        }
+        tasks={latestOperationTasks}
+        teamMembers={teamMembers}
+        today={chileDateKey()}
+      />
 
       <section className={styles.clientOperationPanel}>
         <div>
@@ -724,10 +768,10 @@ export default async function ClientDetailPage({
             <p>Trabajos abiertos vinculados a esta ficha de cliente.</p>
           </div>
 
-          {openScheduledTasks.length > 0 ? (
+          {openGeneralScheduledTasks.length > 0 ? (
             <dl className={styles.detailList}>
-              {openScheduledTasks.slice(0, 6).map(({ log, metadata }) => (
-                <div key={log.id}>
+              {openGeneralScheduledTasks.slice(0, 6).map(({ id, metadata }) => (
+                <div key={id}>
                   <dt>
                     <Link href="/planificacion">{metadata.title}</Link>
                     <br />

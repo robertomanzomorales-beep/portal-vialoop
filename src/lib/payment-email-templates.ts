@@ -1,3 +1,5 @@
+import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
+
 type PaymentMethod =
   | "BANK_TRANSFER"
   | "FLOW"
@@ -387,5 +389,4 @@ export function buildInvoiceEmail(
     }),
   };
 }
-import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
 

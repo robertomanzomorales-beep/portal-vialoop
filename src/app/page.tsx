@@ -6,7 +6,15 @@ import {
 } from "@/lib/prospect";
 import { getMonthlySalesGoal } from "@/lib/sales-goal";
 import { parseExpenseMetadata } from "@/lib/expense";
-import { parseScheduledTaskMetadata } from "@/lib/scheduled-task";
+import {
+  isClientOperationTask,
+  parseScheduledTaskMetadata,
+} from "@/lib/scheduled-task";
+import {
+  getClientOperationSummary,
+  getLatestClientOperationTasks,
+  type ClientOperationTaskRecord,
+} from "@/lib/client-operation";
 import CompanyDataCards from "./CompanyDataCards";
 import styles from "./page.module.css";
 
@@ -220,7 +228,6 @@ export default async function Home() {
 
   const [
     clientCount,
-    projectCount,
     openRequestCount,
     upcomingRenewalCount,
     overdueRenewalCount,
@@ -236,18 +243,11 @@ export default async function Home() {
     monthlyHostingCount,
     monthlySalePaymentsAmountResult,
     monthlySalesTarget,
-    recentSales,
     trendSales,
     trendHostingPayments,
   ] = await Promise.all([
     prisma.client.count({
       where: { status: "ACTIVE" },
-    }),
-    prisma.project.count({
-      where: {
-        status: { in: [...activeProjectStatuses] },
-        client: { status: "ACTIVE" },
-      },
     }),
     prisma.supportRequest.count({
       where: {
@@ -304,8 +304,20 @@ export default async function Home() {
     prisma.activityLog.findMany({
       where: { entityType: "ScheduledTask" },
       orderBy: { createdAt: "desc" },
-      take: 1000,
-      select: { id: true, metadata: true },
+      take: 1500,
+      select: {
+        id: true,
+        clientId: true,
+        createdAt: true,
+        metadata: true,
+        client: {
+          select: {
+            businessName: true,
+            tradeName: true,
+            status: true,
+          },
+        },
+      },
     }),
     prisma.renewal.findMany({
       where: {
@@ -384,28 +396,6 @@ export default async function Home() {
     prisma.sale.findMany({
       where: {
         status: "ACTIVE",
-        client: { status: "ACTIVE" },
-      },
-      orderBy: [
-        { saleDate: "desc" },
-        { createdAt: "desc" },
-      ],
-      take: 5,
-      include: {
-        client: {
-          select: {
-            businessName: true,
-            tradeName: true,
-          },
-        },
-        payments: {
-          select: { amount: true },
-        },
-      },
-    }),
-    prisma.sale.findMany({
-      where: {
-        status: "ACTIVE",
         saleDate: {
           gte: trendStart,
           lt: currentMonth.end,
@@ -480,10 +470,64 @@ export default async function Home() {
   ).length;
   const activeTasks = taskLogs.flatMap((log) => {
     const task = parseScheduledTaskMetadata(log.metadata);
-    return task && task.status !== "COMPLETED" ? [{ id: log.id, metadata: task }] : [];
+    return task && task.status !== "COMPLETED" && !isClientOperationTask(task)
+      ? [{ id: log.id, metadata: task }]
+      : [];
   });
   const overdueTasks = activeTasks.filter(
     ({ metadata }) => metadata.dueDate < todayKey,
+  ).length;
+  const operationGroups = new Map<
+    string,
+    {
+      clientId: string;
+      clientName: string;
+      tasks: ClientOperationTaskRecord[];
+    }
+  >();
+
+  for (const log of taskLogs) {
+    const metadata = parseScheduledTaskMetadata(log.metadata);
+    if (
+      !metadata ||
+      !isClientOperationTask(metadata) ||
+      !log.clientId ||
+      !log.client ||
+      log.client.status !== "ACTIVE"
+    ) {
+      continue;
+    }
+
+    const group = operationGroups.get(log.clientId) ?? {
+      clientId: log.clientId,
+      clientName: log.client.tradeName || log.client.businessName,
+      tasks: [],
+    };
+    group.tasks.push({
+      id: log.id,
+      createdAt: log.createdAt.toISOString(),
+      metadata,
+    });
+    operationGroups.set(log.clientId, group);
+  }
+
+  const activeClientOperations = [...operationGroups.values()]
+    .flatMap((group) => {
+      const tasks = getLatestClientOperationTasks(group.tasks);
+      if (tasks.length === 0) return [];
+      const summary = getClientOperationSummary(tasks, todayKey);
+      return summary.finished ? [] : [{ ...group, tasks, summary }];
+    })
+    .toSorted((first, second) => {
+      const firstRisk = first.summary.blocked * 100 + first.summary.overdue * 10;
+      const secondRisk = second.summary.blocked * 100 + second.summary.overdue * 10;
+      return (
+        secondRisk - firstRisk ||
+        first.summary.targetDate.localeCompare(second.summary.targetDate)
+      );
+    });
+  const operationIssues = activeClientOperations.filter(
+    ({ summary }) => summary.blocked > 0 || summary.overdue > 0,
   ).length;
   const agendaProspects = datedProspects
     .filter(
@@ -581,9 +625,9 @@ export default async function Home() {
     {
       label: "Clientes activos",
       value: String(clientCount),
-      detail: `${projectCount} proyectos vigentes`,
+      detail: `${activeClientOperations.length} implementaciones activas`,
       href: "/clientes",
-      alert: false,
+      alert: operationIssues > 0,
     },
     {
       label: "Agenda comercial",
@@ -612,11 +656,11 @@ export default async function Home() {
     <main className={styles.content}>
       <header className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>Control comercial</span>
+          <span className={styles.eyebrow}>Control ejecutivo</span>
           <h1>Dashboard</h1>
           <p>
-            Prioridades reales para vender, cobrar y renovar sin recorrer
-            todo el sistema.
+            Prioridades reales para vender, implementar, cobrar y renovar sin
+            recorrer todo el software.
           </p>
           <span className={styles.currentDate}>
             {formatLongDate(currentDate)}
@@ -751,6 +795,10 @@ export default async function Home() {
             <Link className={overdueTasks > 0 ? styles.alertCritical : ""} href="/planificacion">
               <span>Trabajos atrasados</span>
               <strong>{overdueTasks}</strong>
+            </Link>
+            <Link className={operationIssues > 0 ? styles.alertCritical : ""} href="/planificacion">
+              <span>Implementaciones en riesgo</span>
+              <strong>{operationIssues}</strong>
             </Link>
             <Link className={overdueExpenses > 0 ? styles.alertCritical : ""} href="/gastos">
               <span>Gastos vencidos</span>
@@ -925,58 +973,51 @@ export default async function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Actividad comercial</span>
-              <h2>Ventas recientes</h2>
-              <p>Últimas ventas vigentes de clientes activos.</p>
+              <span className={styles.panelEyebrow}>Entrega de servicios</span>
+              <h2>Implementaciones activas</h2>
+              <p>Avance, siguiente hito y riesgos de los nuevos clientes.</p>
             </div>
-            <Link className={styles.textAction} href="/ventas">
-              Ver todas →
+            <Link className={styles.textAction} href="/planificacion">
+              Abrir agenda →
             </Link>
           </div>
 
-          {recentSales.length === 0 ? (
+          {activeClientOperations.length === 0 ? (
             <div className={styles.emptyState}>
-              <span>—</span>
+              <span>✓</span>
               <div>
-                <h3>Sin ventas recientes</h3>
-                <p>Las nuevas ventas aparecerán aquí.</p>
+                <h3>Sin implementaciones pendientes</h3>
+                <p>Los flujos iniciados desde Nuevo cliente aparecerán aquí.</p>
               </div>
             </div>
           ) : (
-            <div className={styles.saleList}>
-              {recentSales.map((sale) => {
-                const paidAmount = sale.payments.reduce(
-                  (total, payment) => total + Number(payment.amount),
-                  0,
-                );
-                const balance = Math.max(Number(sale.netAmount) - paidAmount, 0);
-
-                return (
-                  <Link
-                    className={styles.saleItem}
-                    href={`/clientes/${sale.clientId}`}
-                    key={sale.id}
-                  >
-                    <span className={styles.saleMain}>
-                      <strong>
-                        {sale.client.tradeName || sale.client.businessName}
-                      </strong>
-                      <span>{sale.service}</span>
-                      <small>
-                        Venta #{sale.number} · {formatDate(sale.saleDate)}
-                      </small>
-                    </span>
-                    <span className={styles.saleAmount}>
-                      <strong>{formatCurrency(sale.netAmount)}</strong>
-                      <small>
-                        {balance > 0
-                          ? `${formatCurrency(balance)} pendientes`
-                          : "Pagada"}
-                      </small>
-                    </span>
-                  </Link>
-                );
-              })}
+            <div className={styles.operationList}>
+              {activeClientOperations.slice(0, 5).map((operation) => (
+                <Link
+                  className={styles.operationItem}
+                  href={`/clientes/${operation.clientId}`}
+                  key={operation.clientId}
+                >
+                  <span className={styles.operationMain}>
+                    <strong>{operation.clientName}</strong>
+                    <span>{operation.summary.serviceName}</span>
+                    <small>Siguiente: {operation.summary.currentTitle}</small>
+                  </span>
+                  <span className={styles.operationAmount}>
+                    <strong>{operation.summary.progress}%</strong>
+                    <i>
+                      <b style={{ width: `${operation.summary.progress}%` }} />
+                    </i>
+                    <small>
+                      {operation.summary.blocked > 0
+                        ? "Bloqueada"
+                        : operation.summary.overdue > 0
+                          ? `${operation.summary.overdue} hito${operation.summary.overdue === 1 ? "" : "s"} atrasado${operation.summary.overdue === 1 ? "" : "s"}`
+                          : `Objetivo ${formatDateKey(operation.summary.targetDate)}`}
+                    </small>
+                  </span>
+                </Link>
+              ))}
             </div>
           )}
         </article>

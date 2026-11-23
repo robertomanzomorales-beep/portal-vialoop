@@ -330,6 +330,11 @@
   color: var(--portal-info);
 }
 
+.statusWAITING_CLIENT {
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
+}
+
 .statusBLOCKED {
   background: var(--portal-danger-soft);
   color: var(--portal-danger);

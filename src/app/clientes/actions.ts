@@ -1,22 +1,42 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@/generated/prisma/client";
 import {
   requireAdmin,
   requireUser,
 } from "@/lib/auth";
+import {
+  buildClientOperationTasks,
+  getLatestClientOperationTasks,
+} from "@/lib/client-operation";
 import {
   buildClientWelcomeEmail,
   DORIS_EMAIL,
 } from "@/lib/client-welcome-email";
 import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
+import {
+  clientOperationServiceTypes,
+  parseScheduledTaskMetadata,
+  type ClientOperationServiceType,
+} from "@/lib/scheduled-task";
 
 export type WelcomeEmailActionState = {
   status: "idle" | "success" | "error";
   message: string;
 };
+
+export type ClientOperationActionState = {
+  ok: boolean;
+  message: string;
+};
+
+function json(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
 
 function getOptionalString(formData: FormData, field: string) {
   const value = formData.get(field);
@@ -81,8 +101,73 @@ function validateEmail(email: string | null) {
   }
 }
 
+function chileDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Santiago",
+  }).format(date);
+}
+
+function validDateKey(value: string | null) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const parsed = new Date(`${value}T12:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? null : value;
+}
+
+async function getClientOperationInput(
+  formData: FormData,
+  fallbackResponsible: { id: string; name: string },
+) {
+  const serviceTypeValue = getRequiredString(formData, "serviceType");
+
+  if (
+    !clientOperationServiceTypes.includes(
+      serviceTypeValue as ClientOperationServiceType,
+    )
+  ) {
+    throw new Error("Selecciona un tipo de servicio válido.");
+  }
+
+  const serviceName = getRequiredString(formData, "serviceName");
+  const targetDate = validDateKey(
+    getRequiredString(formData, "operationTargetDate"),
+  );
+  const responsibleUserId =
+    getOptionalString(formData, "responsibleUserId") ??
+    fallbackResponsible.id;
+
+  if (!targetDate || targetDate < chileDateKey()) {
+    throw new Error("La fecha objetivo debe ser válida y no puede estar vencida.");
+  }
+
+  if (serviceName.length > 160) {
+    throw new Error("El nombre del servicio no puede superar 160 caracteres.");
+  }
+
+  const responsible = await prisma.user.findFirst({
+    where: {
+      id: responsibleUserId,
+      active: true,
+      role: { in: ["ADMIN", "COLLABORATOR"] },
+    },
+    select: { id: true, name: true },
+  });
+
+  return {
+    serviceType: serviceTypeValue as ClientOperationServiceType,
+    serviceName,
+    targetDate,
+    responsible: responsible ?? fallbackResponsible,
+  };
+}
+
 export async function createClient(formData: FormData) {
-  await requireUser();
+  const user = await requireUser();
 
   const businessName = getRequiredString(formData, "businessName");
   const email = getOptionalString(formData, "email");
@@ -90,19 +175,54 @@ export async function createClient(formData: FormData) {
 
   validateEmail(email);
 
-  const client = await prisma.client.create({
-    data: {
-      businessName,
-      tradeName: getOptionalString(formData, "tradeName"),
-      rut,
-      mainContactName: getOptionalString(formData, "mainContactName"),
-      email,
-      phone: getOptionalString(formData, "phone"),
-      city: getOptionalString(formData, "city"),
-      address: getOptionalString(formData, "address"),
-      internalNotes: getOptionalString(formData, "internalNotes"),
-      status: "ACTIVE",
-    },
+  const operation = await getClientOperationInput(formData, {
+    id: user.id,
+    name: user.name,
+  });
+  const startDate = chileDateKey();
+  const updatedAt = new Date().toISOString();
+
+  const client = await prisma.$transaction(async (transaction) => {
+    const createdClient = await transaction.client.create({
+      data: {
+        businessName,
+        tradeName: getOptionalString(formData, "tradeName"),
+        rut,
+        mainContactName: getOptionalString(formData, "mainContactName"),
+        email,
+        phone: getOptionalString(formData, "phone"),
+        city: getOptionalString(formData, "city"),
+        address: getOptionalString(formData, "address"),
+        internalNotes: getOptionalString(formData, "internalNotes"),
+        status: "ACTIVE",
+      },
+    });
+    const clientName = createdClient.tradeName || createdClient.businessName;
+    const tasks = buildClientOperationTasks({
+      workflowId: randomUUID(),
+      clientId: createdClient.id,
+      clientName,
+      serviceType: operation.serviceType,
+      serviceName: operation.serviceName,
+      responsible: operation.responsible.name,
+      startDate,
+      targetDate: operation.targetDate,
+      updatedAt,
+    });
+
+    await transaction.activityLog.createMany({
+      data: tasks.map((task) => ({
+        userId: user.id,
+        clientId: createdClient.id,
+        action: "CLIENT_OPERATION_STEP_CREATED",
+        entityType: "ScheduledTask",
+        entityId: task.title,
+        description: `${task.title} incorporado al flujo de ${operation.serviceName}.`,
+        metadata: json(task),
+      })),
+    });
+
+    return createdClient;
   });
 
   revalidatePath("/");
@@ -115,6 +235,187 @@ export async function createClient(formData: FormData) {
   }
 
   redirect(`/clientes/${client.id}`);
+}
+
+async function getClientOperationRecords(clientId: string) {
+  const logs = await prisma.activityLog.findMany({
+    where: {
+      clientId,
+      entityType: "ScheduledTask",
+    },
+    orderBy: { createdAt: "desc" },
+    take: 250,
+    select: {
+      id: true,
+      createdAt: true,
+      metadata: true,
+    },
+  });
+
+  return logs.flatMap((log) => {
+    const metadata = parseScheduledTaskMetadata(log.metadata);
+
+    return metadata?.workflow?.type === "CLIENT_ONBOARDING"
+      ? [
+          {
+            id: log.id,
+            createdAt: log.createdAt.toISOString(),
+            metadata,
+          },
+        ]
+      : [];
+  });
+}
+
+export async function startClientOperation(
+  clientId: string,
+  _previousState: ClientOperationActionState,
+  formData: FormData,
+): Promise<ClientOperationActionState> {
+  const user = await requireUser();
+
+  try {
+    const [client, existingRecords] = await Promise.all([
+      prisma.client.findUnique({
+        where: { id: clientId },
+        select: {
+          id: true,
+          businessName: true,
+          tradeName: true,
+          status: true,
+        },
+      }),
+      getClientOperationRecords(clientId),
+    ]);
+
+    if (!client || client.status !== "ACTIVE") {
+      return {
+        ok: false,
+        message: "El cliente no existe o no está activo.",
+      };
+    }
+
+    const latestOperation = getLatestClientOperationTasks(existingRecords);
+    const hasOpenOperation = latestOperation.some(
+      (record) => record.metadata.status !== "COMPLETED",
+    );
+
+    if (hasOpenOperation) {
+      return {
+        ok: false,
+        message:
+          "Este cliente ya tiene un flujo operativo activo. Actualiza sus etapas antes de iniciar otro.",
+      };
+    }
+
+    const operation = await getClientOperationInput(formData, {
+      id: user.id,
+      name: user.name,
+    });
+    const startDate = chileDateKey();
+    const tasks = buildClientOperationTasks({
+      workflowId: randomUUID(),
+      clientId: client.id,
+      clientName: client.tradeName || client.businessName,
+      serviceType: operation.serviceType,
+      serviceName: operation.serviceName,
+      responsible: operation.responsible.name,
+      startDate,
+      targetDate: operation.targetDate,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await prisma.activityLog.createMany({
+      data: tasks.map((task) => ({
+        userId: user.id,
+        clientId: client.id,
+        action: "CLIENT_OPERATION_STEP_CREATED",
+        entityType: "ScheduledTask",
+        entityId: task.title,
+        description: `${task.title} incorporado al flujo de ${operation.serviceName}.`,
+        metadata: json(task),
+      })),
+    });
+
+    revalidatePath("/");
+    revalidatePath(`/clientes/${client.id}`);
+    revalidatePath("/planificacion");
+    revalidatePath("/seguimiento");
+
+    return {
+      ok: true,
+      message: `Flujo operativo de ${operation.serviceName} creado correctamente.`,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "No fue posible iniciar el flujo operativo.",
+    };
+  }
+}
+
+async function completeClientOperationStep(
+  clientId: string,
+  stepId: string,
+  userId: string,
+) {
+  const records = getLatestClientOperationTasks(
+    await getClientOperationRecords(clientId),
+  );
+  const record = records.find(
+    (item) => item.metadata.workflow?.stepId === stepId,
+  );
+
+  if (!record || record.metadata.status === "COMPLETED") {
+    return;
+  }
+
+  await prisma.activityLog.update({
+    where: { id: record.id },
+    data: {
+      userId,
+      action: "CLIENT_OPERATION_STEP_COMPLETED",
+      description: `${record.metadata.title} completado automáticamente.`,
+      metadata: json({
+        ...record.metadata,
+        status: "COMPLETED",
+        updatedAt: new Date().toISOString(),
+      }),
+    },
+  });
+
+  const firstOpenTask = records
+    .map((item) =>
+      item.id === record.id
+        ? {
+            ...item,
+            metadata: {
+              ...item.metadata,
+              status: "COMPLETED" as const,
+            },
+          }
+        : item,
+    )
+    .find((item) => item.metadata.status !== "COMPLETED");
+
+  if (firstOpenTask?.metadata.status === "PENDING") {
+    await prisma.activityLog.update({
+      where: { id: firstOpenTask.id },
+      data: {
+        userId,
+        action: "CLIENT_OPERATION_STEP_STARTED",
+        description: `${firstOpenTask.metadata.title} iniciado automáticamente.`,
+        metadata: json({
+          ...firstOpenTask.metadata,
+          status: "IN_PROGRESS",
+          updatedAt: new Date().toISOString(),
+        }),
+      },
+    });
+  }
 }
 
 function getWelcomeEmailInteger(
@@ -260,7 +561,16 @@ export async function sendClientWelcomeEmail(
       },
     });
 
+    await completeClientOperationStep(
+      client.id,
+      "WELCOME_EMAIL",
+      user.id,
+    );
+
     revalidatePath(`/clientes/${client.id}`);
+    revalidatePath("/");
+    revalidatePath("/planificacion");
+    revalidatePath("/seguimiento");
 
     return {
       status: "success",

@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { createFlowPayment } from "@/lib/flow";
 import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
+import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
 
 type ReminderType =
   | "FIRST_NOTICE"
@@ -1024,408 +1025,91 @@ function buildEmailText(
 }
 
 function buildEmailHtml(
-  renewal:
-    RenewalCandidate,
-  reminderType:
-    ReminderType,
+  renewal: RenewalCandidate,
+  reminderType: ReminderType,
   domain: string,
   amount: unknown,
-  paymentUrl:
-    | string
-    | null,
+  paymentUrl: string | null,
   testMode: boolean,
   realRecipient: string,
 ) {
-  const button =
-    paymentUrl
-      ? `
-        <a
-          href="${escapeHtml(
-            paymentUrl,
-          )}"
-          target="_blank"
-          style="
-            display:inline-block;
-            margin:22px 0;
-            padding:14px 24px;
-            border-radius:8px;
-            background:#2563eb;
-            color:#ffffff;
-            text-decoration:none;
-            font-weight:700;
-          "
-        >
-          Pagar ahora con Flow
-        </a>
-      `
-      : "";
+  const dueDate = formatDate(renewal.dueDate);
+  const amountText = formatCurrency(amount);
+  const reminderLabel = getReminderLabel(reminderType);
+  const paymentAction = paymentUrl
+    ? `
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:16px 0 18px;border-collapse:collapse;">
+        <tr>
+          <td align="left">
+            <a href="${escapeHtml(paymentUrl)}" target="_blank" style="display:inline-block;border-radius:7px;background:#245bd6;padding:11px 16px;color:#ffffff;font-size:12px;font-weight:750;text-decoration:none;">Pagar en línea con Flow</a>
+          </td>
+        </tr>
+      </table>
+    `
+    : "";
+  const testBanner = testMode
+    ? `
+      <div style="margin:0 0 15px;border:1px solid #f0d9a4;background:#fff8e8;padding:10px 12px;color:#8a5407;font-size:11px;line-height:1.55;">
+        <strong style="display:block;margin-bottom:3px;">MODO DE PRUEBA</strong>
+        Destinatario real: ${escapeHtml(realRecipient)}<br />
+        Cliente: ${escapeHtml(renewal.client.businessName)}
+      </div>
+    `
+    : "";
 
-  const testBanner =
-    testMode
-      ? `
-        <div
-          style="
-            margin-bottom:22px;
-            padding:14px;
-            border:1px solid #fed7aa;
-            border-radius:8px;
-            background:#fff7ed;
-            color:#9a3412;
-            font-size:13px;
-            line-height:1.6;
-          "
-        >
-          <strong>
-            MODO DE PRUEBA
-          </strong>
+  const content = `
+    ${testBanner}
+    <p style="margin:0 0 8px;color:#172033;font-size:14px;font-weight:700;line-height:1.55;">${escapeHtml(getGreeting(renewal.client.mainContactName))}</p>
+    <p style="margin:0 0 16px;color:#475569;font-size:13px;line-height:1.65;">${escapeHtml(getIntroduction(reminderType))}</p>
 
-          <br />
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border:1px solid #dfe6ee;border-collapse:collapse;background:#ffffff;">
+      <tr>
+        <td style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Servicio</td>
+        <td align="right" style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:750;">${escapeHtml(renewal.description)}</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Dominio o referencia</td>
+        <td align="right" style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:750;">${escapeHtml(domain)}</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Vencimiento</td>
+        <td align="right" style="padding:9px 13px;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:750;">${escapeHtml(dueDate)}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 13px;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">Total con IVA</td>
+        <td align="right" style="padding:12px 13px;color:#245bd6;font-size:20px;font-weight:800;">${escapeHtml(amountText)}</td>
+      </tr>
+    </table>
 
-          Destinatario real:
-          ${escapeHtml(
-            realRecipient,
-          )}
+    <p style="margin:16px 0 0;color:#475569;font-size:12.5px;line-height:1.65;">${escapeHtml(getClosingParagraph(reminderType))}</p>
+    ${paymentAction}
 
-          <br />
+    <div style="margin:0 0 8px;color:#172033;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">Transferencia bancaria</div>
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-top:1px solid #e5eaf0;border-collapse:collapse;">
+      <tr><td style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Titular</td><td align="right" style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:700;">${escapeHtml(BANK_ACCOUNT.holder)}</td></tr>
+      <tr><td style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">RUT</td><td align="right" style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:700;">${escapeHtml(BANK_ACCOUNT.rut)}</td></tr>
+      <tr><td style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">Banco / tipo</td><td align="right" style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:700;">${escapeHtml(BANK_ACCOUNT.bank)} · ${escapeHtml(BANK_ACCOUNT.accountType)}</td></tr>
+      <tr><td style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#64748b;font-size:11px;">N.º de cuenta</td><td align="right" style="padding:7px 0;border-bottom:1px solid #edf1f5;color:#172033;font-size:11px;font-weight:700;">${escapeHtml(BANK_ACCOUNT.accountNumber)}</td></tr>
+      <tr><td style="padding:7px 0;color:#64748b;font-size:11px;">Correo</td><td align="right" style="padding:7px 0;color:#172033;font-size:11px;font-weight:700;">${escapeHtml(BANK_ACCOUNT.email)}</td></tr>
+    </table>
 
-          Cliente:
-          ${escapeHtml(
-            renewal.client
-              .businessName,
-          )}
-        </div>
-      `
-      : "";
-
-  return `
-    <!doctype html>
-
-    <html lang="es">
-      <head>
-        <meta charset="utf-8" />
-
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-        />
-
-        <title>
-          Renovación de servicio
-        </title>
-      </head>
-
-      <body
-        style="
-          margin:0;
-          background:#f3f5f8;
-          font-family:Arial,Helvetica,sans-serif;
-          color:#172033;
-        "
-      >
-        <table
-          role="presentation"
-          width="100%"
-          cellpadding="0"
-          cellspacing="0"
-          style="
-            width:100%;
-            padding:32px 14px;
-            background:#f3f5f8;
-          "
-        >
-          <tr>
-            <td align="center">
-              <table
-                role="presentation"
-                width="100%"
-                cellpadding="0"
-                cellspacing="0"
-                style="
-                  width:100%;
-                  max-width:640px;
-                  border:1px solid #e3e7ee;
-                  border-radius:14px;
-                  background:#ffffff;
-                  overflow:hidden;
-                "
-              >
-                <tr>
-                  <td
-                    style="
-                      padding:26px 30px;
-                      background:#111827;
-                      color:#ffffff;
-                    "
-                  >
-                    <div
-                      style="
-                        font-size:22px;
-                        font-weight:700;
-                      "
-                    >
-                      Vialoop Studio
-                    </div>
-
-                    <div
-                      style="
-                        margin-top:6px;
-                        color:#cbd5e1;
-                        font-size:13px;
-                      "
-                    >
-                      Hosting, renovaciones
-                      y servicios digitales
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:32px 30px;
-                    "
-                  >
-                    ${testBanner}
-
-                    <p
-                      style="
-                        margin:0 0 20px;
-                        line-height:1.7;
-                      "
-                    >
-                      ${escapeHtml(
-                        getGreeting(
-                          renewal.client
-                            .mainContactName,
-                        ),
-                      )}
-                    </p>
-
-                    <p
-                      style="
-                        margin:0 0 22px;
-                        line-height:1.7;
-                      "
-                    >
-                      ${escapeHtml(
-                        getIntroduction(
-                          reminderType,
-                        ),
-                      )}
-                    </p>
-
-                    <div
-                      style="
-                        margin-bottom:22px;
-                        padding:18px;
-                        border:1px solid #e4e8ef;
-                        border-radius:10px;
-                        background:#f8fafc;
-                        line-height:1.8;
-                      "
-                    >
-                      <strong>
-                        Servicio:
-                      </strong>
-
-                      ${escapeHtml(
-                        renewal.description,
-                      )}
-
-                      <br />
-
-                      <strong>
-                        Dominio o proyecto:
-                      </strong>
-
-                      ${escapeHtml(
-                        domain,
-                      )}
-
-                      <br />
-
-                      <strong>
-                        Fecha de vencimiento:
-                      </strong>
-
-                      ${escapeHtml(
-                        formatDate(
-                          renewal.dueDate,
-                        ),
-                      )}
-
-                      <br />
-
-                      <strong>
-                        Monto total con IVA:
-                      </strong>
-
-                      <span
-                        style="
-                          color:#1d4ed8;
-                          font-size:18px;
-                          font-weight:800;
-                        "
-                      >
-                        ${escapeHtml(
-                          formatCurrency(
-                            amount,
-                          ),
-                        )}
-                      </span>
-                    </div>
-
-                    <p
-                      style="
-                        margin:0;
-                        line-height:1.7;
-                      "
-                    >
-                      ${escapeHtml(
-                        getClosingParagraph(
-                          reminderType,
-                        ),
-                      )}
-                    </p>
-
-                    ${button}
-
-                    <div
-                      style="
-                        margin:22px 0;
-                        padding:18px;
-                        border:1px solid #e4e8ef;
-                        border-radius:10px;
-                        background:#f8fafc;
-                        font-size:13px;
-                        line-height:1.8;
-                      "
-                    >
-                      <strong>
-                        Datos para transferencia
-                      </strong>
-
-                      <br />
-                      <br />
-
-                      <strong>
-                        ${escapeHtml(
-                          BANK_ACCOUNT
-                            .holder,
-                        )}
-                      </strong>
-
-                      <br />
-
-                      RUT:
-                      ${escapeHtml(
-                        BANK_ACCOUNT
-                          .rut,
-                      )}
-
-                      <br />
-
-                      Banco:
-                      ${escapeHtml(
-                        BANK_ACCOUNT
-                          .bank,
-                      )}
-
-                      <br />
-
-                      Tipo de cuenta:
-                      ${escapeHtml(
-                        BANK_ACCOUNT
-                          .accountType,
-                      )}
-
-                      <br />
-
-                      N.º de cuenta:
-                      ${escapeHtml(
-                        BANK_ACCOUNT
-                          .accountNumber,
-                      )}
-
-                      <br />
-
-                      Correo:
-                      ${escapeHtml(
-                        BANK_ACCOUNT
-                          .email,
-                      )}
-                    </div>
-
-                    <p
-                      style="
-                        margin:0 0 22px;
-                        color:#475467;
-                        font-size:14px;
-                        line-height:1.7;
-                      "
-                    >
-                      Una vez realizado el
-                      pago, favor responder
-                      este correo adjuntando
-                      el comprobante
-                      correspondiente.
-                    </p>
-
-                    <p
-                      style="
-                        margin:0;
-                        font-size:14px;
-                        line-height:1.7;
-                      "
-                    >
-                      Saludos cordiales,
-
-                      <br />
-                      <br />
-
-                      <strong>
-                        Equipo Vialoop
-                      </strong>
-
-                      <br />
-
-                      Vialoop Studio SpA
-
-                      <br />
-
-                      hosting@vialoop.cl
-
-                      <br />
-
-                      www.vialoop.cl
-                    </p>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td
-                    style="
-                      padding:20px 30px;
-                      border-top:1px solid #edf0f4;
-                      color:#8a93a2;
-                      font-size:12px;
-                    "
-                  >
-                    Correo enviado
-                    automáticamente por el
-                    sistema de renovaciones
-                    de Vialoop Studio.
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
+    <p style="margin:15px 0 0;color:#475569;font-size:12px;line-height:1.6;">Una vez realizado el pago, responde este correo adjuntando el comprobante correspondiente.</p>
+    <p style="margin:17px 0 0;padding-top:13px;border-top:1px solid #e5eaf0;color:#475569;font-size:12px;line-height:1.55;">Saludos cordiales,<br /><strong style="color:#172033;">Equipo Vialoop</strong><br />hosting@vialoop.cl</p>
   `;
-}
 
+  return buildVialoopEmailLayout({
+    eyebrow: "Renovaciones Vialoop",
+    title:
+      reminderType === "OVERDUE_NOTICE"
+        ? "Servicio pendiente de regularización"
+        : "Renovación de servicio",
+    reference: reminderLabel,
+    preheader: `${renewal.client.businessName} · ${renewal.description} · ${dueDate}`,
+    content,
+    footer:
+      "Vialoop Studio SpA · vialoop.cl<br />Control de hosting, dominios y servicios recurrentes.",
+  });
+}
 export async function processAutomaticRenewalEmails():
   Promise<AutomaticRenewalResult> {
   const mode =
