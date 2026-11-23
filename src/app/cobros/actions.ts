@@ -2,10 +2,12 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/auth";
 import { createFlowPayment } from "@/lib/flow";
 import { sendEmail } from "@/lib/mail";
 import { buildManualChargeEmail } from "@/lib/manual-charge-email-template";
 import { prisma } from "@/lib/prisma";
+import { synchronizeSaleFlowPayment } from "@/lib/sale-flow-payment-processor";
 
 export type ChargeActionState = {
   ok: boolean;
@@ -427,6 +429,95 @@ export async function resendManualCharge(
   } catch (error) {
     revalidatePath("/cobros");
 
+    return {
+      ok: false,
+      message: errorMessage(error),
+    };
+  }
+}
+
+export async function reviewAndResendManualChargeFlow(
+  chargeId: string,
+  _previousState: ChargeActionState = EMPTY_STATE,
+  _formData: FormData,
+): Promise<ChargeActionState> {
+  void _previousState;
+  void _formData;
+  await requireUser();
+
+  try {
+    const charge = await prisma.manualCharge.findUnique({
+      where: { id: chargeId },
+      include: {
+        flowOrders: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
+    });
+
+    if (!charge) {
+      throw new Error("El cobro seleccionado ya no existe.");
+    }
+
+    if (charge.method !== "FLOW") {
+      throw new Error("Este cobro no utiliza Flow.");
+    }
+
+    if (["PAID", "CANCELLED"].includes(charge.status)) {
+      throw new Error("El cobro ya no se encuentra abierto.");
+    }
+
+    const latestOrder = charge.flowOrders[0];
+    let needsNewOrder = !latestOrder;
+
+    if (latestOrder?.token) {
+      const synchronization = await synchronizeSaleFlowPayment(
+        latestOrder.token,
+      );
+
+      if (synchronization.state === "paid") {
+        revalidatePath("/cobros");
+        revalidatePath("/ventas");
+        return {
+          ok: true,
+          message: "Flow confirmó que este cobro ya está pagado.",
+        };
+      }
+
+      needsNewOrder =
+        synchronization.state === "rejected" ||
+        synchronization.state === "cancelled";
+
+      if (synchronization.state === "pending" && !latestOrder.paymentUrl) {
+        throw new Error(
+          "Flow mantiene la orden pendiente, pero el enlace no está disponible en el portal. No se creó otra orden para evitar un cobro duplicado.",
+        );
+      }
+    }
+
+    if (needsNewOrder) {
+      await prisma.manualCharge.update({
+        where: { id: charge.id },
+        data: {
+          status: "PENDING",
+          lastError: null,
+        },
+      });
+      await ensureFlowOrderForCharge(charge.id);
+    }
+
+    await deliverCharge(charge.id);
+    revalidatePath("/cobros");
+
+    return {
+      ok: true,
+      message: needsNewOrder
+        ? "El enlace anterior estaba cerrado. Se creó uno nuevo y se envió al cliente."
+        : "Flow confirmó que el enlace sigue activo y el cobro fue reenviado.",
+    };
+  } catch (error) {
+    revalidatePath("/cobros");
     return {
       ok: false,
       message: errorMessage(error),

@@ -605,7 +605,7 @@ export default async function PaymentsPage({
         >
           La orden Flow fue creada
           correctamente. El botón
-          “Abrir Flow” ya está
+          “Acceder a Flow · cuotas” ya está
           disponible en el cobro.
         </div>
       )}
@@ -619,7 +619,7 @@ export default async function PaymentsPage({
         >
           Este cobro ya tiene una orden
           Flow pendiente. Utiliza el
-          botón “Abrir Flow”.
+          botón “Acceder a Flow · cuotas”.
         </div>
       )}
 
@@ -1283,7 +1283,7 @@ export default async function PaymentsPage({
                                     rel="noreferrer"
                                     target="_blank"
                                   >
-                                    Abrir Flow
+                                    Acceder a Flow · cuotas
                                   </a>
                                 ) : (
                                   <FlowPaymentButton

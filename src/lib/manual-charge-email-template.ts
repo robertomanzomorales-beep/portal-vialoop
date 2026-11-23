@@ -1,4 +1,5 @@
 import { buildVialoopEmailLayout } from "@/lib/vialoop-email";
+import { VIALOOP_PAYMENT_DETAILS } from "@/lib/vialoop-payment-details";
 
 type ManualChargeEmailInput = {
   chargeNumber: number;
@@ -12,12 +13,12 @@ type ManualChargeEmailInput = {
 };
 
 const BANK_ACCOUNT = {
-  holder: "Vialoop Studio SpA",
-  rut: "78.455.385-K",
-  bank: "Mercado Pago",
-  accountType: "Cuenta Vista",
-  accountNumber: "1038393364",
-  email: "rmanzo@vialoop.cl",
+  holder: VIALOOP_PAYMENT_DETAILS.holder,
+  rut: VIALOOP_PAYMENT_DETAILS.taxId,
+  bank: VIALOOP_PAYMENT_DETAILS.institution,
+  accountType: VIALOOP_PAYMENT_DETAILS.accountType,
+  accountNumber: VIALOOP_PAYMENT_DETAILS.accountNumber,
+  email: VIALOOP_PAYMENT_DETAILS.email,
 };
 
 function escapeHtml(value: string) {
@@ -62,7 +63,8 @@ export function buildManualChargeEmail(input: ManualChargeEmailInput) {
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:16px 0 18px;border-collapse:collapse;">
         <tr>
           <td align="left">
-            <a href="${escapeHtml(input.paymentUrl)}" target="_blank" style="display:inline-block;border-radius:7px;background:#245bd6;padding:11px 16px;color:#ffffff;font-size:12px;font-weight:750;text-decoration:none;">Pagar en línea con Flow</a>
+            <a href="${escapeHtml(input.paymentUrl)}" target="_blank" style="display:inline-block;border-radius:7px;background:#245bd6;padding:11px 16px;color:#ffffff;font-size:12px;font-weight:750;text-decoration:none;">Acceder a Flow · hasta 3 cuotas</a>
+            <div style="margin-top:7px;color:#64748b;font-size:10px;line-height:1.5;">La disponibilidad y condiciones de las cuotas dependen de la tarjeta y su emisor.</div>
           </td>
         </tr>
       </table>
@@ -125,7 +127,7 @@ export function buildManualChargeEmail(input: ManualChargeEmailInput) {
     dueDateText ? `Fecha límite informativa: ${dueDateText}` : null,
     input.message || null,
     "",
-    input.paymentUrl ? "Pagar en línea con Flow:" : null,
+    input.paymentUrl ? "Pagar con Flow (hasta 3 cuotas, sujeto a condiciones del emisor):" : null,
     input.paymentUrl,
     input.paymentUrl ? "" : null,
     "Datos para transferencia:",

@@ -18,6 +18,19 @@ export type QuotationItem = {
   unitPrice: number;
 };
 
+export type QuotationCommercialStatus =
+  | "DRAFT"
+  | "SENT"
+  | "ACCEPTED"
+  | "PAID"
+  | "REJECTED";
+
+export type QuotationPaymentStatus =
+  | "NOT_CREATED"
+  | "PENDING"
+  | "PAID"
+  | "CANCELLED";
+
 export type QuotationMetadata = {
   number: string;
   clientId: string;
@@ -38,6 +51,11 @@ export type QuotationMetadata = {
   senderEmail: string;
   senderRole: string;
   paymentOption: "TRANSFER" | "TRANSFER_FLOW";
+  commercialStatus: QuotationCommercialStatus;
+  paymentStatus: QuotationPaymentStatus;
+  acceptedAt?: string;
+  acceptedBy?: string;
+  paidAt?: string;
   flowPaymentId?: string;
   flowPaymentUrl?: string;
   emailStatus: "PENDING" | "SENT" | "FAILED";
@@ -159,6 +177,37 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
       value.paymentOption === "TRANSFER_FLOW"
         ? "TRANSFER_FLOW"
         : "TRANSFER",
+    commercialStatus:
+      value.commercialStatus === "DRAFT" ||
+      value.commercialStatus === "SENT" ||
+      value.commercialStatus === "ACCEPTED" ||
+      value.commercialStatus === "PAID" ||
+      value.commercialStatus === "REJECTED"
+        ? value.commercialStatus
+        : value.emailStatus === "SENT"
+          ? "SENT"
+          : "DRAFT",
+    paymentStatus:
+      value.paymentStatus === "NOT_CREATED" ||
+      value.paymentStatus === "PENDING" ||
+      value.paymentStatus === "PAID" ||
+      value.paymentStatus === "CANCELLED"
+        ? value.paymentStatus
+        : typeof value.flowPaymentId === "string"
+          ? "PENDING"
+          : "NOT_CREATED",
+    acceptedAt:
+      typeof value.acceptedAt === "string"
+        ? value.acceptedAt
+        : undefined,
+    acceptedBy:
+      typeof value.acceptedBy === "string"
+        ? value.acceptedBy
+        : undefined,
+    paidAt:
+      typeof value.paidAt === "string"
+        ? value.paidAt
+        : undefined,
     flowPaymentId:
       typeof value.flowPaymentId === "string"
         ? value.flowPaymentId

@@ -157,6 +157,21 @@ function quotationValidity(
   };
 }
 
+function quotationTerm(
+  issuedAt: string,
+  validUntil: string,
+) {
+  const start = new Date(`${issuedAt}T12:00:00Z`).getTime();
+  const end = new Date(`${validUntil}T12:00:00Z`).getTime();
+
+  if (!Number.isFinite(start) || !Number.isFinite(end)) {
+    return "No informado";
+  }
+
+  const days = Math.max(1, Math.round((end - start) / 86_400_000));
+  return `${days} día${days === 1 ? "" : "s"}`;
+}
+
 function whatsappUrl(
   phone: string,
 ) {
@@ -811,6 +826,15 @@ export default function ProspectManager({
                       <strong>
                         {formatCurrency(
                           latestQuotation.totalAmount,
+                        )}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Plazo cotizado</span>
+                      <strong>
+                        {quotationTerm(
+                          latestQuotation.issuedAt,
+                          latestQuotation.validUntil,
                         )}
                       </strong>
                     </div>

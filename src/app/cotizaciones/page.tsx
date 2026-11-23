@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { parseQuotationMetadata } from "@/lib/quotation";
+import AcceptQuotationButton from "./AcceptQuotationButton";
 import DeleteQuotationButton from "./DeleteQuotationButton";
 import QuotationForm, {
   type QuotationFormInitialValue,
@@ -25,6 +26,31 @@ function formatDate(date: Date) {
     year: "numeric",
     timeZone: "America/Santiago",
   }).format(date);
+}
+
+function formatDateKey(value: string) {
+  if (!value) return "Sin plazo";
+
+  const date = new Date(`${value}T12:00:00.000Z`);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("es-CL", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function quotationTerm(issuedAt: string, validUntil: string) {
+  const start = new Date(`${issuedAt}T12:00:00.000Z`).getTime();
+  const end = new Date(`${validUntil}T12:00:00.000Z`).getTime();
+
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "Plazo no informado";
+
+  const days = Math.max(1, Math.round((end - start) / 86_400_000));
+  return `${days} día${days === 1 ? "" : "s"} de vigencia`;
 }
 
 type QuotationsPageProps = {
@@ -105,6 +131,53 @@ export default async function QuotationsPage({
       sum + item.metadata.totalAmount,
     0,
   );
+  const paymentReferences = quotations.map(
+    ({ log }) => `quotation:${log.id}`,
+  );
+  const linkedPaymentIds = quotations
+    .map(({ metadata }) => metadata.flowPaymentId)
+    .filter((id): id is string => Boolean(id));
+  const quotationPayments =
+    paymentReferences.length > 0
+      ? await prisma.payment.findMany({
+          where: {
+            OR: [
+              { reference: { in: paymentReferences } },
+              ...(linkedPaymentIds.length > 0
+                ? [{ id: { in: linkedPaymentIds } }]
+                : []),
+            ],
+          },
+          include: {
+            flowOrders: {
+              where: { status: "PENDING" },
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : [];
+  const paymentByQuotation = new Map<string, (typeof quotationPayments)[number]>();
+
+  for (const payment of quotationPayments) {
+    const quotationId = payment.reference?.startsWith("quotation:")
+      ? payment.reference.replace("quotation:", "")
+      : quotations.find(({ metadata }) => metadata.flowPaymentId === payment.id)?.log.id;
+
+    if (quotationId && !paymentByQuotation.has(quotationId)) {
+      paymentByQuotation.set(quotationId, payment);
+    }
+  }
+
+  const acceptedCount = quotations.filter(({ log, metadata }) => {
+    const payment = paymentByQuotation.get(log.id);
+    return (
+      metadata.commercialStatus === "ACCEPTED" ||
+      metadata.commercialStatus === "PAID" ||
+      payment?.status === "PAID"
+    );
+  }).length;
   const sourceMetadata = sourceLog
     ? parseQuotationMetadata(sourceLog.metadata)
     : null;
@@ -142,8 +215,9 @@ export default async function QuotationsPage({
           <strong>{quotations.length}</strong>
         </article>
         <article>
-          <span>Enviadas correctamente</span>
-          <strong>{sentCount}</strong>
+          <span>Aceptadas</span>
+          <strong>{acceptedCount}</strong>
+          <small>{sentCount} enviadas correctamente</small>
         </article>
         <article>
           <span>Total cotizado</span>
@@ -152,6 +226,11 @@ export default async function QuotationsPage({
       </section>
 
       <QuotationForm
+        key={
+          initialValue
+            ? `${initialValue.mode}-${initialValue.id}`
+            : `new-${defaultClientId ?? "blank"}`
+        }
         clients={clients.map((client) => ({
           id: client.id,
           name:
@@ -190,13 +269,28 @@ export default async function QuotationsPage({
                   <th>Cliente</th>
                   <th>Proyecto</th>
                   <th>Total</th>
-                  <th>Envío</th>
+                  <th>Vigencia</th>
+                  <th>Estado</th>
                   <th aria-label="Acciones" />
                 </tr>
               </thead>
               <tbody>
                 {quotations.map(
-                  ({ log, metadata }) => (
+                  ({ log, metadata }) => {
+                    const payment = paymentByQuotation.get(log.id);
+                    const isPaid =
+                      metadata.commercialStatus === "PAID" ||
+                      payment?.status === "PAID";
+                    const isAccepted =
+                      !isPaid && metadata.commercialStatus === "ACCEPTED";
+                    const canAccept =
+                      metadata.commercialStatus === "SENT" &&
+                      metadata.emailStatus === "SENT";
+                    const flowUrl =
+                      payment?.flowOrders[0]?.paymentUrl ||
+                      metadata.flowPaymentUrl;
+
+                    return (
                     <tr key={log.id}>
                       <td>
                         <strong>{metadata.number}</strong>
@@ -220,21 +314,36 @@ export default async function QuotationsPage({
                         </strong>
                       </td>
                       <td>
+                        <strong>{formatDateKey(metadata.validUntil)}</strong>
+                        <small>{quotationTerm(metadata.issuedAt, metadata.validUntil)}</small>
+                      </td>
+                      <td>
                         <span
                           className={`${styles.status} ${
-                            metadata.emailStatus === "SENT"
-                              ? styles.statusSent
-                              : metadata.emailStatus === "FAILED"
+                            isPaid
+                              ? styles.statusPaid
+                              : isAccepted
+                                ? styles.statusAccepted
+                                : metadata.emailStatus === "FAILED"
                                 ? styles.statusFailed
-                                : styles.statusPending
+                                : metadata.emailStatus === "SENT"
+                                  ? styles.statusSent
+                                  : styles.statusPending
                           }`}
                         >
-                          {metadata.emailStatus === "SENT"
-                            ? "Enviada"
-                            : metadata.emailStatus === "FAILED"
+                          {isPaid
+                            ? "Pagada"
+                            : isAccepted
+                              ? "Aceptada · pago pendiente"
+                              : metadata.emailStatus === "FAILED"
                               ? "Error"
-                              : "Pendiente"}
+                              : metadata.emailStatus === "SENT"
+                                ? "Enviada · por aceptar"
+                                : "Pendiente"}
                         </span>
+                        {metadata.acceptedBy ? (
+                          <small>Aceptó {metadata.acceptedBy}</small>
+                        ) : null}
                       </td>
                       <td>
                         <div
@@ -247,28 +356,55 @@ export default async function QuotationsPage({
                           >
                             Ver PDF
                           </Link>
-                          <Link
-                            className={styles.secondaryHistoryAction}
-                            href={`/cotizaciones?editar=${log.id}`}
-                          >
-                            Editar
-                          </Link>
+                          {!isAccepted && !isPaid ? (
+                            <Link
+                              className={styles.secondaryHistoryAction}
+                              href={`/cotizaciones?editar=${log.id}`}
+                            >
+                              Editar
+                            </Link>
+                          ) : null}
                           <Link
                             className={styles.secondaryHistoryAction}
                             href={`/cotizaciones?duplicar=${log.id}`}
                           >
                             Duplicar
                           </Link>
+                          {canAccept ? (
+                            <AcceptQuotationButton
+                              quotationId={log.id}
+                              quotationNumber={metadata.number}
+                            />
+                          ) : null}
                           <DeleteQuotationButton
                             quotationId={log.id}
                             quotationNumber={
                               metadata.number
                             }
                           />
+                          {isAccepted || isPaid ? (
+                            <Link
+                              className={styles.secondaryHistoryAction}
+                              href="/pagos"
+                            >
+                              Ver cobro
+                            </Link>
+                          ) : null}
+                          {isAccepted && flowUrl ? (
+                            <a
+                              className={styles.flowLink}
+                              href={flowUrl}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              Abrir pago · cuotas
+                            </a>
+                          ) : null}
                         </div>
                       </td>
                     </tr>
-                  ),
+                    );
+                  },
                 )}
               </tbody>
             </table>

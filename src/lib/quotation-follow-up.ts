@@ -414,6 +414,8 @@ export async function syncSentQuotationsToFollowUp(
         Boolean(item.quotation) &&
         item.quotation?.emailStatus ===
           "SENT" &&
+        item.quotation?.commercialStatus ===
+          "SENT" &&
         !item.quotation
           ?.followUpDismissedAt,
     );

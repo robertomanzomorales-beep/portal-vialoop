@@ -546,9 +546,12 @@ export default function QuotationForm({
             >
               <option value="TRANSFER">Transferencia bancaria</option>
               <option value="TRANSFER_FLOW">
-                Transferencia + botón Flow
+                Transferencia + Flow al aceptar
               </option>
             </select>
+            <small>
+              El cobro se crea sólo cuando Roberto o Doris registran la aceptación.
+            </small>
           </label>
 
           <label

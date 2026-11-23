@@ -83,7 +83,8 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
               Total disponible: ${escapeEmailHtml(money(quotation.totalAmount))}
             </td>
             <td class="quote-flow-value" align="right" valign="middle" style="padding-top:13px;">
-              <a href="${escapeEmailHtml(quotation.flowPaymentUrl)}" style="display:inline-block;border-radius:7px;background:#10213a;padding:10px 14px;color:#ffffff;font-size:11px;font-weight:750;line-height:1.2;text-decoration:none;white-space:nowrap;">Pagar con Flow</a>
+              <a href="${escapeEmailHtml(quotation.flowPaymentUrl)}" style="display:inline-block;border-radius:7px;background:#10213a;padding:10px 14px;color:#ffffff;font-size:11px;font-weight:750;line-height:1.2;text-decoration:none;white-space:nowrap;">Acceder a Flow · hasta 3 cuotas</a>
+              <div style="margin-top:6px;color:#64748b;font-size:9px;line-height:1.45;">Cuotas sujetas a disponibilidad y condiciones del emisor.</div>
             </td>
           </tr>
         </table>

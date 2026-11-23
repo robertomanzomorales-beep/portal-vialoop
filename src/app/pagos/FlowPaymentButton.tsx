@@ -31,7 +31,7 @@ function SubmitButton() {
     >
       {pending
         ? "Generando..."
-        : "Generar Flow"}
+        : "Crear enlace Flow"}
     </button>
   );
 }

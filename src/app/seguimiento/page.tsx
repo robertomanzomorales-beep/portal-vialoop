@@ -41,6 +41,18 @@ function formatCurrency(value: unknown) {
   }).format(Number(value) || 0);
 }
 
+function quotationTerm(issuedAt: string, validUntil: string) {
+  const start = new Date(`${issuedAt}T12:00:00Z`).getTime();
+  const end = new Date(`${validUntil}T12:00:00Z`).getTime();
+
+  if (!Number.isFinite(start) || !Number.isFinite(end)) {
+    return "Plazo no informado";
+  }
+
+  const days = Math.max(1, Math.round((end - start) / 86_400_000));
+  return `Plazo ${days} día${days === 1 ? "" : "s"}`;
+}
+
 export default async function FollowUpPage() {
   await syncSentQuotationsToFollowUp();
 
@@ -204,7 +216,7 @@ export default async function FollowUpPage() {
                 "QUOTATION_DEADLINE" as const,
               company: metadata.company,
               date: quotation.validUntil,
-              status,
+              status: `${quotationTerm(quotation.issuedAt, quotation.validUntil)} · ${formatCurrency(quotation.totalAmount)}`,
               assignedTo:
                 metadata.assignedTo,
               quotationNumber:

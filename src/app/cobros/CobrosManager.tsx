@@ -8,6 +8,7 @@ import {
   cancelManualCharge,
   createAndSendManualCharge,
   markManualChargeAsPaid,
+  reviewAndResendManualChargeFlow,
   resendManualCharge,
   type ChargeActionState,
 } from "./actions";
@@ -260,9 +261,19 @@ function NewChargeModal({
   );
 }
 
-function ResendButton({ chargeId }: { chargeId: string }) {
+function ResendButton({
+  chargeId,
+  label = "Reenviar",
+  verifyFlow = false,
+}: {
+  chargeId: string;
+  label?: string;
+  verifyFlow?: boolean;
+}) {
   const router = useRouter();
-  const action = resendManualCharge.bind(null, chargeId);
+  const action = (
+    verifyFlow ? reviewAndResendManualChargeFlow : resendManualCharge
+  ).bind(null, chargeId);
   const [state, formAction] = useActionState(action, initialState);
 
   useEffect(() => {
@@ -275,7 +286,7 @@ function ResendButton({ chargeId }: { chargeId: string }) {
     <form action={formAction} className={styles.inlineAction}>
       <SubmitButton
         className={styles.textButton}
-        idle="Reenviar"
+        idle={label}
         pending="Enviando..."
       />
       <ActionMessage state={state} />
@@ -421,15 +432,25 @@ export default function CobrosManager({
                           rel="noreferrer"
                           target="_blank"
                         >
-                          Abrir Flow
+                          Acceder a Flow · cuotas
                         </a>
                       ) : null}
 
-                      {!["PAID", "CANCELLED", "REJECTED"].includes(
+                      {!["PAID", "CANCELLED"].includes(
                         charge.status,
                       ) ? (
                         <>
-                          <ResendButton chargeId={charge.id} />
+                          <ResendButton
+                            chargeId={charge.id}
+                            label={
+                              charge.method === "FLOW"
+                                ? charge.paymentUrl
+                                  ? "Verificar y reenviar"
+                                  : "Verificar / generar Flow"
+                                : "Reenviar"
+                            }
+                            verifyFlow={charge.method === "FLOW"}
+                          />
                           <TransferConfirmation charge={charge} />
                           <form
                             action={cancelManualCharge}

@@ -136,7 +136,9 @@ function goToEntry(entry: FollowUpCalendarEntry) {
 }
 
 function eventLabel(entry: FollowUpCalendarEntry) {
-  if (entry.kind === "QUOTATION_DEADLINE") return `Vence ${entry.quotationNumber}`;
+  if (entry.kind === "QUOTATION_DEADLINE") {
+    return `Vence ${entry.quotationNumber} · ${entry.status}`;
+  }
   if (entry.kind === "FOLLOW_UP") return entry.quotationNumber || entry.status;
   if (entry.kind === "RENEWAL") return `Renovación · ${entry.status}`;
   if (entry.kind === "PAYMENT") return `Cobro · ${entry.status}`;
@@ -278,7 +280,9 @@ export default function FollowUpCalendar({
                 }
                 type="button"
               >
-                {entry.company}
+                {entry.kind === "QUOTATION_DEADLINE"
+                  ? `${entry.company} · ${eventLabel(entry)}`
+                  : entry.company}
               </button>
             ))}
             {overdue.length > 3 && (
@@ -339,7 +343,7 @@ export default function FollowUpCalendar({
                         onClick={() =>
                           goToEntry(entry)
                         }
-                        title={`${entry.company} · ${entry.assignedTo || "Equipo"}`}
+                        title={`${entry.company} · ${eventLabel(entry)} · ${entry.assignedTo || "Equipo"}`}
                         type="button"
                       >
                         <strong>{entry.company}</strong>

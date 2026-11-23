@@ -671,8 +671,11 @@ export default async function Home() {
           <Link className={styles.secondaryButton} href="/cotizaciones">
             Nueva cotización
           </Link>
-          <Link className={styles.primaryButton} href="/seguimiento">
+          <Link className={styles.secondaryButton} href="/seguimiento">
             Abrir agenda
+          </Link>
+          <Link className={styles.primaryButton} href="/clientes/nuevo">
+            Nuevo cliente
           </Link>
         </div>
       </header>
