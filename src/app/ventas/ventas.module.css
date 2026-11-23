@@ -122,11 +122,126 @@
 
 .metricCard,
 .goalPanel,
+.closePanel,
 .chartPanel,
 .listPanel {
   background: var(--portal-surface);
   border: 1px solid var(--portal-border);
   border-radius: var(--portal-radius-lg);
+}
+
+.closePanel {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.closeHeader,
+.closeFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.closeHeader h2 {
+  margin: 5px 0 6px;
+  color: var(--portal-text);
+  font-size: 1.15rem;
+}
+
+.closeHeader p,
+.closeFooter p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.closeStatus {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.closeStatusOpen {
+  border-color: var(--portal-border-strong);
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-secondary);
+}
+
+.closeStatusClosed {
+  border-color: var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.closeStatusReview {
+  border-color: var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
+}
+
+.closeMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+}
+
+.closeMetrics > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px;
+  border-left: 1px solid var(--portal-border);
+}
+
+.closeMetrics > div:first-child {
+  border-left: 0;
+}
+
+.closeMetrics span {
+  color: var(--portal-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.closeMetrics strong {
+  color: var(--portal-text);
+  font-size: 1.05rem;
+  letter-spacing: -0.025em;
+}
+
+.closeFooter {
+  align-items: center;
+}
+
+.closeFooter > div {
+  display: grid;
+  gap: 7px;
+}
+
+.closeFeedbackOk,
+.closeFeedbackError {
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.closeFeedbackOk {
+  color: var(--portal-success);
+}
+
+.closeFeedbackError {
+  color: var(--portal-danger);
 }
 
 .metricCard {
@@ -808,6 +923,19 @@
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .closeMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .closeMetrics > div:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--portal-border);
+  }
+
+  .closeMetrics > div:nth-child(4) {
+    border-top: 1px solid var(--portal-border);
+  }
 }
 
 @media (max-width: 700px) {
@@ -837,6 +965,31 @@
 
   .metrics {
     grid-template-columns: 1fr;
+  }
+
+  .closeHeader,
+  .closeFooter {
+    flex-direction: column;
+  }
+
+  .closeMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .closeMetrics > div,
+  .closeMetrics > div:nth-child(3),
+  .closeMetrics > div:nth-child(4) {
+    border-top: 1px solid var(--portal-border);
+    border-left: 0;
+  }
+
+  .closeMetrics > div:first-child {
+    border-top: 0;
+  }
+
+  .closeFooter form,
+  .closeFooter button {
+    width: 100%;
   }
 
   .metricCard,

@@ -75,8 +75,7 @@ const navigationGroups: NavigationGroup[] = [
     label: "Operación",
     items: [
       { label: "Clientes", href: "/clientes", icon: "clients" },
-      { label: "Proyectos", href: "/proyectos", icon: "project" },
-      { label: "Planificación", href: "/planificacion", icon: "planning" },
+      { label: "Agenda operativa", href: "/planificacion", icon: "planning" },
       { label: "Solicitudes", href: "/solicitudes", icon: "support" },
     ],
   },

@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseQuotationMetadata } from "@/lib/quotation";
+import {
+  getScheduledTaskStatusLabel,
+  parseScheduledTaskMetadata,
+} from "@/lib/scheduled-task";
 import DeleteClientButton from "../DeleteClientButton";
 import WelcomeEmailComposer from "../WelcomeEmailComposer";
 import styles from "../clientes.module.css";
@@ -204,7 +208,7 @@ export default async function ClientDetailPage({
         activityLogs: {
           where: {
             entityType: {
-              in: ["Quotation", "ClientWelcomeEmail"],
+              in: ["Quotation", "ClientWelcomeEmail", "ScheduledTask"],
             },
           },
           orderBy: {
@@ -277,6 +281,21 @@ export default async function ClientDetailPage({
   const welcomeEmails = client.activityLogs.filter(
     (log) => log.entityType === "ClientWelcomeEmail",
   );
+  const scheduledTasks = client.activityLogs
+    .filter((log) => log.entityType === "ScheduledTask")
+    .map((log) => ({ log, metadata: parseScheduledTaskMetadata(log.metadata) }))
+    .filter(
+      (item): item is {
+        log: (typeof client.activityLogs)[number];
+        metadata: NonNullable<ReturnType<typeof parseScheduledTaskMetadata>>;
+      } => Boolean(item.metadata),
+    )
+    .sort((first, second) =>
+      first.metadata.dueDate.localeCompare(second.metadata.dueDate),
+    );
+  const openScheduledTasks = scheduledTasks.filter(
+    ({ metadata }) => metadata.status !== "COMPLETED",
+  );
 
   return (
     <main className={styles.page}>
@@ -315,8 +334,8 @@ export default async function ClientDetailPage({
 
       <section className={styles.summary}>
         <article>
-          <span>Proyectos</span>
-          <strong>{client._count.projects}</strong>
+          <span>Agenda operativa</span>
+          <strong>{openScheduledTasks.length}</strong>
         </article>
 
         <article>
@@ -345,21 +364,19 @@ export default async function ClientDetailPage({
           </p>
         </div>
 
-        <div className={styles.clientOperationMeta}>
-          <span>
-            <strong>01</strong>
-            Bienvenida
-          </span>
-          <i aria-hidden="true" />
-          <span>
-            <strong>02</strong>
-            Material
-          </span>
-          <i aria-hidden="true" />
-          <span>
-            <strong>03</strong>
-            Implementación
-          </span>
+        <div className={styles.clientQuickActions}>
+          <Link href={`/solicitudes/nuevo?cliente=${client.id}`}>
+            Crear solicitud
+            <span>Proyecto opcional</span>
+          </Link>
+          <Link href={`/planificacion?cliente=${client.id}`}>
+            Programar trabajo
+            <span>Plazo en calendario</span>
+          </Link>
+          <Link href={`/clientes/${client.id}/editar`}>
+            Editar ficha maestra
+            <span>Empresa, contacto y hosting</span>
+          </Link>
         </div>
 
         <WelcomeEmailComposer
@@ -524,88 +541,57 @@ export default async function ClientDetailPage({
       <section className={styles.detailGrid}>
         <article className={styles.detailPanel}>
           <div className={styles.sectionHeader}>
-            <h2>Hosting y sitio web</h2>
-            <p>Proyecto principal asociado al cliente.</p>
+            <h2>Servicios y proyectos técnicos</h2>
+            <p>
+              Inventario asociado a esta ficha. La empresa y el contacto no se
+              vuelven a registrar aquí.
+            </p>
           </div>
 
-          {mainProject ? (
-            <dl className={styles.detailList}>
-              <div>
-                <dt>Proyecto</dt>
-                <dd>{mainProject.name}</dd>
-              </div>
-
-              <div>
-                <dt>Dominio</dt>
-                <dd>{mainProject.domain ?? "Sin dominio registrado"}</dd>
-              </div>
-
-              <div>
-                <dt>Sitio web</dt>
-                <dd>
-                  {mainProject.websiteUrl ? (
-                    <a
-                      href={mainProject.websiteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {mainProject.websiteUrl}
-                    </a>
-                  ) : (
-                    "Sin URL registrada"
-                  )}
-                </dd>
-              </div>
-
-              <div>
-                <dt>Tipo de sitio</dt>
-                <dd>{mainProject.websiteType ?? "Sin información"}</dd>
-              </div>
-
-              <div>
-                <dt>Tecnología</dt>
-                <dd>{mainProject.technology ?? "Sin información"}</dd>
-              </div>
-
-              <div>
-                <dt>Proveedor hosting</dt>
-                <dd>
-                  {mainProject.hostingProvider ??
-                    "Sin proveedor registrado"}
-                </dd>
-              </div>
-
-              <div>
-                <dt>Capacidad hosting</dt>
-                <dd>
-                  {mainProject.hostingCapacity ??
-                    "Sin capacidad registrada"}
-                </dd>
-              </div>
-
-              <div>
-                <dt>Renovación hosting</dt>
-                <dd>{formatDate(mainProject.hostingRenewalDate)}</dd>
-              </div>
-
-              <div>
-                <dt>Renovación dominio</dt>
-                <dd>{formatDate(mainProject.domainRenewalDate)}</dd>
-              </div>
-
-              <div>
-                <dt>Correo de formularios</dt>
-                <dd>
-                  {mainProject.formRecipientEmail ??
-                    "Sin correo registrado"}
-                </dd>
-              </div>
-
-              <div>
-                <dt>Estado</dt>
-                <dd>{getProjectStatusLabel(mainProject.status)}</dd>
-              </div>
-            </dl>
+          {client.projects.length > 0 ? (
+            <div className={styles.projectStack}>
+              {client.projects.map((project) => (
+                <section className={styles.projectCard} key={project.id}>
+                  <header>
+                    <div>
+                      <strong>{project.name}</strong>
+                      <span>{project.domain || "Sin dominio registrado"}</span>
+                    </div>
+                    <span className={styles.projectStatus}>
+                      {getProjectStatusLabel(project.status)}
+                    </span>
+                  </header>
+                  <dl>
+                    <div>
+                      <dt>Sitio</dt>
+                      <dd>
+                        {project.websiteUrl ? (
+                          <a href={project.websiteUrl} rel="noreferrer" target="_blank">
+                            {project.websiteUrl}
+                          </a>
+                        ) : "Sin URL"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Tecnología</dt>
+                      <dd>{project.technology || project.websiteType || "Sin información"}</dd>
+                    </div>
+                    <div>
+                      <dt>Hosting</dt>
+                      <dd>
+                        {[project.hostingProvider, project.hostingCapacity]
+                          .filter(Boolean)
+                          .join(" · ") || "Sin información"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Renovación hosting</dt>
+                      <dd>{formatDate(project.hostingRenewalDate)}</dd>
+                    </div>
+                  </dl>
+                </section>
+              ))}
+            </div>
           ) : (
             <div className={styles.inlineEmpty}>
               Este cliente no tiene proyectos registrados.
@@ -734,31 +720,32 @@ export default async function ClientDetailPage({
 
         <article className={styles.detailPanel}>
           <div className={styles.sectionHeader}>
-            <h2>Estado operativo</h2>
-            <p>Resumen de registros asociados al cliente.</p>
+            <h2>Agenda operativa</h2>
+            <p>Trabajos abiertos vinculados a esta ficha de cliente.</p>
           </div>
 
-          <dl className={styles.detailList}>
-            <div>
-              <dt>Solicitudes de soporte</dt>
-              <dd>{client._count.supportRequests}</dd>
+          {openScheduledTasks.length > 0 ? (
+            <dl className={styles.detailList}>
+              {openScheduledTasks.slice(0, 6).map(({ log, metadata }) => (
+                <div key={log.id}>
+                  <dt>
+                    <Link href="/planificacion">{metadata.title}</Link>
+                    <br />
+                    {metadata.projectName || "Sin proyecto específico"}
+                  </dt>
+                  <dd>
+                    {formatDate(new Date(`${metadata.dueDate}T12:00:00.000Z`))}
+                    <br />
+                    {getScheduledTaskStatusLabel(metadata.status)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <div className={styles.inlineEmpty}>
+              No hay trabajos abiertos. Puedes programarlos sin crear un proyecto.
             </div>
-
-            <div>
-              <dt>Cotizaciones</dt>
-              <dd>{quotations.length}</dd>
-            </div>
-
-            <div>
-              <dt>Pagos registrados</dt>
-              <dd>{client._count.payments}</dd>
-            </div>
-
-            <div>
-              <dt>Suscripciones</dt>
-              <dd>{client._count.subscriptions}</dd>
-            </div>
-          </dl>
+          )}
         </article>
       </section>
 

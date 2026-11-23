@@ -24,6 +24,7 @@ export type ScheduledTaskRecord = {
 };
 
 type ClientOption = { id: string; name: string };
+type ProjectOption = { id: string; clientId: string; name: string };
 const initialState: TaskActionState = { ok: false, message: "" };
 
 function date(value: string) {
@@ -38,10 +39,14 @@ function date(value: string) {
 
 export default function PlanningManager({
   clients,
+  projects,
+  initialClientId,
   tasks,
   today,
 }: {
   clients: ClientOption[];
+  projects: ProjectOption[];
+  initialClientId: string;
   tasks: ScheduledTaskRecord[];
   today: string;
 }) {
@@ -50,6 +55,8 @@ export default function PlanningManager({
   const [importState, importAction, importPending] = useActionState(importTasks, initialState);
   const [editing, setEditing] = useState<ScheduledTaskRecord | null>(null);
   const [formVersion, setFormVersion] = useState(0);
+  const [selectedClientId, setSelectedClientId] = useState(initialClientId);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"ALL" | ScheduledTaskStatus>("ALL");
   const [actionId, setActionId] = useState<string | null>(null);
@@ -63,7 +70,7 @@ export default function PlanningManager({
       .filter((task) =>
         !normalized
           ? true
-          : `${task.metadata.title} ${task.metadata.clientName} ${task.metadata.responsible} ${task.metadata.notes}`
+          : `${task.metadata.title} ${task.metadata.clientName} ${task.metadata.projectName} ${task.metadata.responsible} ${task.metadata.notes}`
               .toLowerCase()
               .includes(normalized),
       )
@@ -72,11 +79,17 @@ export default function PlanningManager({
 
   const openEditor = (task: ScheduledTaskRecord | null) => {
     setEditing(task);
+    setSelectedClientId(task?.metadata.clientId || initialClientId);
+    setSelectedProjectId(task?.metadata.projectId || "");
     setFormVersion((current) => current + 1);
     window.setTimeout(() => {
       document.getElementById("task-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 20);
   };
+
+  const availableProjects = projects.filter(
+    (project) => project.clientId === selectedClientId,
+  );
 
   const runAction = (id: string, action: () => Promise<TaskActionState>) => {
     setActionId(id);
@@ -100,7 +113,10 @@ export default function PlanningManager({
         <div>
           <span className={styles.eyebrow}>Agenda operativa</span>
           <h2>Trabajos y tareas</h2>
-          <p>Los plazos se incorporan automáticamente al calendario general de Seguimiento.</p>
+          <p>
+            El cliente se selecciona desde su ficha maestra y los plazos aparecen
+            automáticamente en el calendario general de Seguimiento.
+          </p>
         </div>
         <button className={styles.primaryButton} onClick={() => openEditor(null)} type="button">
           + Nuevo trabajo
@@ -130,9 +146,36 @@ export default function PlanningManager({
           </label>
           <label>
             <span>Cliente</span>
-            <select defaultValue={editing?.metadata.clientId ?? ""} name="clientId">
-              <option value="">Sin cliente asociado</option>
+            <select
+              name="clientId"
+              onChange={(event) => {
+                setSelectedClientId(event.target.value);
+                setSelectedProjectId("");
+              }}
+              value={selectedClientId}
+            >
+              <option value="">Trabajo interno, sin cliente</option>
               {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Proyecto (opcional)</span>
+            <select
+              disabled={!selectedClientId || availableProjects.length === 0}
+              name="projectId"
+              onChange={(event) => setSelectedProjectId(event.target.value)}
+              value={selectedProjectId}
+            >
+              <option value="">
+                {!selectedClientId
+                  ? "Primero selecciona un cliente"
+                  : availableProjects.length === 0
+                    ? "Cliente sin proyecto registrado"
+                    : "Sin proyecto específico"}
+              </option>
+              {availableProjects.map((project) => (
+                <option key={project.id} value={project.id}>{project.name}</option>
+              ))}
             </select>
           </label>
           <label>
@@ -228,7 +271,10 @@ export default function PlanningManager({
                   {getScheduledTaskStatusLabel(task.metadata.status)}
                 </span>
                 <strong>{task.metadata.title}</strong>
-                <small>{task.metadata.clientName || "Sin cliente asociado"}</small>
+                <small>
+                  {task.metadata.clientName || "Trabajo interno"}
+                  {task.metadata.projectName ? ` · ${task.metadata.projectName}` : ""}
+                </small>
               </div>
               <div className={styles.taskOwner}>
                 <span>Responsable</span>

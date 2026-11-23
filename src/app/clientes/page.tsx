@@ -110,8 +110,8 @@ export default async function ClientsPage({
           <h1>Clientes</h1>
 
           <p>
-            Administra las empresas, contactos, proyectos y servicios
-            recurrentes de Vialoop.
+            Ficha maestra de empresas, contactos, servicios, renovaciones y
+            operación. Los demás módulos reutilizan estos datos sin pedirlos de nuevo.
           </p>
         </div>
 
@@ -143,8 +143,8 @@ export default async function ClientsPage({
             <h2>Directorio de clientes</h2>
 
             <p>
-              Selecciona una empresa para revisar y editar su información,
-              hosting y renovaciones.
+              Selecciona una empresa para revisar toda su relación con Vialoop
+              desde un único lugar.
             </p>
           </div>
 

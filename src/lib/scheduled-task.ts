@@ -11,6 +11,8 @@ export type ScheduledTaskMetadata = {
   title: string;
   clientId: string;
   clientName: string;
+  projectId: string;
+  projectName: string;
   startDate: string;
   dueDate: string;
   status: ScheduledTaskStatus;
@@ -43,6 +45,8 @@ export function parseScheduledTaskMetadata(value: unknown): ScheduledTaskMetadat
     title,
     clientId: stringValue(value.clientId),
     clientName: stringValue(value.clientName),
+    projectId: stringValue(value.projectId),
+    projectName: stringValue(value.projectName),
     startDate: stringValue(value.startDate),
     dueDate,
     status: isScheduledTaskStatus(value.status) ? value.status : "PENDING",

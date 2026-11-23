@@ -6,6 +6,10 @@ import styles from "./planificacion.module.css";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type PlanningPageProps = {
+  searchParams: Promise<{ cliente?: string }>;
+};
+
 function chileDateKey() {
   return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
@@ -21,25 +25,56 @@ function addDays(dateKey: string, days: number) {
   return date.toISOString().slice(0, 10);
 }
 
-export default async function PlanningPage() {
-  const [logs, clients] = await Promise.all([
+export default async function PlanningPage({ searchParams }: PlanningPageProps) {
+  const { cliente } = await searchParams;
+  const [logs, clients, projects] = await Promise.all([
     prisma.activityLog.findMany({
       where: { entityType: "ScheduledTask" },
       orderBy: { createdAt: "desc" },
       take: 1000,
+      include: {
+        client: {
+          select: { id: true, businessName: true, tradeName: true },
+        },
+        project: {
+          select: { id: true, name: true, domain: true, clientId: true },
+        },
+      },
     }),
     prisma.client.findMany({
       where: { status: "ACTIVE" },
       orderBy: { businessName: "asc" },
       select: { id: true, businessName: true, tradeName: true },
     }),
+    prisma.project.findMany({
+      where: {
+        client: { status: "ACTIVE" },
+      },
+      orderBy: [{ client: { businessName: "asc" } }, { name: "asc" }],
+      select: { id: true, clientId: true, name: true, domain: true },
+    }),
   ]);
   const tasks: ScheduledTaskRecord[] = logs
-    .map((log) => ({
-      id: log.id,
-      createdAt: log.createdAt.toISOString(),
-      metadata: parseScheduledTaskMetadata(log.metadata),
-    }))
+    .map((log) => {
+      const metadata = parseScheduledTaskMetadata(log.metadata);
+      return {
+        id: log.id,
+        createdAt: log.createdAt.toISOString(),
+        metadata: metadata
+          ? {
+              ...metadata,
+              clientId: log.client?.id ?? metadata.clientId,
+              clientName: log.client
+                ? log.client.tradeName || log.client.businessName
+                : metadata.clientName,
+              projectId: log.project?.id ?? metadata.projectId,
+              projectName: log.project
+                ? log.project.domain || log.project.name
+                : metadata.projectName,
+            }
+          : null,
+      };
+    })
     .filter((task): task is ScheduledTaskRecord => Boolean(task.metadata));
   const today = chileDateKey();
   const nextSevenDays = addDays(today, 7);
@@ -55,9 +90,10 @@ export default async function PlanningPage() {
       <header className={styles.hero}>
         <div>
           <span className={styles.eyebrow}>Operación y fechas</span>
-          <h1>Planificación</h1>
+          <h1>Agenda operativa</h1>
           <p>
-            Registra trabajos, responsables y plazos o importa una carta Gantt desde Excel.
+            Organiza trabajos y plazos usando la ficha única de cada cliente.
+            El proyecto es opcional y solo se usa cuando aporta contexto técnico.
           </p>
         </div>
       </header>
@@ -89,6 +125,14 @@ export default async function PlanningPage() {
         clients={clients.map((client) => ({
           id: client.id,
           name: client.tradeName || client.businessName,
+        }))}
+        initialClientId={
+          cliente && clients.some((client) => client.id === cliente) ? cliente : ""
+        }
+        projects={projects.map((project) => ({
+          id: project.id,
+          clientId: project.clientId,
+          name: project.domain || project.name,
         }))}
         tasks={tasks}
         today={today}

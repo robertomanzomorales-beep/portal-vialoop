@@ -49,6 +49,7 @@ export async function saveTask(
   const id = text(formData, "id");
   const title = text(formData, "title");
   const clientId = text(formData, "clientId");
+  const projectId = text(formData, "projectId");
   const startDate = validDate(text(formData, "startDate"));
   const dueDate = validDate(text(formData, "dueDate"));
   const status = text(formData, "status");
@@ -62,11 +63,25 @@ export async function saveTask(
     };
   }
 
-  const [client, existing] = await Promise.all([
+  const [client, project, existing] = await Promise.all([
     clientId
       ? prisma.client.findUnique({
           where: { id: clientId },
           select: { id: true, businessName: true, tradeName: true },
+        })
+      : Promise.resolve(null),
+    projectId
+      ? prisma.project.findUnique({
+          where: { id: projectId },
+          select: {
+            id: true,
+            name: true,
+            domain: true,
+            clientId: true,
+            client: {
+              select: { id: true, businessName: true, tradeName: true },
+            },
+          },
         })
       : Promise.resolve(null),
     id
@@ -80,15 +95,29 @@ export async function saveTask(
   if (clientId && !client) {
     return { ok: false, message: "El cliente seleccionado ya no existe." };
   }
+  if (projectId && !project) {
+    return { ok: false, message: "El proyecto seleccionado ya no existe." };
+  }
+  if (project && clientId && project.clientId !== clientId) {
+    return {
+      ok: false,
+      message: "El proyecto no pertenece al cliente seleccionado.",
+    };
+  }
   if (id && !existing) {
     return { ok: false, message: "El trabajo ya no existe." };
   }
 
   const previous = existing ? parseScheduledTaskMetadata(existing.metadata) : null;
+  const linkedClient = project?.client ?? client;
   const metadata: ScheduledTaskMetadata = {
     title,
-    clientId: client?.id ?? "",
-    clientName: client ? client.tradeName || client.businessName : "",
+    clientId: linkedClient?.id ?? "",
+    clientName: linkedClient
+      ? linkedClient.tradeName || linkedClient.businessName
+      : "",
+    projectId: project?.id ?? "",
+    projectName: project ? project.domain || project.name : "",
     startDate,
     dueDate,
     status,
@@ -103,7 +132,8 @@ export async function saveTask(
         where: { id: existing.id },
         data: {
           userId: user.id,
-          clientId: client?.id ?? null,
+          clientId: linkedClient?.id ?? null,
+          projectId: project?.id ?? null,
           action: "SCHEDULED_TASK_UPDATED",
           entityId: title,
           description: `${title} actualizado.`,
@@ -113,7 +143,8 @@ export async function saveTask(
     : await prisma.activityLog.create({
         data: {
           userId: user.id,
-          clientId: client?.id,
+          clientId: linkedClient?.id,
+          projectId: project?.id,
           action: "SCHEDULED_TASK_CREATED",
           entityType: "ScheduledTask",
           entityId: title,
@@ -237,6 +268,7 @@ export async function importTasks(
       if (client.tradeName) clientMap.set(normalize(client.tradeName), client);
     });
     const now = new Date().toISOString();
+    const unknownClients = new Set<string>();
     const parsed = rows.flatMap((row) => {
       const titleValue = rowValue(row, ["tarea", "trabajo", "titulo", "actividad", "nombre"]);
       const title = typeof titleValue === "string" ? titleValue.trim() : String(titleValue || "").trim();
@@ -250,12 +282,18 @@ export async function importTasks(
       const clientValue = rowValue(row, ["cliente", "empresa"]);
       const importedClientName = typeof clientValue === "string" ? clientValue.trim() : "";
       const client = importedClientName ? clientMap.get(normalize(importedClientName)) : undefined;
+      if (importedClientName && !client) {
+        unknownClients.add(importedClientName);
+        return [];
+      }
       const responsibleValue = rowValue(row, ["responsable", "encargado", "asignado"]);
       const notesValue = rowValue(row, ["notas", "descripcion", "detalle", "observaciones"]);
       const metadata: ScheduledTaskMetadata = {
         title,
         clientId: client?.id ?? "",
-        clientName: client ? client.tradeName || client.businessName : importedClientName,
+        clientName: client ? client.tradeName || client.businessName : "",
+        projectId: "",
+        projectName: "",
         startDate,
         dueDate,
         status: importedStatus(rowValue(row, ["estado", "status"])),
@@ -266,6 +304,15 @@ export async function importTasks(
       };
       return [{ metadata, clientId: client?.id }];
     });
+
+    if (unknownClients.size > 0) {
+      return {
+        ok: false,
+        message: `No se importó el archivo. Primero registra o corrige estos clientes en la ficha maestra: ${[...unknownClients]
+          .slice(0, 5)
+          .join(", ")}${unknownClients.size > 5 ? "…" : ""}.`,
+      };
+    }
 
     if (parsed.length === 0) {
       return {

@@ -234,6 +234,7 @@ export default async function Home() {
     monthlySalesCount,
     monthlyHostingAmountResult,
     monthlyHostingCount,
+    monthlySalePaymentsAmountResult,
     monthlySalesTarget,
     recentSales,
     trendSales,
@@ -366,6 +367,16 @@ export default async function Home() {
         },
       },
     }),
+    prisma.salePayment.aggregate({
+      where: {
+        paidAt: {
+          gte: currentMonth.start,
+          lt: currentMonth.end,
+        },
+        sale: { status: "ACTIVE" },
+      },
+      _sum: { amount: true },
+    }),
     getMonthlySalesGoal(
       currentMonth.start.getUTCFullYear(),
       currentMonth.start.getUTCMonth() + 1,
@@ -455,10 +466,11 @@ export default async function Home() {
   const undatedFollowUps = openProspects.filter(
     ({ metadata }) => !metadata.nextFollowUp,
   ).length;
-  const activeExpenses = expenseLogs.flatMap((log) => {
+  const expenses = expenseLogs.flatMap((log) => {
     const expense = parseExpenseMetadata(log.metadata);
-    return expense?.active ? [{ id: log.id, metadata: expense }] : [];
+    return expense ? [{ id: log.id, metadata: expense }] : [];
   });
+  const activeExpenses = expenses.filter(({ metadata }) => metadata.active);
   const overdueExpenses = activeExpenses.filter(
     ({ metadata }) => metadata.nextDueDate && metadata.nextDueDate < todayKey,
   ).length;
@@ -489,6 +501,33 @@ export default async function Home() {
   );
   const monthlySalesAmount =
     monthlyDirectSalesAmount + monthlyHostingSalesAmount;
+  const monthStartKey = currentMonth.start.toISOString().slice(0, 10);
+  const monthEndKey = currentMonth.end.toISOString().slice(0, 10);
+  const monthlyExpenseTotals = expenses.reduce(
+    (totals, { metadata }) => {
+      if (metadata.category !== "VIALOOP") return totals;
+
+      for (const payment of metadata.payments) {
+        if (payment.paidAt < monthStartKey || payment.paidAt >= monthEndKey) continue;
+        const gross = payment.amount;
+        const net =
+          metadata.taxTreatment === "TAXABLE"
+            ? Math.round(gross / 1.19)
+            : gross;
+        totals.net += net;
+        totals.vat += metadata.taxTreatment === "TAXABLE" ? gross - net : 0;
+      }
+
+      return totals;
+    },
+    { net: 0, vat: 0 },
+  );
+  const monthlyVatPayable =
+    Math.round(monthlySalesAmount * 0.19) - monthlyExpenseTotals.vat;
+  const monthlyCashCollected =
+    Number(monthlySalePaymentsAmountResult._sum.amount ?? 0) +
+    Number(monthlyHostingAmountResult._sum.amount ?? 0);
+  const monthlyOperatingResult = monthlySalesAmount - monthlyExpenseTotals.net;
   const monthlyCommercialCount = monthlySalesCount + monthlyHostingCount;
   const monthlySalesProgress =
     monthlySalesTarget > 0
@@ -767,6 +806,21 @@ export default async function Home() {
                 : "Meta cumplida"}
             </strong>
           </div>
+
+          <Link className={styles.financialPulse} href="/ventas">
+            <span>
+              <small>IVA neto estimado</small>
+              <strong>{formatCurrency(monthlyVatPayable)}</strong>
+            </span>
+            <span>
+              <small>Caja cobrada</small>
+              <strong>{formatCurrency(monthlyCashCollected)}</strong>
+            </span>
+            <span>
+              <small>Resultado operativo</small>
+              <strong>{formatCurrency(monthlyOperatingResult)}</strong>
+            </span>
+          </Link>
         </article>
 
         <article className={styles.trendPanel}>

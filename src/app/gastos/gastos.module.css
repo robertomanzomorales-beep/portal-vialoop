@@ -98,6 +98,7 @@
 }
 
 .primaryButton,
+.secondaryButton,
 .textButton,
 .expenseActions button {
   min-height: 36px;
@@ -113,6 +114,12 @@
   border: 1px solid var(--portal-text);
   background: var(--portal-text);
   color: var(--portal-on-accent);
+}
+
+.secondaryButton {
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
 }
 
 .textButton {
@@ -274,6 +281,78 @@
 .expenseIdentity small {
   color: var(--portal-muted);
   font-size: 9px;
+}
+
+.expenseAmount small {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paymentBackdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(15 23 42 / 58%);
+  backdrop-filter: blur(5px);
+}
+
+.paymentDialog {
+  display: grid;
+  width: min(440px, 100%);
+  gap: 16px;
+  border: 1px solid var(--portal-border);
+  border-radius: 14px;
+  background: var(--portal-surface);
+  padding: 22px;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 26%);
+}
+
+.paymentDialog h3 {
+  margin: 5px 0 4px;
+  color: var(--portal-text);
+  font-size: 18px;
+}
+
+.paymentDialog p,
+.paymentDialog small {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.paymentDialog label {
+  display: grid;
+  gap: 7px;
+}
+
+.paymentDialog label span {
+  color: var(--portal-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.paymentDialog input {
+  min-height: 41px;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 9px;
+  background: var(--portal-surface);
+  padding: 0 12px;
+  color: var(--portal-text);
+  font: inherit;
+}
+
+.paymentDialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .expenseOverdue strong {

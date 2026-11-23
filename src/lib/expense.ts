@@ -6,9 +6,11 @@ export const expenseFrequencies = [
 ] as const;
 
 export const expenseCategories = ["VIALOOP", "HOME"] as const;
+export const expenseTaxTreatments = ["TAXABLE", "EXEMPT"] as const;
 
 export type ExpenseFrequency = (typeof expenseFrequencies)[number];
 export type ExpenseCategory = (typeof expenseCategories)[number];
+export type ExpenseTaxTreatment = (typeof expenseTaxTreatments)[number];
 
 export type ExpensePayment = {
   id: string;
@@ -20,6 +22,7 @@ export type ExpenseMetadata = {
   concept: string;
   amount: number;
   category: ExpenseCategory;
+  taxTreatment: ExpenseTaxTreatment;
   frequency: ExpenseFrequency;
   nextDueDate: string;
   active: boolean;
@@ -43,6 +46,12 @@ export function isExpenseFrequency(value: unknown): value is ExpenseFrequency {
 
 export function isExpenseCategory(value: unknown): value is ExpenseCategory {
   return expenseCategories.includes(value as ExpenseCategory);
+}
+
+export function isExpenseTaxTreatment(
+  value: unknown,
+): value is ExpenseTaxTreatment {
+  return expenseTaxTreatments.includes(value as ExpenseTaxTreatment);
 }
 
 export function parseExpenseMetadata(value: unknown): ExpenseMetadata | null {
@@ -73,6 +82,11 @@ export function parseExpenseMetadata(value: unknown): ExpenseMetadata | null {
     concept,
     amount,
     category: isExpenseCategory(value.category) ? value.category : "VIALOOP",
+    // Los registros históricos no declaraban si el monto daba derecho a
+    // crédito fiscal. Se consideran exentos hasta que una persona los revise.
+    taxTreatment: isExpenseTaxTreatment(value.taxTreatment)
+      ? value.taxTreatment
+      : "EXEMPT",
     frequency: isExpenseFrequency(value.frequency) ? value.frequency : "MONTHLY",
     nextDueDate: stringValue(value.nextDueDate),
     active: value.active !== false,
@@ -94,6 +108,14 @@ export function getExpenseFrequencyLabel(frequency: ExpenseFrequency) {
 
 export function getExpenseCategoryLabel(category: ExpenseCategory) {
   return category === "VIALOOP" ? "Vialoop" : "Casa";
+}
+
+export function getExpenseTaxTreatmentLabel(
+  treatment: ExpenseTaxTreatment,
+) {
+  return treatment === "TAXABLE"
+    ? "Monto con IVA"
+    : "Exento o sin crédito fiscal";
 }
 
 function addMonths(date: Date, months: number) {

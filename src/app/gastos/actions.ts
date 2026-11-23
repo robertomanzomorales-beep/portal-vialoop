@@ -8,6 +8,7 @@ import {
   getNextExpenseDueDate,
   isExpenseCategory,
   isExpenseFrequency,
+  isExpenseTaxTreatment,
   parseExpenseMetadata,
   type ExpenseMetadata,
 } from "@/lib/expense";
@@ -47,6 +48,7 @@ export async function saveExpense(
   const concept = text(formData, "concept");
   const expenseAmount = amount(text(formData, "amount"));
   const category = text(formData, "category");
+  const taxTreatment = text(formData, "taxTreatment");
   const frequency = text(formData, "frequency");
   const nextDueDate = dateKey(text(formData, "nextDueDate"));
   const notes = text(formData, "notes");
@@ -56,11 +58,12 @@ export async function saveExpense(
     expenseAmount <= 0 ||
     !nextDueDate ||
     !isExpenseCategory(category) ||
+    !isExpenseTaxTreatment(taxTreatment) ||
     !isExpenseFrequency(frequency)
   ) {
     return {
       ok: false,
-      message: "Completa el concepto, monto, categoría, frecuencia y próximo vencimiento.",
+      message: "Completa el concepto, monto, categoría, tratamiento de IVA, frecuencia y próximo vencimiento.",
     };
   }
 
@@ -80,6 +83,7 @@ export async function saveExpense(
     concept,
     amount: expenseAmount,
     category,
+    taxTreatment,
     frequency,
     nextDueDate,
     active: true,
@@ -124,6 +128,7 @@ export async function saveExpense(
 
 export async function markExpensePaid(
   id: string,
+  paidAtValue: string,
 ): Promise<ExpenseActionState> {
   const user = await requireUser();
   const existing = await prisma.activityLog.findFirst({
@@ -136,7 +141,10 @@ export async function markExpensePaid(
     return { ok: false, message: "El gasto ya no existe." };
   }
 
-  const paidAt = expense.nextDueDate;
+  const paidAt = dateKey(paidAtValue);
+  if (!paidAt) {
+    return { ok: false, message: "La fecha real de pago no es válida." };
+  }
   const recurring = expense.frequency !== "ONE_TIME";
   const metadata: ExpenseMetadata = {
     ...expense,

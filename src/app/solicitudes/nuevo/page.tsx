@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createSupportRequest } from "../actions";
+import ClientProjectSelector from "./ClientProjectSelector";
 import styles from "../solicitudes.module.css";
 
-export default async function NewSupportRequestPage() {
-  const [clients, projects] =
-    await Promise.all([
-      prisma.client.findMany({
+type NewSupportRequestPageProps = {
+  searchParams: Promise<{ cliente?: string }>;
+};
+
+export default async function NewSupportRequestPage({
+  searchParams,
+}: NewSupportRequestPageProps) {
+  const [{ cliente }, clients, projects] = await Promise.all([
+    searchParams,
+    prisma.client.findMany({
         where: {
           status: "ACTIVE",
         },
@@ -19,9 +26,9 @@ export default async function NewSupportRequestPage() {
           tradeName: true,
           email: true,
         },
-      }),
+    }),
 
-      prisma.project.findMany({
+    prisma.project.findMany({
         where: {
           status: {
             in: [
@@ -46,14 +53,9 @@ export default async function NewSupportRequestPage() {
           name: true,
           domain: true,
           clientId: true,
-          client: {
-            select: {
-              businessName: true,
-            },
-          },
         },
-      }),
-    ]);
+    }),
+  ]);
 
   return (
     <main
@@ -76,11 +78,8 @@ export default async function NewSupportRequestPage() {
           </h1>
 
           <p>
-            Registra una solicitud de
-            soporte, selecciona el
-            cliente, asocia el
-            proyecto y establece su
-            prioridad.
+            Registra el requerimiento directamente en la ficha del cliente.
+            El proyecto solo se asocia cuando realmente aporta contexto.
           </p>
         </div>
 
@@ -168,95 +167,20 @@ export default async function NewSupportRequestPage() {
                 styles.formGrid
               }
             >
-              <label
-                className={
-                  styles.field
+              <ClientProjectSelector
+                clients={clients.map((client) => ({
+                  id: client.id,
+                  name: client.tradeName || client.businessName,
+                }))}
+                initialClientId={
+                  clients.some((client) => client.id === cliente) ? cliente! : ""
                 }
-              >
-                <span>
-                  Cliente *
-                </span>
-
-                <select
-                  defaultValue=""
-                  name="clientId"
-                  required
-                >
-                  <option
-                    disabled
-                    value=""
-                  >
-                    Seleccionar cliente
-                  </option>
-
-                  {clients.map(
-                    (client) => (
-                      <option
-                        key={
-                          client.id
-                        }
-                        value={
-                          client.id
-                        }
-                      >
-                        {
-                          client.businessName
-                        }
-                        {client.tradeName
-                          ? ` · ${client.tradeName}`
-                          : ""}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-
-              <label
-                className={
-                  styles.field
-                }
-              >
-                <span>
-                  Proyecto
-                </span>
-
-                <select
-                  defaultValue=""
-                  name="projectId"
-                >
-                  <option value="">
-                    Sin proyecto
-                    asociado
-                  </option>
-
-                  {projects.map(
-                    (project) => (
-                      <option
-                        key={
-                          project.id
-                        }
-                        value={
-                          project.id
-                        }
-                      >
-                        {
-                          project.client
-                            .businessName
-                        }{" "}
-                        ·{" "}
-                        {project.domain ??
-                          project.name}
-                      </option>
-                    ),
-                  )}
-                </select>
-
-                <small>
-                  El proyecto debe
-                  pertenecer al cliente
-                  seleccionado.
-                </small>
-              </label>
+                projects={projects.map((project) => ({
+                  id: project.id,
+                  clientId: project.clientId,
+                  name: project.domain || project.name,
+                }))}
+              />
             </div>
           </section>
 

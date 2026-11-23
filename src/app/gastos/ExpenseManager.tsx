@@ -5,8 +5,10 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 import {
   expenseCategories,
   expenseFrequencies,
+  expenseTaxTreatments,
   getExpenseCategoryLabel,
   getExpenseFrequencyLabel,
+  getExpenseTaxTreatmentLabel,
   type ExpenseMetadata,
 } from "@/lib/expense";
 import {
@@ -57,6 +59,7 @@ export default function ExpenseManager({
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"ALL" | "VIALOOP" | "HOME">("ALL");
   const [actionId, setActionId] = useState<string | null>(null);
+  const [payingExpense, setPayingExpense] = useState<ExpenseRecord | null>(null);
   const [actionFeedback, setActionFeedback] = useState<ExpenseActionState | null>(null);
   const [isTransitioning, startTransition] = useTransition();
 
@@ -146,6 +149,19 @@ export default function ExpenseManager({
           </select>
         </label>
         <label>
+          <span>Tratamiento de IVA *</span>
+          <select
+            defaultValue={editing?.metadata.taxTreatment ?? "TAXABLE"}
+            name="taxTreatment"
+          >
+            {expenseTaxTreatments.map((item) => (
+              <option key={item} value={item}>
+                {getExpenseTaxTreatmentLabel(item)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           <span>Frecuencia *</span>
           <select defaultValue={editing?.metadata.frequency ?? "MONTHLY"} name="frequency">
             {expenseFrequencies.map((item) => (
@@ -215,6 +231,7 @@ export default function ExpenseManager({
               <div className={styles.expenseAmount}>
                 <span>Monto</span>
                 <strong>{currency(expense.metadata.amount)}</strong>
+                <small>{getExpenseTaxTreatmentLabel(expense.metadata.taxTreatment)}</small>
               </div>
               <div className={`${styles.expenseDue} ${overdue ? styles.expenseOverdue : ""}`}>
                 <span>{expense.metadata.active ? "Próximo pago" : "Estado"}</span>
@@ -224,7 +241,7 @@ export default function ExpenseManager({
                 {expense.metadata.active ? (
                   <button
                     disabled={busy}
-                    onClick={() => runAction(expense.id, () => markExpensePaid(expense.id))}
+                    onClick={() => setPayingExpense(expense)}
                     type="button"
                   >
                     Marcar pagado
@@ -248,6 +265,54 @@ export default function ExpenseManager({
           );
         })}
       </div>
+
+      {payingExpense ? (
+        <div
+          className={styles.paymentBackdrop}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPayingExpense(null);
+          }}
+          role="presentation"
+        >
+          <form
+            className={styles.paymentDialog}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const form = new FormData(event.currentTarget);
+              const paidAt = String(form.get("paidAt") ?? "");
+              runAction(payingExpense.id, () => markExpensePaid(payingExpense.id, paidAt));
+              setPayingExpense(null);
+            }}
+          >
+            <div>
+              <span className={styles.eyebrow}>Registro de caja</span>
+              <h3>Confirmar pago del gasto</h3>
+              <p>
+                {payingExpense.metadata.concept} · {currency(payingExpense.metadata.amount)}
+              </p>
+            </div>
+            <label>
+              <span>Fecha real del pago</span>
+              <input defaultValue={today} name="paidAt" required type="date" />
+            </label>
+            <small>
+              Esta fecha define el mes contable en el cierre financiero y el IVA crédito.
+            </small>
+            <footer>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => setPayingExpense(null)}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button className={styles.primaryButton} type="submit">
+                Confirmar pago
+              </button>
+            </footer>
+          </form>
+        </div>
+      ) : null}
     </section>
   );
 }

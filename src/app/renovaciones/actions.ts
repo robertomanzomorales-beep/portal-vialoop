@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mail";
 import { confirmRenewalPayment } from "@/lib/renewal-lifecycle";
+import { buildRenewalConfirmationEmail } from "@/lib/renewal-confirmation-email";
 
 type ReminderType =
   | "FIRST_NOTICE"
@@ -577,14 +578,33 @@ export async function confirmRenewalAsPaid(
   formData: FormData,
 ) {
   const user = await requireUser();
+  const paidAt = getPaymentDate(formData);
   const createNextRenewal =
     formData.get(
       "createNextRenewal",
     ) === "on";
+  const sendConfirmation = formData.get("sendConfirmation") === "on";
+  const recipient = sendConfirmation
+    ? getRequiredString(formData, "confirmationRecipient", "El destinatario")
+    : "";
+  const confirmationSubject = sendConfirmation
+    ? getRequiredString(formData, "confirmationSubject", "El asunto")
+    : "";
+  const confirmationMessage = sendConfirmation
+    ? getRequiredString(formData, "confirmationMessage", "El mensaje")
+    : "";
+
+  if (sendConfirmation && !validateEmailAddress(recipient)) {
+    throw new Error("El correo de confirmación no es válido.");
+  }
+  if (confirmationSubject.length > 180 || confirmationMessage.length > 3000) {
+    throw new Error("El asunto o el mensaje de confirmación es demasiado extenso.");
+  }
+
   const outcome =
     await confirmRenewalPayment({
       renewalId,
-      paidAt: getPaymentDate(formData),
+      paidAt,
       paymentMethod:
         getPaymentMethod(formData),
       createNextRenewal,
@@ -611,11 +631,100 @@ export async function confirmRenewalAsPaid(
     revalidatePath("/suscripciones");
   }
 
+  let confirmationStatus: "skipped" | "sent" | "failed" = "skipped";
+
+  if (sendConfirmation && outcome.state === "reconciled") {
+    const renewal = await prisma.renewal.findUnique({
+      where: { id: renewalId },
+      include: { client: true, project: true },
+    });
+
+    if (renewal) {
+      const domain =
+        renewal.project?.domain ||
+        renewal.project?.name ||
+        renewal.client.tradeName ||
+        renewal.client.businessName;
+      const amount = renewal.amount === null
+        ? "Sin monto informado"
+        : new Intl.NumberFormat("es-CL", {
+            style: "currency",
+            currency: "CLP",
+            maximumFractionDigits: 0,
+          }).format(Number(renewal.amount));
+      const email = buildRenewalConfirmationEmail({
+        subject: confirmationSubject,
+        contactName: renewal.client.mainContactName ?? "",
+        clientName: renewal.client.tradeName || renewal.client.businessName,
+        serviceName: renewal.description,
+        domain,
+        amount,
+        paidAt,
+        nextDueDate: outcome.nextDueDate,
+        message: confirmationMessage,
+      });
+
+      try {
+        const mailResult = await sendEmail({
+          to: recipient,
+          subject: email.subject,
+          text: email.text,
+          html: email.html,
+          fromEmail: "hosting@vialoop.cl",
+          fromName: "Vialoop Hosting",
+          replyTo: "hosting@vialoop.cl",
+        });
+
+        confirmationStatus = "sent";
+        await prisma.activityLog.create({
+          data: {
+            userId: user.id,
+            clientId: renewal.clientId,
+            projectId: renewal.projectId,
+            action: "RENEWAL_CONFIRMATION_SENT",
+            entityType: "Renewal",
+            entityId: renewal.id,
+            description: `Confirmación de renovación enviada a ${recipient}.`,
+            metadata: {
+              recipient,
+              subject: email.subject,
+              smtpMessageId: mailResult.messageId,
+              accepted: mailResult.accepted,
+              rejected: mailResult.rejected,
+            },
+          },
+        });
+      } catch (error) {
+        confirmationStatus = "failed";
+        await prisma.activityLog.create({
+          data: {
+            userId: user.id,
+            clientId: renewal.clientId,
+            projectId: renewal.projectId,
+            action: "RENEWAL_CONFIRMATION_FAILED",
+            entityType: "Renewal",
+            entityId: renewal.id,
+            description: `La renovación se cerró, pero no fue posible enviar la confirmación a ${recipient}.`,
+            metadata: {
+              recipient,
+              subject: confirmationSubject,
+              error: error instanceof Error ? error.message : "Error de envío",
+            },
+          },
+        });
+      }
+    }
+  }
+
+  const baseResult = createNextRenewal ? "renovada" : "pagada";
+
   redirect(
     outcome.state === "already-closed"
       ? "/renovaciones?resultado=ya-cerrada"
-      : createNextRenewal
-        ? "/renovaciones?resultado=renovada"
-        : "/renovaciones?resultado=pagada",
+      : confirmationStatus === "sent"
+        ? `/renovaciones?resultado=${baseResult}-confirmada`
+        : confirmationStatus === "failed"
+          ? `/renovaciones?resultado=${baseResult}-correo-error`
+          : `/renovaciones?resultado=${baseResult}`,
   );
 }

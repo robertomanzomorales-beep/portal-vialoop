@@ -182,6 +182,7 @@ async function settleRenewalInTransaction(
     return {
       state: "missing" as const,
       nextRenewalCreated: false,
+      nextDueDate: null,
       clientId: null,
       subscriptionId: null,
     };
@@ -196,6 +197,7 @@ async function settleRenewalInTransaction(
     return {
       state: "already-closed" as const,
       nextRenewalCreated: false,
+      nextDueDate: null,
       clientId: renewal.clientId,
       subscriptionId:
         renewal.subscriptionId,
@@ -252,6 +254,7 @@ async function settleRenewalInTransaction(
     return {
       state: "already-closed" as const,
       nextRenewalCreated: false,
+      nextDueDate: null,
       clientId: renewal.clientId,
       subscriptionId:
         renewal.subscriptionId,
@@ -412,6 +415,7 @@ async function settleRenewalInTransaction(
   return {
     state: "reconciled" as const,
     nextRenewalCreated,
+    nextDueDate: createNextCycle ? nextDueDate : null,
     clientId: renewal.clientId,
     subscriptionId:
       renewal.subscriptionId,
@@ -476,6 +480,7 @@ export async function confirmRenewalPayment({
         return {
           state: "already-closed" as const,
           nextRenewalCreated: false,
+          nextDueDate: null,
           clientId: renewal.clientId,
           subscriptionId:
             renewal.subscriptionId,

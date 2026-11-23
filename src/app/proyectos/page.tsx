@@ -264,13 +264,13 @@ export default async function ProjectsPage({
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>Gestión operativa</span>
+          <span className={styles.eyebrow}>Inventario técnico</span>
 
           <h1>Proyectos</h1>
 
           <p>
-            Revisa los sitios web, dominios, servicios de hosting y proyectos
-            asociados a cada cliente de Vialoop.
+            Vista técnica derivada de las fichas de clientes. La empresa y su
+            contacto se administran únicamente desde Clientes.
           </p>
         </div>
 

@@ -64,6 +64,10 @@ export default async function FollowUpPage() {
         where: { entityType: "ScheduledTask" },
         orderBy: { createdAt: "desc" },
         take: 1000,
+        include: {
+          client: { select: { businessName: true, tradeName: true } },
+          project: { select: { name: true, domain: true } },
+        },
       }),
       prisma.renewal.findMany({
         where: {
@@ -240,12 +244,20 @@ export default async function FollowUpPage() {
   const taskCalendarEntries: FollowUpCalendarEntry[] = taskLogs.flatMap((log) => {
     const task = parseScheduledTaskMetadata(log.metadata);
     if (!task || task.status === "COMPLETED" || !task.dueDate) return [];
+    const clientName = log.client
+      ? log.client.tradeName || log.client.businessName
+      : task.clientName;
+    const projectName = log.project
+      ? log.project.domain || log.project.name
+      : task.projectName;
     return [{
       id: `task-${log.id}`,
       kind: "TASK" as const,
       company: task.title,
       date: task.dueDate,
-      status: `${getScheduledTaskStatusLabel(task.status)}${task.clientName ? ` · ${task.clientName}` : ""}`,
+      status: [getScheduledTaskStatusLabel(task.status), clientName, projectName]
+        .filter(Boolean)
+        .join(" · "),
       assignedTo: task.responsible || "Equipo",
       quotationNumber: "",
       href: "/planificacion",

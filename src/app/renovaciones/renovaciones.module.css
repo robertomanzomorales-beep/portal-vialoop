@@ -679,7 +679,7 @@
 }
 
 .completionModal {
-  width: min(650px, 100%);
+  width: min(720px, 100%);
 }
 
 .completionGrid {
@@ -720,6 +720,57 @@
   color: var(--portal-muted);
   font-size: 11px;
   line-height: 1.5;
+}
+
+.confirmationPanel {
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+}
+
+.confirmationToggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.confirmationToggle input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--portal-accent);
+}
+
+.confirmationToggle span {
+  display: grid;
+  gap: 4px;
+}
+
+.confirmationToggle strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+.confirmationToggle small {
+  color: var(--portal-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.confirmationFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  border-top: 1px solid var(--portal-border);
+  padding: 16px;
+  background: var(--portal-surface);
+}
+
+.confirmationMessage {
+  grid-column: 1 / -1;
 }
 
 .emailTools {
@@ -889,6 +940,14 @@
 }
 
 @media (max-width: 760px) {
+  .confirmationFields {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmationMessage {
+    grid-column: auto;
+  }
+
   .page {
     padding: 28px 18px;
   }

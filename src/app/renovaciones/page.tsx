@@ -951,6 +951,22 @@ export default async function RenewalsPage({
         </div>
       )}
 
+      {(resolvedSearchParams.resultado === "renovada-confirmada" ||
+        resolvedSearchParams.resultado === "pagada-confirmada") && (
+        <div className={styles.successMessage}>
+          El pago y la renovación quedaron registrados. La confirmación editable
+          fue enviada al cliente y guardada en el historial.
+        </div>
+      )}
+
+      {(resolvedSearchParams.resultado === "renovada-correo-error" ||
+        resolvedSearchParams.resultado === "pagada-correo-error") && (
+        <div className={styles.noticeMessage}>
+          La renovación quedó correctamente registrada, pero el correo de
+          confirmación no pudo enviarse. El error quedó guardado para reintento.
+        </div>
+      )}
+
       {resolvedSearchParams.resultado ===
         "ya-cerrada" && (
         <div className={styles.noticeMessage}>
@@ -1553,8 +1569,17 @@ export default async function RenewalsPage({
                                   renewal.client
                                     .businessName
                                 }
+                                contactName={
+                                  renewal.client
+                                    .mainContactName ?? ""
+                                }
                                 description={
                                   renewal.description
+                                }
+                                domain={domain}
+                                recipient={
+                                  renewal.client
+                                    .email ?? ""
                                 }
                                 renewalId={
                                   renewal.id

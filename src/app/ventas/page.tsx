@@ -1,9 +1,16 @@
 import SalesManager, {
   type SaleListItem,
 } from "./SalesManager";
+import { getCurrentUser } from "@/lib/auth";
+import {
+  financialSummaryFingerprint,
+  getMonthlyFinancials,
+  parseClosedFinancialSummary,
+} from "@/lib/monthly-financials";
 import { prisma } from "@/lib/prisma";
 import { getMonthlySalesGoal } from "@/lib/sales-goal";
 import { updateMonthlyGoal } from "./actions";
+import MonthCloseControl from "./MonthCloseControl";
 import styles from "./ventas.module.css";
 
 export const dynamic = "force-dynamic";
@@ -198,13 +205,13 @@ export default async function SalesPage({
 
   const [
     clients,
-    monthlySales,
-    monthlyPaidPayments,
+    financials,
     chartSales,
     chartPaidPayments,
     recentSales,
-    hostingRenewals,
     monthlyGoal,
+    latestMonthEvent,
+    user,
   ] = await Promise.all([
     prisma.client.findMany({
       where: {
@@ -219,55 +226,7 @@ export default async function SalesPage({
         tradeName: true,
       },
     }),
-    prisma.sale.findMany({
-      where: {
-        status: "ACTIVE",
-        saleDate: {
-          gte: currentMonth.start,
-          lt: currentMonth.end,
-        },
-      },
-      select: {
-        netAmount: true,
-      },
-    }),
-    prisma.payment.findMany({
-      where: {
-        status: "PAID",
-        paidAt: {
-          gte: currentMonth.start,
-          lt: currentMonth.end,
-        },
-      },
-      orderBy: {
-        paidAt: "desc",
-      },
-      select: {
-        id: true,
-        description: true,
-        notes: true,
-        amount: true,
-        paidAt: true,
-        method: true,
-        reference: true,
-        client: {
-          select: {
-            businessName: true,
-            tradeName: true,
-          },
-        },
-        subscription: {
-          select: {
-            plan: {
-              select: {
-                name: true,
-                description: true,
-              },
-            },
-          },
-        },
-      },
-    }),
+    getMonthlyFinancials(year, month),
     prisma.sale.findMany({
       where: {
         status: "ACTIVE",
@@ -348,60 +307,67 @@ export default async function SalesPage({
         },
       },
     }),
-    prisma.renewal.findMany({
-      where: {
-        type: "HOSTING",
-      },
-      select: {
-        id: true,
-      },
-    }),
     getMonthlySalesGoal(
       year,
       month,
     ),
+    prisma.activityLog.findFirst({
+      where: {
+        entityType: "FinancialMonth",
+        entityId: period,
+        action: {
+          in: ["FINANCIAL_MONTH_CLOSED", "FINANCIAL_MONTH_REOPENED"],
+        },
+      },
+      select: {
+        action: true,
+        metadata: true,
+        createdAt: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    getCurrentUser(),
   ]);
 
-  const hostingRenewalIds = new Set(
-    hostingRenewals.map((renewal) => renewal.id),
-  );
-
-  const monthlyHostingPayments = monthlyPaidPayments.filter((payment) =>
-    isHostingPayment(payment, hostingRenewalIds),
-  );
+  const monthlySales = financials.manualSales;
+  const monthlyHostingPayments = financials.hostingPayments;
+  const hostingRenewalIds = new Set(financials.hostingRenewalIds);
 
   const chartHostingPayments = chartPaidPayments.filter((payment) =>
     isHostingPayment(payment, hostingRenewalIds),
   );
 
-  const manualSalesTotal = monthlySales.reduce(
-    (total, sale) => total + Number(sale.netAmount),
-    0,
-  );
-
-  const hostingSalesTotal =
-    monthlyHostingPayments.reduce(
-      (total, payment) =>
-        total +
-        netFromGross(
-          Number(payment.amount),
-        ),
-      0,
-    );
-
-  const monthlyTotal =
-    manualSalesTotal +
-    hostingSalesTotal;
-  const monthlyVat = Math.round(monthlyTotal * 0.19);
-  const monthlyGross = monthlyTotal + monthlyVat;
-
-  const salesCount =
-    monthlySales.length +
-    monthlyHostingPayments.length;
-
-  const averageSale = salesCount > 0 ? monthlyTotal / salesCount : 0;
+  const { summary } = financials;
+  const hostingSalesTotal = summary.hostingSalesNet;
+  const monthlyTotal = summary.netSales;
+  const monthlyVat = summary.outputVat;
+  const monthlyGross = summary.grossSales;
+  const averageSale = summary.averageTicket;
   const progress = (monthlyTotal / monthlyGoal) * 100;
   const remaining = Math.max(monthlyGoal - monthlyTotal, 0);
+  const closedSummary =
+    latestMonthEvent?.action === "FINANCIAL_MONTH_CLOSED"
+      ? parseClosedFinancialSummary(latestMonthEvent.metadata)
+      : null;
+  const monthClosed = Boolean(closedSummary);
+  const closeNeedsReview = Boolean(
+    closedSummary &&
+      financialSummaryFingerprint(closedSummary) !==
+        financialSummaryFingerprint(summary),
+  );
+  const closedAt = latestMonthEvent
+    ? new Intl.DateTimeFormat("es-CL", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: CHILE_TIME_ZONE,
+      })
+        .format(latestMonthEvent.createdAt)
+        .replace(".", "")
+    : "";
 
   const chartData = Array.from({ length: 12 }, (_, index) => {
     const date = createDateOnly(firstChartYear, firstChartMonth + index);
@@ -587,7 +553,7 @@ export default async function SalesPage({
 
       <section className={styles.metrics}>
         <article className={styles.metricCard}>
-          <span>Vendido en {getMonthLabel(year, month, true)}</span>
+          <span>Venta neta · {getMonthLabel(year, month, true)}</span>
           <strong>{formatCurrency(monthlyTotal)}</strong>
           <small>
             {monthlySales.length} ventas y {monthlyHostingPayments.length} pagos de hosting
@@ -595,15 +561,43 @@ export default async function SalesPage({
         </article>
 
         <article className={styles.metricCard}>
-          <span>Meta mensual</span>
-          <strong>{formatCurrency(monthlyGoal)}</strong>
-          <small>Valor neto, sin IVA</small>
+          <span>IVA débito acumulado</span>
+          <strong>{formatCurrency(monthlyVat)}</strong>
+          <small>Total facturado: {formatCurrency(monthlyGross)}</small>
         </article>
 
         <article className={styles.metricCard}>
-          <span>IVA acumulado del mes</span>
-          <strong>{formatCurrency(monthlyVat)}</strong>
-          <small>Total con IVA: {formatCurrency(monthlyGross)}</small>
+          <span>IVA crédito registrado</span>
+          <strong>{formatCurrency(summary.operatingExpenseVat)}</strong>
+          <small>{summary.paidExpenseCount} gastos Vialoop pagados</small>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span>IVA neto estimado</span>
+          <strong>{formatCurrency(summary.estimatedVatPayable)}</strong>
+          <small>Débito menos crédito fiscal informado</small>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span>Caja cobrada en el mes</span>
+          <strong>{formatCurrency(summary.cashCollected)}</strong>
+          <small>
+            Cobranza {summary.collectionRate.toFixed(1).replace(".", ",")}% del total facturado
+          </small>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span>Cuentas por cobrar</span>
+          <strong>{formatCurrency(summary.accountsReceivable)}</strong>
+          <small>Saldo pendiente de ventas del periodo</small>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span>Resultado operativo neto</span>
+          <strong>{formatCurrency(summary.operatingResult)}</strong>
+          <small>
+            Margen {summary.operatingMargin.toFixed(1).replace(".", ",")}% · gastos netos {formatCurrency(summary.operatingExpenseNet)}
+          </small>
         </article>
 
         <article className={styles.metricCard}>
@@ -621,9 +615,20 @@ export default async function SalesPage({
         <article className={styles.metricCard}>
           <span>Venta promedio</span>
           <strong>{formatCurrency(averageSale)}</strong>
-          <small>Promedio de las ventas activas del mes</small>
+          <small>Meta neta: {formatCurrency(monthlyGoal)}</small>
         </article>
       </section>
+
+      <MonthCloseControl
+        canManage={user?.role === "ADMIN"}
+        closed={monthClosed}
+        closedAt={closedAt}
+        closedBy={latestMonthEvent?.user?.name ?? ""}
+        monthLabel={getMonthLabel(year, month, true)}
+        needsReview={closeNeedsReview}
+        period={period}
+        summary={summary}
+      />
 
       <section className={styles.goalPanel}>
         <div className={styles.goalTopline}>

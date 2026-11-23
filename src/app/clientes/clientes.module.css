@@ -499,6 +499,95 @@
   overflow-wrap: anywhere;
 }
 
+.projectStack {
+  display: grid;
+  gap: 10px;
+}
+
+.projectCard {
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+}
+
+.projectCard > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+}
+
+.projectCard > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.projectCard > header strong {
+  color: var(--portal-text);
+  font-size: 13px;
+}
+
+.projectCard > header span {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectStatus {
+  flex: 0 0 auto;
+  border: 1px solid var(--portal-accent-border);
+  border-radius: 999px;
+  background: var(--portal-accent-soft);
+  padding: 5px 8px;
+  color: var(--portal-accent) !important;
+  font-size: 9px !important;
+  font-weight: 750;
+}
+
+.projectCard dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.projectCard dl > div {
+  min-width: 0;
+  padding: 11px 14px;
+  border-top: 1px solid var(--portal-border);
+}
+
+.projectCard dl > div:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+.projectCard dt {
+  margin-bottom: 4px;
+  color: var(--portal-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.projectCard dd {
+  overflow: hidden;
+  margin: 0;
+  color: var(--portal-text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectCard dd a {
+  color: var(--portal-accent);
+}
+
 .inlineEmpty {
   border-radius: 10px;
   background: var(--portal-surface-soft);
@@ -655,7 +744,7 @@
 
 .clientOperationPanel {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto minmax(210px, 240px);
+  grid-template-columns: minmax(260px, 1fr) minmax(290px, 0.8fr) minmax(210px, 240px);
   align-items: center;
   gap: 22px;
   margin-bottom: 12px;
@@ -664,6 +753,45 @@
   background: linear-gradient(135deg, var(--portal-surface) 0%, var(--portal-accent-soft) 100%);
   box-shadow: var(--portal-shadow-sm);
   padding: 18px 20px;
+}
+
+.clientQuickActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  background: var(--portal-surface);
+}
+
+.clientQuickActions a {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 11px 12px;
+  border-left: 1px solid var(--portal-border);
+  color: var(--portal-text);
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: background-color var(--portal-motion-fast) var(--portal-ease);
+}
+
+.clientQuickActions a:first-child {
+  border-left: 0;
+}
+
+.clientQuickActions a:hover {
+  background: var(--portal-accent-soft);
+}
+
+.clientQuickActions span {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 9px;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .clientOperationPanel h2 {
@@ -903,8 +1031,8 @@
     grid-template-columns: minmax(0, 1fr) minmax(210px, 240px);
   }
 
-  .clientOperationMeta {
-    display: none;
+  .clientQuickActions {
+    grid-column: 1 / -1;
   }
 }
 
@@ -939,6 +1067,33 @@
   .clientOperationPanel {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .clientQuickActions {
+    grid-template-columns: 1fr;
+  }
+
+  .clientQuickActions a,
+  .clientQuickActions a:first-child {
+    border-top: 1px solid var(--portal-border);
+    border-left: 0;
+  }
+
+  .clientQuickActions a:first-child {
+    border-top: 0;
+  }
+
+  .projectCard dl {
+    grid-template-columns: 1fr;
+  }
+
+  .projectCard dl > div,
+  .projectCard dl > div:nth-child(-n + 2) {
+    border-top: 1px solid var(--portal-border);
+  }
+
+  .projectCard dl > div:first-child {
+    border-top: 0;
   }
 
   .welcomeAction {

@@ -11,7 +11,10 @@ import styles from "./renovaciones.module.css";
 type Props = {
   renewalId: string;
   clientName: string;
+  contactName: string;
+  recipient: string;
   description: string;
+  domain: string;
   amount: string;
 };
 
@@ -27,18 +30,26 @@ function chileToday() {
   ).format(new Date());
 }
 
-function SubmitButton() {
+function SubmitButton({
+  canSubmit,
+  sendConfirmation,
+}: {
+  canSubmit: boolean;
+  sendConfirmation: boolean;
+}) {
   const { pending } = useFormStatus();
 
   return (
     <button
       className={styles.confirmSentButton}
-      disabled={pending}
+      disabled={pending || !canSubmit}
       type="submit"
     >
       {pending
         ? "Regularizando..."
-        : "Confirmar pago y renovación"}
+        : sendConfirmation
+          ? "Confirmar renovación y enviar"
+          : "Confirmar pago y renovación"}
     </button>
   );
 }
@@ -46,10 +57,17 @@ function SubmitButton() {
 export default function RenewalCompletionForm({
   renewalId,
   clientName,
+  contactName,
+  recipient,
   description,
+  domain,
   amount,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [sendConfirmation, setSendConfirmation] = useState(
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient),
+  );
+  const [confirmationRecipient, setConfirmationRecipient] = useState(recipient);
   const action = confirmRenewalAsPaid.bind(
     null,
     renewalId,
@@ -140,8 +158,8 @@ export default function RenewalCompletionForm({
             </header>
 
             <p className={styles.modalIntro}>
-              Registra el pago real, cierra este
-              vencimiento y detiene sus avisos.
+              Registra el pago real, cierra este vencimiento y, si corresponde,
+              envía al cliente una confirmación editable con la continuidad del servicio.
             </p>
 
             <div className={styles.emailSummary}>
@@ -222,6 +240,64 @@ export default function RenewalCompletionForm({
                 </span>
               </label>
 
+              <section className={styles.confirmationPanel}>
+                <label className={styles.confirmationToggle}>
+                  <input
+                    checked={sendConfirmation}
+                    name="sendConfirmation"
+                    onChange={(event) => setSendConfirmation(event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span>
+                    <strong>Enviar confirmación de renovación</strong>
+                    <small>
+                      El correo usa el formato Vialoop e informa pago, servicio y
+                      próximo vencimiento. Puedes editarlo antes de enviar.
+                    </small>
+                  </span>
+                </label>
+
+                {sendConfirmation ? (
+                  <div className={styles.confirmationFields}>
+                    <label className={styles.field}>
+                      <span>Destinatario</span>
+                      <input
+                        name="confirmationRecipient"
+                        onChange={(event) => setConfirmationRecipient(event.target.value)}
+                        required
+                        type="email"
+                        value={confirmationRecipient}
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Asunto</span>
+                      <input
+                        defaultValue={`Hosting renovado · ${domain}`}
+                        maxLength={180}
+                        name="confirmationSubject"
+                        required
+                      />
+                    </label>
+
+                    <label className={`${styles.field} ${styles.confirmationMessage}`}>
+                      <span>Mensaje editable</span>
+                      <textarea
+                        defaultValue={
+                          contactName
+                            ? `Confirmamos que la renovación del servicio fue procesada correctamente. Gracias, ${contactName}, por continuar confiando en Vialoop.`
+                            : "Confirmamos que la renovación del servicio fue procesada correctamente. Gracias por continuar confiando en Vialoop."
+                        }
+                        maxLength={3000}
+                        name="confirmationMessage"
+                        required
+                        rows={4}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </section>
+
               <div className={styles.manualNotice}>
                 <strong>Resultado del registro</strong>
                 <p>
@@ -241,7 +317,13 @@ export default function RenewalCompletionForm({
                 >
                   Cancelar
                 </button>
-                <SubmitButton />
+                <SubmitButton
+                  canSubmit={
+                    !sendConfirmation ||
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(confirmationRecipient.trim())
+                  }
+                  sendConfirmation={sendConfirmation}
+                />
               </footer>
             </form>
           </section>
