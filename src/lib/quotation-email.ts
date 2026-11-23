@@ -68,6 +68,7 @@ function serviceRows(quotation: QuotationMetadata) {
 
 export function buildQuotationEmail(quotation: QuotationMetadata) {
   const project = quotation.projectName || "Propuesta comercial";
+  const reference = quotation.referenceName || project;
   const subject = `Cotización ${quotation.number} - ${project}`;
   const responseSubject = encodeURIComponent(
     `Respuesta a cotización ${quotation.number} - ${project}`,
@@ -80,6 +81,16 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
       </div>
     `
     : "";
+  const flowPayment =
+    quotation.paymentOption === "TRANSFER_FLOW" && quotation.flowPaymentUrl
+      ? `
+        <div style="margin:25px 0 0;border-top:1px solid #eaecf0;padding-top:22px;">
+          <div style="margin-bottom:8px;color:#344054;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;">Pago online disponible</div>
+          <p style="margin:0 0 14px;color:#475467;font-size:12px;line-height:1.65;">Puede pagar el total de ${escapeEmailHtml(money(quotation.totalAmount))} de forma segura mediante Flow.</p>
+          <a href="${escapeEmailHtml(quotation.flowPaymentUrl)}" style="display:inline-block;border-radius:9px;background:#101828;padding:13px 20px;color:#ffffff;font-size:13px;font-weight:700;line-height:1.2;text-decoration:none;">Pagar ${escapeEmailHtml(money(quotation.totalAmount))} con Flow</a>
+        </div>
+      `
+      : "";
 
   const content = `
     <p style="margin:0 0 17px;color:#101828;font-size:14px;line-height:1.65;">
@@ -93,8 +104,8 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0 0 25px;overflow:hidden;border:1px solid #e4e7ec;border-radius:10px;border-collapse:separate;border-spacing:0;background:#f9fafb;">
       <tr>
         <td class="quote-meta-cell" width="50%" valign="top" style="width:50%;padding:16px 17px;">
-          <div style="color:#667085;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Proyecto</div>
-          <div style="margin-top:6px;color:#101828;font-size:14px;font-weight:700;line-height:1.42;">${escapeEmailHtml(project)}</div>
+          <div style="color:#667085;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Referencia</div>
+          <div style="margin-top:6px;color:#101828;font-size:14px;font-weight:700;line-height:1.42;">${escapeEmailHtml(reference)}</div>
           <div style="margin-top:4px;color:#667085;font-size:11px;line-height:1.45;">${escapeEmailHtml(quotation.clientName)}</div>
         </td>
         <td class="quote-meta-cell" width="25%" valign="top" style="width:25%;padding:16px 14px;border-left:1px solid #e4e7ec;">
@@ -141,6 +152,8 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
 
     ${conditions}
 
+    ${flowPayment}
+
     <div style="margin-top:25px;padding-top:22px;border-top:1px solid #eaecf0;">
       <div style="margin-bottom:10px;color:#344054;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;">Datos para transferencia</div>
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border-collapse:collapse;">
@@ -171,6 +184,7 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
     `Estimado(a) ${quotation.contactName || "cliente"}:`,
     "",
     `Adjuntamos la cotización ${quotation.number} preparada para ${quotation.clientName}.`,
+    `Referencia: ${reference}`,
     `Proyecto: ${project}`,
     `Emisión: ${date(quotation.issuedAt)}`,
     `Vigencia: hasta el ${date(quotation.validUntil)}`,
@@ -194,6 +208,9 @@ export function buildQuotationEmail(quotation: QuotationMetadata) {
     `${VIALOOP_PAYMENT_DETAILS.institution} · ${VIALOOP_PAYMENT_DETAILS.accountType}`,
     `N.º de cuenta: ${VIALOOP_PAYMENT_DETAILS.accountNumber}`,
     `Comprobantes: ${VIALOOP_PAYMENT_DETAILS.email}`,
+    quotation.paymentOption === "TRANSFER_FLOW" && quotation.flowPaymentUrl
+      ? `Pago Flow: ${quotation.flowPaymentUrl}`
+      : null,
     "",
     "Para aprobar o solicitar ajustes, responda directamente a este correo.",
     `El PDF formal de ${quotation.number} se encuentra adjunto.`,

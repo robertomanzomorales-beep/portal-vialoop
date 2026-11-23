@@ -108,6 +108,47 @@
   border-bottom: 1px solid var(--portal-border);
 }
 
+.editingBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--portal-info-border);
+  border-radius: 10px;
+  background: var(--portal-info-soft);
+  padding: 12px 14px;
+}
+
+.editingBanner > div {
+  display: grid;
+  gap: 3px;
+}
+
+.editingBanner strong {
+  color: var(--portal-text);
+  font-size: 0.76rem;
+}
+
+.editingBanner span {
+  color: var(--portal-muted);
+  font-size: 0.68rem;
+}
+
+.editingBanner a,
+.secondaryHistoryAction {
+  color: var(--portal-text-secondary);
+  font-size: 0.68rem;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.editingBanner a:hover,
+.secondaryHistoryAction:hover {
+  color: var(--portal-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .sectionHeading {
   display: flex;
   align-items: flex-start;
@@ -656,7 +697,7 @@
 
 .tableWrap table {
   width: 100%;
-  min-width: 900px;
+  min-width: 1040px;
   border-collapse: collapse;
 }
 
@@ -730,7 +771,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 
 .deleteControl {

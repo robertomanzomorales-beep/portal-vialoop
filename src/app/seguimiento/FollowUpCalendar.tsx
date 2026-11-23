@@ -8,13 +8,21 @@ import styles from "./seguimiento.module.css";
 
 export type FollowUpCalendarEntry = {
   id: string;
-  prospectId: string;
-  kind: "FOLLOW_UP" | "QUOTATION_DEADLINE";
+  prospectId?: string;
+  kind:
+    | "FOLLOW_UP"
+    | "QUOTATION_DEADLINE"
+    | "RENEWAL"
+    | "PAYMENT"
+    | "EXPENSE"
+    | "SUPPORT"
+    | "TASK";
   company: string;
   date: string;
   status: string;
   assignedTo: string;
   quotationNumber: string;
+  href?: string;
 };
 
 const weekdays = [
@@ -111,13 +119,39 @@ function buildCalendarDays(monthKey: string) {
   );
 }
 
-function goToProspect(prospectId: string) {
-  document
-    .getElementById(`prospect-${prospectId}`)
-    ?.scrollIntoView({
+function goToEntry(entry: FollowUpCalendarEntry) {
+  if (entry.prospectId) {
+    document
+      .getElementById(`prospect-${entry.prospectId}`)
+      ?.scrollIntoView({
       behavior: "smooth",
       block: "center",
     });
+    return;
+  }
+
+  if (entry.href) {
+    window.location.assign(entry.href);
+  }
+}
+
+function eventLabel(entry: FollowUpCalendarEntry) {
+  if (entry.kind === "QUOTATION_DEADLINE") return `Vence ${entry.quotationNumber}`;
+  if (entry.kind === "FOLLOW_UP") return entry.quotationNumber || entry.status;
+  if (entry.kind === "RENEWAL") return `Renovación · ${entry.status}`;
+  if (entry.kind === "PAYMENT") return `Cobro · ${entry.status}`;
+  if (entry.kind === "EXPENSE") return `Gasto · ${entry.status}`;
+  if (entry.kind === "SUPPORT") return `Solicitud · ${entry.status}`;
+  return entry.status || "Trabajo programado";
+}
+
+function eventClass(kind: FollowUpCalendarEntry["kind"]) {
+  if (kind === "QUOTATION_DEADLINE") return styles.calendarDeadlineEvent;
+  if (kind === "RENEWAL" || kind === "PAYMENT" || kind === "EXPENSE") {
+    return styles.calendarFinanceEvent;
+  }
+  if (kind === "TASK" || kind === "SUPPORT") return styles.calendarOperationEvent;
+  return undefined;
 }
 
 export default function FollowUpCalendar({
@@ -178,11 +212,11 @@ export default function FollowUpCalendar({
       <div className={styles.calendarHeader}>
         <div>
           <span className={styles.eyebrow}>
-            Agenda comercial
+            Agenda integral
           </span>
-          <h2>Calendario de seguimientos</h2>
+          <h2>Calendario general</h2>
           <p>
-            Revisa próximos contactos y vencimientos de cotizaciones sin recorrer todo el pipeline.
+            Seguimientos, cotizaciones, renovaciones, cobros, gastos y trabajos en un solo lugar.
           </p>
         </div>
 
@@ -227,8 +261,7 @@ export default function FollowUpCalendar({
           <div>
             <strong>
               {overdue.length} hito
-              {overdue.length === 1 ? "" : "s"} comercial
-              {overdue.length === 1 ? "" : "es"} vencido
+              {overdue.length === 1 ? "" : "s"} vencido
               {overdue.length === 1 ? "" : "s"}
             </strong>
             <span>
@@ -241,7 +274,7 @@ export default function FollowUpCalendar({
               <button
                 key={entry.id}
                 onClick={() =>
-                  goToProspect(entry.prospectId)
+                  goToEntry(entry)
                 }
                 type="button"
               >
@@ -261,7 +294,7 @@ export default function FollowUpCalendar({
           {visibleCount === 1 ? "" : "s"} este mes
         </span>
         <span>
-          Selecciona una oportunidad para verla en el listado.
+          Selecciona un hito para abrir su registro.
         </span>
       </div>
 
@@ -300,27 +333,18 @@ export default function FollowUpCalendar({
                     .map((entry) => (
                       <button
                         className={
-                          entry.kind ===
-                          "QUOTATION_DEADLINE"
-                            ? styles.calendarDeadlineEvent
-                            : undefined
+                          eventClass(entry.kind)
                         }
                         key={entry.id}
                         onClick={() =>
-                          goToProspect(
-                            entry.prospectId,
-                          )
+                          goToEntry(entry)
                         }
                         title={`${entry.company} · ${entry.assignedTo || "Equipo"}`}
                         type="button"
                       >
                         <strong>{entry.company}</strong>
                         <span>
-                          {entry.kind ===
-                          "QUOTATION_DEADLINE"
-                            ? `Vence ${entry.quotationNumber}`
-                            : entry.quotationNumber ||
-                              entry.status}
+                          {eventLabel(entry)}
                         </span>
                       </button>
                     ))}

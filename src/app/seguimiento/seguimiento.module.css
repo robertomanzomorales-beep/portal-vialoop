@@ -349,6 +349,26 @@
   border-color: var(--portal-warning);
 }
 
+.dayEvents .calendarFinanceEvent {
+  border-color: var(--portal-success-border);
+  border-left: 3px solid var(--portal-success);
+  background: var(--portal-success-soft);
+}
+
+.dayEvents .calendarFinanceEvent:hover {
+  border-color: var(--portal-success);
+}
+
+.dayEvents .calendarOperationEvent {
+  border-color: var(--portal-info-border);
+  border-left: 3px solid var(--portal-info);
+  background: var(--portal-info-soft);
+}
+
+.dayEvents .calendarOperationEvent:hover {
+  border-color: var(--portal-info);
+}
+
 .dayEvents strong,
 .dayEvents span {
   overflow: hidden;
@@ -793,12 +813,34 @@
 }
 
 .contactBlock,
-.messageBlock {
+.activityBlock,
+.timelineBlock {
   min-width: 0;
   border: 1px solid var(--portal-border);
   border-radius: 9px;
   padding: 12px;
   background: var(--portal-surface-soft);
+}
+
+.contactActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--portal-border);
+  padding-top: 10px;
+}
+
+.contactActions a {
+  color: var(--portal-accent);
+  font-size: 9px;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.contactActions a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .contactBlock dl {
@@ -836,47 +878,119 @@
   color: var(--portal-text-secondary);
 }
 
-.messageBlock {
+.activityBlock,
+.timelineBlock {
   display: grid;
   align-content: start;
-  gap: 8px;
+  gap: 11px;
 }
 
-.messageBlock > strong {
-  overflow: hidden;
+.activityBlock form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.activityBlock label {
+  display: grid;
+  gap: 5px;
+}
+
+.activityBlock label > span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.activityBlock input,
+.activityBlock select,
+.activityBlock textarea {
+  width: 100%;
+  border: 1px solid var(--portal-border);
+  border-radius: 7px;
+  background: var(--portal-surface);
   color: var(--portal-text);
+  font: inherit;
   font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.messageBlock > p {
-  max-height: 150px;
-  overflow-y: auto;
-  margin: 0;
-  color: var(--portal-muted);
-  font-size: 9px;
-  line-height: 1.55;
-  white-space: pre-wrap;
+.activityBlock input,
+.activityBlock select {
+  height: 34px;
+  padding: 0 8px;
 }
 
-.messageActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+.activityBlock textarea {
+  padding: 8px;
+  resize: vertical;
 }
 
-.messageActions button,
-.messageActions a {
-  border: 0;
-  background: transparent;
-  color: var(--portal-accent);
-  padding: 0;
+.activityWideField {
+  grid-column: 1 / -1;
+}
+
+.activityBlock form > button {
+  min-height: 34px;
+  align-self: end;
+  border: 1px solid var(--portal-text);
+  border-radius: 7px;
+  background: var(--portal-text);
+  color: var(--portal-on-accent);
   font: inherit;
   font-size: 9px;
   font-weight: 760;
-  text-decoration: none;
   cursor: pointer;
+}
+
+.activityBlock form > button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.timelineBlock ol {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timelineBlock li {
+  border-left: 2px solid var(--portal-border-strong);
+  padding: 2px 0 3px 10px;
+}
+
+.timelineBlock li > div {
+  display: grid;
+  gap: 2px;
+}
+
+.timelineBlock strong {
+  color: var(--portal-text);
+  font-size: 9px;
+}
+
+.timelineBlock span,
+.timelineBlock small,
+.timelineBlock p,
+.timelineEmpty {
+  color: var(--portal-muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.timelineBlock p,
+.timelineEmpty {
+  margin: 5px 0 0;
+}
+
+.timelineBlock small {
+  display: block;
+  margin-top: 4px;
+  color: var(--portal-text-secondary);
+  font-weight: 650;
 }
 
 .emptyState {

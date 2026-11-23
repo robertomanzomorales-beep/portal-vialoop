@@ -17,6 +17,10 @@
   background: var(--portal-surface);
   padding: 20px 16px 16px;
   contain: paint;
+  transition:
+    width var(--portal-motion-base) var(--portal-ease),
+    padding var(--portal-motion-base) var(--portal-ease),
+    transform 240ms var(--portal-ease);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -97,6 +101,21 @@
 
 .sidebarClose {
   display: none;
+}
+
+.collapseButton {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  background: var(--portal-surface-soft);
+  color: var(--portal-muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
 }
 
 .navigation {
@@ -343,9 +362,79 @@
   color: var(--portal-danger);
 }
 
+.logoutIcon {
+  display: none;
+  font-size: 15px;
+}
+
 .main {
   min-height: 100vh;
   margin-left: 268px;
+  transition: margin-left var(--portal-motion-base) var(--portal-ease);
+}
+
+.sidebarCollapsed {
+  width: 82px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.sidebarCollapsed .sidebarHeader {
+  align-items: center;
+  flex-direction: column;
+}
+
+.sidebarCollapsed .brand {
+  flex: 0 0 auto;
+  padding: 0 0 8px;
+}
+
+.sidebarCollapsed .brandText,
+.sidebarCollapsed .navigationLabel,
+.sidebarCollapsed .navigation a > span,
+.sidebarCollapsed .navigation a > i,
+.sidebarCollapsed .userDetails,
+.sidebarCollapsed .themeArea,
+.sidebarCollapsed .logoutLabel {
+  display: none;
+}
+
+.sidebarCollapsed .navigationGroup {
+  align-items: center;
+  border-left: 0;
+  padding-left: 0;
+}
+
+.sidebarCollapsed .navigation a {
+  width: 42px;
+  justify-content: center;
+  gap: 0;
+  padding: 8px;
+}
+
+.sidebarCollapsed .sidebarFooter {
+  align-items: center;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.sidebarCollapsed .userRow {
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+}
+
+.sidebarCollapsed .sidebarFooter form,
+.sidebarCollapsed .logoutButton {
+  width: 36px;
+}
+
+.sidebarCollapsed .logoutIcon {
+  display: inline;
+}
+
+.mainCollapsed {
+  margin-left: 82px;
 }
 
 .routeProgress {
@@ -468,8 +557,69 @@
     padding: 18px 14px 14px;
     box-shadow: 24px 0 70px var(--portal-shadow-color);
     transform: translateX(-105%);
-    transition: transform 240ms var(--portal-ease);
     will-change: transform;
+  }
+
+  .sidebar.sidebarCollapsed {
+    width: min(88vw, 300px);
+    padding: 18px 14px 14px;
+  }
+
+  .sidebarCollapsed .sidebarHeader {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .sidebarCollapsed .brand {
+    flex: 1;
+    padding: 0 4px 22px;
+  }
+
+  .sidebarCollapsed .brandText,
+  .sidebarCollapsed .navigationLabel,
+  .sidebarCollapsed .navigation a > span,
+  .sidebarCollapsed .userDetails,
+  .sidebarCollapsed .themeArea,
+  .sidebarCollapsed .logoutLabel {
+    display: block;
+  }
+
+  .sidebarCollapsed .navigationGroup {
+    align-items: stretch;
+    border-left: 1px solid transparent;
+    padding-left: 7px;
+  }
+
+  .sidebarCollapsed .navigation a {
+    width: auto;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .sidebarCollapsed .navigation a.activeLink > i {
+    display: block;
+  }
+
+  .sidebarCollapsed .sidebarFooter {
+    align-items: stretch;
+    padding: 14px 6px 0;
+  }
+
+  .sidebarCollapsed .userRow {
+    justify-content: flex-start;
+    background: var(--portal-surface-soft);
+    padding: 9px;
+  }
+
+  .sidebarCollapsed .sidebarFooter form,
+  .sidebarCollapsed .logoutButton {
+    width: 100%;
+  }
+
+  .sidebarCollapsed .logoutIcon,
+  .collapseButton {
+    display: none;
   }
 
   .sidebarOpen {

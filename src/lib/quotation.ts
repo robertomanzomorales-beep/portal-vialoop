@@ -25,6 +25,7 @@ export type QuotationMetadata = {
   clientTaxId?: string;
   contactName: string;
   recipientEmail: string;
+  referenceName: string;
   projectName: string;
   items: QuotationItem[];
   netAmount: number;
@@ -36,6 +37,9 @@ export type QuotationMetadata = {
   senderName: string;
   senderEmail: string;
   senderRole: string;
+  paymentOption: "TRANSFER" | "TRANSFER_FLOW";
+  flowPaymentId?: string;
+  flowPaymentUrl?: string;
   emailStatus: "PENDING" | "SENT" | "FAILED";
   messageId?: string;
   lastError?: string;
@@ -127,6 +131,12 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
       typeof value.clientTaxId === "string" ? value.clientTaxId : undefined,
     contactName: typeof value.contactName === "string" ? value.contactName : "",
     recipientEmail: value.recipientEmail,
+    referenceName:
+      typeof value.referenceName === "string"
+        ? value.referenceName
+        : typeof value.projectName === "string"
+          ? value.projectName
+          : "",
     projectName: typeof value.projectName === "string" ? value.projectName : "",
     items,
     netAmount: Number(value.netAmount) || 0,
@@ -145,6 +155,18 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
       typeof value.senderRole === "string"
         ? value.senderRole
         : "Gestión comercial",
+    paymentOption:
+      value.paymentOption === "TRANSFER_FLOW"
+        ? "TRANSFER_FLOW"
+        : "TRANSFER",
+    flowPaymentId:
+      typeof value.flowPaymentId === "string"
+        ? value.flowPaymentId
+        : undefined,
+    flowPaymentUrl:
+      typeof value.flowPaymentUrl === "string"
+        ? value.flowPaymentUrl
+        : undefined,
     emailStatus:
       value.emailStatus === "SENT" || value.emailStatus === "FAILED"
         ? value.emailStatus
@@ -611,7 +633,9 @@ function drawClientGrid(
     ],
     [
       "Condición:",
-      "Transferencia - CLP",
+      quotation.paymentOption === "TRANSFER_FLOW"
+        ? "Transferencia o Flow - CLP"
+        : "Transferencia - CLP",
       "Email responsable:",
       quotation.senderEmail,
     ],
@@ -641,7 +665,10 @@ function drawClientGrid(
   drawCell({ page, text: "Glosa:", x: LEFT, top: y, width: widths[0], height: glosaHeight, font: fonts.semibold, size: 8.4, fill: SOFT });
   drawCell({
     page,
-    text: quotation.projectName || "Propuesta comercial",
+    text:
+      quotation.referenceName ||
+      quotation.projectName ||
+      "Propuesta comercial",
     x: LEFT + widths[0],
     top: y,
     width: CONTENT_WIDTH - widths[0],
@@ -914,9 +941,13 @@ function noteEntries(notes: string) {
 function drawPaymentBlock(
   page: PDFPage,
   fonts: PdfFonts,
+  quotation: QuotationMetadata,
   top: number,
 ) {
-  const boxHeight = 88;
+  const hasFlow =
+    quotation.paymentOption === "TRANSFER_FLOW" &&
+    Boolean(quotation.flowPaymentUrl);
+  const boxHeight = hasFlow ? 106 : 88;
   const half = CONTENT_WIDTH / 2;
 
   page.drawRectangle({
@@ -967,6 +998,18 @@ function drawPaymentBlock(
     });
   });
 
+  if (hasFlow) {
+    drawCenteredText(
+      page,
+      "PAGO ONLINE FLOW DISPONIBLE EN EL CORREO DE ESTA COTIZACION",
+      LEFT + CONTENT_WIDTH / 2,
+      top - 94,
+      fonts.semibold,
+      6.2,
+      BLUE,
+    );
+  }
+
   return top - boxHeight;
 }
 
@@ -985,7 +1028,9 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
 
   document.setTitle(`Cotización ${quotation.number}`);
   document.setAuthor("Vialoop Studio SpA");
-  document.setSubject(quotation.projectName || "Propuesta comercial");
+  document.setSubject(
+    quotation.referenceName || quotation.projectName || "Propuesta comercial",
+  );
   document.setCreator("Portal Vialoop");
   document.setProducer("Vialoop Studio SpA");
   document.setLanguage("es-CL");
@@ -1171,7 +1216,7 @@ export async function createQuotationPdf(quotation: QuotationMetadata) {
   }
   y -= 11;
   y = drawSectionHeading(page, fonts, "Datos para realizar el pago", y);
-  drawPaymentBlock(page, fonts, y);
+  drawPaymentBlock(page, fonts, quotation, y);
 
   pages.forEach((currentPage, index) => {
     drawFooter(currentPage, fonts, quotation, index + 1, pages.length);

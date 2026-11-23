@@ -306,6 +306,8 @@ export default async function SalesPage({
   const monthlyTotal =
     manualSalesTotal +
     hostingSalesTotal;
+  const monthlyVat = Math.round(monthlyTotal * 0.19);
+  const monthlyGross = monthlyTotal + monthlyVat;
 
   const salesCount =
     monthlySales.length +
@@ -510,6 +512,12 @@ export default async function SalesPage({
           <span>Meta mensual</span>
           <strong>{formatCurrency(monthlyGoal)}</strong>
           <small>Valor neto, sin IVA</small>
+        </article>
+
+        <article className={styles.metricCard}>
+          <span>IVA acumulado del mes</span>
+          <strong>{formatCurrency(monthlyVat)}</strong>
+          <small>Total con IVA: {formatCurrency(monthlyGross)}</small>
         </article>
 
         <article className={styles.metricCard}>

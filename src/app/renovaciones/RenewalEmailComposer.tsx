@@ -317,26 +317,15 @@ export default function RenewalEmailComposer({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    setRecipient(
-      initialRecipient,
-    );
-
-    setSubject(defaultSubject);
-    setBody(defaultBody);
-  }, [
-    isOpen,
-    initialRecipient,
-    defaultSubject,
-    defaultBody,
-  ]);
-
   function closeModal() {
     setIsOpen(false);
+  }
+
+  function openModal() {
+    setRecipient(initialRecipient);
+    setSubject(defaultSubject);
+    setBody(defaultBody);
+    setIsOpen(true);
   }
 
   function confirmRealEmailSend(
@@ -366,9 +355,7 @@ export default function RenewalEmailComposer({
     <>
       <button
         className={styles.emailAction}
-        onClick={() =>
-          setIsOpen(true)
-        }
+        onClick={openModal}
         type="button"
       >
         {sentToday

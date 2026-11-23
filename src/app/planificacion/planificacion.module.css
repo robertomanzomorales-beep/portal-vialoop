@@ -1,0 +1,435 @@
+.page {
+  display: grid;
+  width: min(100%, 1680px);
+  min-height: 100vh;
+  margin: 0 auto;
+  gap: 18px;
+  padding: 34px clamp(22px, 3.5vw, 46px) 52px;
+  color: var(--portal-text);
+}
+
+.hero h1 {
+  margin: 6px 0 7px;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.045em;
+}
+
+.hero p,
+.managerHeader p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.eyebrow {
+  color: var(--portal-accent);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metrics article,
+.manager {
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.metrics article {
+  display: grid;
+  gap: 6px;
+  padding: 17px 18px;
+}
+
+.metrics span,
+.metrics small {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metrics strong {
+  font-size: 26px;
+  letter-spacing: -0.045em;
+}
+
+.metrics .metricAlert {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+}
+
+.metricAlert strong {
+  color: var(--portal-danger);
+}
+
+.manager {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.managerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.managerHeader h2 {
+  margin: 5px 0;
+  font-size: 18px;
+}
+
+.primaryButton,
+.secondaryButton,
+.textButton,
+.taskActions button {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--portal-text);
+  background: var(--portal-text);
+  color: var(--portal-on-accent);
+}
+
+.secondaryButton {
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text);
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: var(--portal-text-secondary);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.7fr);
+  gap: 12px;
+}
+
+.editor,
+.importPanel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  border: 1px solid var(--portal-border);
+  border-radius: 13px;
+  background: var(--portal-surface-soft);
+  padding: 17px;
+}
+
+.editor {
+  scroll-margin-top: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panelHeading {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panelHeading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.panelHeading span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 730;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panelHeading strong {
+  font-size: 13px;
+}
+
+.editor label,
+.fileField {
+  display: grid;
+  gap: 6px;
+}
+
+.editor label > span,
+.fileField > span {
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.editor input,
+.editor select,
+.editor textarea,
+.fileField input,
+.filters input,
+.filters select {
+  width: 100%;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  background: var(--portal-surface);
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 10px;
+}
+
+.editor input,
+.editor select,
+.filters input,
+.filters select {
+  height: 38px;
+  padding: 0 10px;
+}
+
+.editor textarea {
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.wideField,
+.editor > p,
+.editor > button {
+  grid-column: 1 / -1;
+}
+
+.editor > button,
+.importPanel > button {
+  justify-self: end;
+}
+
+.importPanel p {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.fileField input {
+  padding: 9px;
+}
+
+.feedbackSuccess,
+.feedbackError {
+  margin: 0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.feedbackSuccess {
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.feedbackError {
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 220px;
+  gap: 10px;
+}
+
+.taskList {
+  display: grid;
+  gap: 8px;
+}
+
+.taskList article {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.4fr) minmax(120px, 0.55fr) minmax(150px, 0.7fr) auto;
+  align-items: center;
+  gap: 17px;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+  padding: 13px 14px;
+}
+
+.taskIdentity,
+.taskOwner,
+.taskDate,
+.taskOverdue {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.taskIdentity strong,
+.taskIdentity small,
+.taskOwner strong,
+.taskDate strong,
+.taskOverdue strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskIdentity strong,
+.taskOwner strong,
+.taskDate strong,
+.taskOverdue strong {
+  color: var(--portal-text);
+  font-size: 11px;
+}
+
+.taskIdentity small,
+.taskOwner span,
+.taskDate span,
+.taskOverdue span {
+  color: var(--portal-muted);
+  font-size: 8px;
+}
+
+.status {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.statusPENDING {
+  background: var(--portal-warning-soft);
+  color: var(--portal-warning);
+}
+
+.statusIN_PROGRESS {
+  background: var(--portal-info-soft);
+  color: var(--portal-info);
+}
+
+.statusBLOCKED {
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.statusCOMPLETED {
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.taskOverdue strong {
+  color: var(--portal-danger);
+}
+
+.taskActions {
+  display: flex;
+  gap: 5px;
+}
+
+.taskActions button {
+  min-height: 32px;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
+  padding: 0 9px;
+  font-size: 9px;
+}
+
+.taskActions .dangerButton {
+  border-color: transparent;
+  background: transparent;
+  color: var(--portal-danger);
+}
+
+.emptyState {
+  display: grid;
+  min-height: 140px;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  border: 1px dashed var(--portal-border);
+  border-radius: 11px;
+  color: var(--portal-muted);
+  font-size: 10px;
+}
+
+.emptyState strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .taskList article {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .taskActions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 850px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .managerHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding: 26px 15px 38px;
+  }
+
+  .metrics,
+  .editor,
+  .filters,
+  .taskList article {
+    grid-template-columns: 1fr;
+  }
+
+  .manager {
+    padding: 16px;
+  }
+
+  .managerHeader .primaryButton,
+  .editor > button,
+  .importPanel > button {
+    width: 100%;
+  }
+
+  .taskActions {
+    grid-column: auto;
+    flex-wrap: wrap;
+  }
+}

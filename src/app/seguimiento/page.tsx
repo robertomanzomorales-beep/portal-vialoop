@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { parseExpenseMetadata } from "@/lib/expense";
+import {
+  getScheduledTaskStatusLabel,
+  parseScheduledTaskMetadata,
+} from "@/lib/scheduled-task";
 import {
   getProspectStatusLabel,
   parseProspectMetadata,
@@ -28,11 +33,20 @@ function addDays(
   return date.toISOString().slice(0, 10);
 }
 
+function formatCurrency(value: unknown) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(Number(value) || 0);
+}
+
 export default async function FollowUpPage() {
   await syncSentQuotationsToFollowUp();
 
-  const logs =
-    await prisma.activityLog.findMany({
+  const [logs, expenseLogs, taskLogs, renewals, payments, supportRequests] =
+    await Promise.all([
+      prisma.activityLog.findMany({
       where: {
         entityType: "Prospect",
       },
@@ -40,7 +54,54 @@ export default async function FollowUpPage() {
         createdAt: "desc",
       },
       take: 500,
-    });
+      }),
+      prisma.activityLog.findMany({
+        where: { entityType: "Expense" },
+        orderBy: { createdAt: "desc" },
+        take: 500,
+      }),
+      prisma.activityLog.findMany({
+        where: { entityType: "ScheduledTask" },
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+      }),
+      prisma.renewal.findMany({
+        where: {
+          status: { in: ["UPCOMING", "NOTIFIED", "EXPIRED"] },
+          client: { status: "ACTIVE" },
+        },
+        include: {
+          client: { select: { businessName: true, tradeName: true } },
+          project: { select: { name: true, domain: true } },
+        },
+        orderBy: { dueDate: "asc" },
+        take: 500,
+      }),
+      prisma.payment.findMany({
+        where: {
+          status: { in: ["PENDING", "OVERDUE"] },
+          dueDate: { not: null },
+          client: { status: "ACTIVE" },
+        },
+        include: {
+          client: { select: { businessName: true, tradeName: true } },
+        },
+        orderBy: { dueDate: "asc" },
+        take: 500,
+      }),
+      prisma.supportRequest.findMany({
+        where: {
+          status: { notIn: ["COMPLETED", "REJECTED", "OUT_OF_SCOPE"] },
+          estimatedDelivery: { not: null },
+        },
+        include: {
+          client: { select: { businessName: true, tradeName: true } },
+          assignedTo: { select: { name: true } },
+        },
+        orderBy: { estimatedDelivery: "asc" },
+        take: 500,
+      }),
+    ]);
 
   const prospects: ProspectRecord[] = logs
     .map((log) => ({
@@ -102,7 +163,7 @@ export default async function FollowUpPage() {
     ({ metadata }) =>
       metadata.status === "WON",
   ).length;
-  const calendarEntries: FollowUpCalendarEntry[] =
+  const prospectCalendarEntries: FollowUpCalendarEntry[] =
     openProspects.flatMap(
       ({ id, metadata }) => {
         const status =
@@ -152,6 +213,80 @@ export default async function FollowUpPage() {
         ];
       },
     );
+  const expenseCalendarEntries: FollowUpCalendarEntry[] = expenseLogs.flatMap((log) => {
+    const expense = parseExpenseMetadata(log.metadata);
+    if (!expense?.active || !expense.nextDueDate) return [];
+    return [{
+      id: `expense-${log.id}`,
+      kind: "EXPENSE" as const,
+      company: expense.concept,
+      date: expense.nextDueDate,
+      status: `${formatCurrency(expense.amount)} · ${expense.category === "VIALOOP" ? "Vialoop" : "Casa"}`,
+      assignedTo: "Finanzas",
+      quotationNumber: "",
+      href: "/gastos",
+    }];
+  });
+  const renewalCalendarEntries: FollowUpCalendarEntry[] = renewals.map((renewal) => ({
+    id: `renewal-${renewal.id}`,
+    kind: "RENEWAL",
+    company: renewal.client.tradeName || renewal.client.businessName,
+    date: renewal.dueDate.toISOString().slice(0, 10),
+    status: renewal.project?.domain || renewal.project?.name || renewal.description,
+    assignedTo: "Renovaciones",
+    quotationNumber: "",
+    href: "/renovaciones",
+  }));
+  const taskCalendarEntries: FollowUpCalendarEntry[] = taskLogs.flatMap((log) => {
+    const task = parseScheduledTaskMetadata(log.metadata);
+    if (!task || task.status === "COMPLETED" || !task.dueDate) return [];
+    return [{
+      id: `task-${log.id}`,
+      kind: "TASK" as const,
+      company: task.title,
+      date: task.dueDate,
+      status: `${getScheduledTaskStatusLabel(task.status)}${task.clientName ? ` · ${task.clientName}` : ""}`,
+      assignedTo: task.responsible || "Equipo",
+      quotationNumber: "",
+      href: "/planificacion",
+    }];
+  });
+  const paymentCalendarEntries: FollowUpCalendarEntry[] = payments.flatMap((payment) =>
+    payment.dueDate
+      ? [{
+          id: `payment-${payment.id}`,
+          kind: "PAYMENT" as const,
+          company: payment.client.tradeName || payment.client.businessName,
+          date: payment.dueDate.toISOString().slice(0, 10),
+          status: `${formatCurrency(payment.amount)} · ${payment.description}`,
+          assignedTo: "Cobros",
+          quotationNumber: "",
+          href: "/pagos",
+        }]
+      : [],
+  );
+  const supportCalendarEntries: FollowUpCalendarEntry[] = supportRequests.flatMap((request) =>
+    request.estimatedDelivery
+      ? [{
+          id: `support-${request.id}`,
+          kind: "SUPPORT" as const,
+          company: request.client?.tradeName || request.client?.businessName || `Solicitud #${request.number}`,
+          date: request.estimatedDelivery.toISOString().slice(0, 10),
+          status: request.subject,
+          assignedTo: request.assignedTo?.name || "Equipo",
+          quotationNumber: "",
+          href: `/solicitudes/${request.id}`,
+        }]
+      : [],
+  );
+  const calendarEntries = [
+    ...prospectCalendarEntries,
+    ...expenseCalendarEntries,
+    ...taskCalendarEntries,
+    ...renewalCalendarEntries,
+    ...paymentCalendarEntries,
+    ...supportCalendarEntries,
+  ];
 
   return (
     <main className={styles.page}>

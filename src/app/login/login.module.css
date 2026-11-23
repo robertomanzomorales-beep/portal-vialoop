@@ -117,6 +117,31 @@
     var(--portal-focus);
 }
 
+.passwordControl {
+  position: relative;
+}
+
+.passwordControl input {
+  padding-right: 70px;
+}
+
+.passwordControl button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  min-width: 52px;
+  height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-secondary);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 720;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
 .submitButton {
   min-height: 48px;
   border: 1px solid var(--portal-accent);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { login } from "./actions";
+import PasswordField from "./PasswordField";
 import styles from "./login.module.css";
 
 export const metadata: Metadata = {
@@ -155,18 +156,7 @@ export default async function LoginPage({
             />
           </label>
 
-          <label className={styles.field}>
-            <span>Contraseña</span>
-
-            <input
-              autoComplete="current-password"
-              minLength={12}
-              name="password"
-              placeholder="Ingresa tu contraseña"
-              required
-              type="password"
-            />
-          </label>
+          <PasswordField />
 
           <button
             className={

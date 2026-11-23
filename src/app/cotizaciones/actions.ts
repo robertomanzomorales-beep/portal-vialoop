@@ -1,8 +1,10 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/auth";
+import { createFlowPayment } from "@/lib/flow";
 import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import {
@@ -72,11 +74,11 @@ function parseItems(
     .map((item) => ({
       description:
         typeof item.description === "string"
-          ? item.description.trim().slice(0, 160)
+          ? item.description.trim()
           : "",
       detail:
         typeof item.detail === "string"
-          ? item.detail.trim().slice(0, 1000)
+          ? item.detail.trim()
           : "",
       quantity:
         Math.max(
@@ -98,7 +100,7 @@ function parseItems(
         item.description.length > 0 &&
         item.unitPrice > 0,
     )
-    .slice(0, 20);
+    .slice(0, 50);
 }
 
 function addDays(
@@ -138,40 +140,134 @@ function errorMessage(error: unknown) {
     : "No fue posible enviar la cotización.";
 }
 
+function flowAppUrl() {
+  const value = process.env.FLOW_APP_URL?.trim().replace(/\/+$/, "");
+
+  if (!value) {
+    throw new Error("Falta configurar FLOW_APP_URL para habilitar pagos Flow.");
+  }
+
+  return value;
+}
+
+function flowCommerceOrder(quotationId: string) {
+  const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
+  const quotationReference = quotationId.replace(/[^a-zA-Z0-9]/g, "").slice(-12);
+  return `PVQ-${quotationReference}-${Date.now()}-${suffix}`;
+}
+
+async function createQuotationFlowPayment({
+  quotationId,
+  quotationNumber,
+  clientId,
+  recipientEmail,
+  amount,
+  dueDate,
+  previousPaymentId,
+}: {
+  quotationId: string;
+  quotationNumber: string;
+  clientId: string;
+  recipientEmail: string;
+  amount: number;
+  dueDate: string;
+  previousPaymentId?: string;
+}) {
+  const payment = await prisma.payment.create({
+    data: {
+      clientId,
+      description: `Pago de cotización ${quotationNumber}`,
+      amount,
+      dueDate: new Date(`${dueDate}T12:00:00.000Z`),
+      status: "PENDING",
+      method: "FLOW",
+      reference: `quotation:${quotationId}`,
+      notes: `Enlace Flow generado desde ${quotationNumber}.`,
+    },
+  });
+
+  try {
+    const commerceOrder = flowCommerceOrder(quotationId);
+    const appUrl = flowAppUrl();
+    const flow = await createFlowPayment({
+      commerceOrder,
+      subject: `Cotización ${quotationNumber}`,
+      amount,
+      email: recipientEmail,
+      urlConfirmation: `${appUrl}/api/flow/confirmacion`,
+      urlReturn: `${appUrl}/api/flow/retorno`,
+      optional: {
+        source: "quotation",
+        quotationId,
+        quotationNumber,
+        paymentId: payment.id,
+        clientId,
+      },
+    });
+
+    await prisma.$transaction([
+      prisma.flowOrder.create({
+        data: {
+          paymentId: payment.id,
+          commerceOrder,
+          flowOrder: flow.flowOrder,
+          token: flow.token,
+          paymentUrl: flow.url,
+          status: "PENDING",
+          amount,
+          payerEmail: recipientEmail,
+          subject: `Cotización ${quotationNumber}`,
+          rawResponse: {
+            source: "quotation",
+            quotationId,
+            quotationNumber,
+            paymentUrl: flow.url,
+          },
+        },
+      }),
+      ...(previousPaymentId
+        ? [
+            prisma.payment.updateMany({
+              where: {
+                id: previousPaymentId,
+                status: { in: ["PENDING", "OVERDUE"] },
+              },
+              data: {
+                status: "CANCELLED",
+                notes: `Enlace reemplazado por una nueva versión de ${quotationNumber}.`,
+              },
+            }),
+          ]
+        : []),
+    ]);
+
+    return {
+      paymentId: payment.id,
+      paymentUrl: flow.url,
+    };
+  } catch (error) {
+    await prisma.payment.delete({ where: { id: payment.id } }).catch(() => undefined);
+    throw error;
+  }
+}
+
 export async function createAndSendQuotation(
   _previousState: QuotationActionState,
   formData: FormData,
 ): Promise<QuotationActionState> {
   const user = await requireUser();
-
-  const clientId = text(
-    formData,
-    "clientId",
-  );
-
-  const recipientEmail = text(
-    formData,
-    "recipientEmail",
-  ).toLowerCase();
-
-  const contactName = text(
-    formData,
-    "contactName",
-  ).slice(0, 120);
-
-  const projectName = text(
-    formData,
-    "projectName",
-  ).slice(0, 160);
-
-  const notes = text(
-    formData,
-    "notes",
-  ).slice(0, 2000);
-
-  const items = parseItems(
-    text(formData, "items"),
-  );
+  const editQuotationId = text(formData, "editQuotationId");
+  const clientId = text(formData, "clientId");
+  const recipientEmail = text(formData, "recipientEmail").toLowerCase();
+  const contactName = text(formData, "contactName");
+  const referenceName = text(formData, "referenceName");
+  const projectName = text(formData, "projectName");
+  const notes = text(formData, "notes");
+  const items = parseItems(text(formData, "items"));
+  const paymentOption =
+    text(formData, "paymentOption") === "TRANSFER_FLOW"
+      ? ("TRANSFER_FLOW" as const)
+      : ("TRANSFER" as const);
 
   const validDays = Math.min(
     90,
@@ -198,8 +294,8 @@ export async function createAndSendQuotation(
     };
   }
 
-  const client =
-    await prisma.client.findUnique({
+  const [client, existingQuotationLog] = await Promise.all([
+    prisma.client.findUnique({
       where: {
         id: clientId,
       },
@@ -211,13 +307,33 @@ export async function createAndSendQuotation(
         mainContactName: true,
         phone: true,
       },
-    });
+    }),
+    editQuotationId
+      ? prisma.activityLog.findFirst({
+          where: {
+            id: editQuotationId,
+            entityType: "Quotation",
+          },
+        })
+      : Promise.resolve(null),
+  ]);
 
   if (!client) {
     return {
       ok: false,
       message:
         "El cliente seleccionado ya no existe.",
+    };
+  }
+
+  const existingQuotation = existingQuotationLog
+    ? parseQuotationMetadata(existingQuotationLog.metadata)
+    : null;
+
+  if (editQuotationId && (!existingQuotationLog || !existingQuotation)) {
+    return {
+      ok: false,
+      message: "La cotización que intentas editar ya no existe.",
     };
   }
 
@@ -240,33 +356,22 @@ export async function createAndSendQuotation(
     text(formData, "sender"),
   );
 
-  const counter =
-    await prisma.counter.upsert({
-      where: {
-        key: "quotation-number",
-      },
-      update: {
-        nextValue: {
-          increment: 1,
-        },
-      },
-      create: {
-        key: "quotation-number",
-        nextValue: 2,
-      },
-      select: {
-        nextValue: true,
-      },
+  let number = existingQuotation?.number ?? "";
+
+  if (!number) {
+    const counter = await prisma.counter.upsert({
+      where: { key: "quotation-number" },
+      update: { nextValue: { increment: 1 } },
+      create: { key: "quotation-number", nextValue: 2 },
+      select: { nextValue: true },
     });
+    number = `COT-${now.getUTCFullYear()}-${(counter.nextValue - 1)
+      .toString()
+      .padStart(4, "0")}`;
+  }
 
-  const sequentialNumber =
-    counter.nextValue - 1;
-
-  const number = `COT-${now.getUTCFullYear()}-${sequentialNumber
-    .toString()
-    .padStart(4, "0")}`;
-
-  const metadata: QuotationMetadata = {
+  let metadata: QuotationMetadata = {
+    ...existingQuotation,
     number,
     clientId,
     clientName:
@@ -276,6 +381,7 @@ export async function createAndSendQuotation(
       client.rut || undefined,
     contactName,
     recipientEmail,
+    referenceName: referenceName || projectName || "Propuesta comercial",
     projectName,
     items,
     netAmount,
@@ -291,21 +397,103 @@ export async function createAndSendQuotation(
     senderName: sender.name,
     senderEmail: sender.email,
     senderRole: sender.role,
+    paymentOption,
+    flowPaymentId:
+      paymentOption === "TRANSFER_FLOW"
+        ? existingQuotation?.flowPaymentId
+        : undefined,
+    flowPaymentUrl:
+      paymentOption === "TRANSFER_FLOW"
+        ? existingQuotation?.flowPaymentUrl
+        : undefined,
     emailStatus: "PENDING",
+    messageId: undefined,
+    lastError: undefined,
+    expiryNotificationSentAt: undefined,
+    expiryNotificationMessageId: undefined,
+    expiryNotificationLastAttemptAt: undefined,
+    expiryNotificationLastError: undefined,
   };
 
-  const quotationLog =
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
+  const quotationLog = existingQuotationLog
+    ? await prisma.activityLog.update({
+        where: { id: existingQuotationLog.id },
+        data: {
+          userId: user.id,
+          clientId,
+          action: "QUOTATION_UPDATED",
+          entityId: number,
+          description: `${number} actualizada para ${metadata.clientName}.`,
+          metadata: json(metadata),
+        },
+      })
+    : await prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          clientId,
+          action: "QUOTATION_CREATED",
+          entityType: "Quotation",
+          entityId: number,
+          description: `${number} preparada para ${metadata.clientName}.`,
+          metadata: json(metadata),
+        },
+      });
+
+  try {
+    if (paymentOption === "TRANSFER_FLOW") {
+      const flow = await createQuotationFlowPayment({
+        quotationId: quotationLog.id,
+        quotationNumber: number,
         clientId,
-        action: "QUOTATION_CREATED",
-        entityType: "Quotation",
-        entityId: number,
-        description: `${number} preparada para ${metadata.clientName}.`,
-        metadata,
+        recipientEmail,
+        amount: totalAmount,
+        dueDate: metadata.validUntil,
+        previousPaymentId: existingQuotation?.flowPaymentId,
+      });
+      metadata = {
+        ...metadata,
+        flowPaymentId: flow.paymentId,
+        flowPaymentUrl: flow.paymentUrl,
+      };
+    } else if (existingQuotation?.flowPaymentId) {
+      await prisma.payment.updateMany({
+        where: {
+          id: existingQuotation.flowPaymentId,
+          status: { in: ["PENDING", "OVERDUE"] },
+        },
+        data: {
+          status: "CANCELLED",
+          notes: `Pago Flow retirado de ${number}; la cotización quedó sólo con transferencia.`,
+        },
+      });
+    }
+
+    await prisma.activityLog.update({
+      where: { id: quotationLog.id },
+      data: { metadata: json(metadata) },
+    });
+  } catch (error) {
+    const message = errorMessage(error);
+    await prisma.activityLog.update({
+      where: { id: quotationLog.id },
+      data: {
+        action: "QUOTATION_PAYMENT_LINK_FAILED",
+        description: `${number} quedó guardada, pero no se pudo generar el enlace Flow.`,
+        metadata: json({
+          ...metadata,
+          emailStatus: "FAILED",
+          lastError: message,
+        }),
       },
     });
+
+    revalidatePath("/cotizaciones");
+    return {
+      ok: false,
+      message: `La cotización quedó guardada, pero no se pudo generar Flow: ${message}`,
+      quotationId: quotationLog.id,
+    };
+  }
 
   let messageId = "";
 
@@ -346,11 +534,11 @@ export async function createAndSendQuotation(
       data: {
         action: "QUOTATION_SEND_FAILED",
         description: `${number} quedó registrada, pero el correo no pudo enviarse.`,
-        metadata: {
+        metadata: json({
           ...metadata,
           emailStatus: "FAILED",
           lastError: message,
-        },
+        }),
       },
     });
 
@@ -377,7 +565,7 @@ export async function createAndSendQuotation(
       data: {
         action: "QUOTATION_SENT",
         description: `${number} enviada a ${recipientEmail}.`,
-        metadata: sentMetadata,
+        metadata: json(sentMetadata),
       },
     });
   } catch (error) {
@@ -414,12 +602,12 @@ export async function createAndSendQuotation(
         id: quotationLog.id,
       },
       data: {
-        metadata: {
+        metadata: json({
           ...sentMetadata,
           followUpId,
           followUpRegisteredAt:
             new Date().toISOString(),
-        },
+        }),
       },
     });
 
@@ -434,12 +622,13 @@ export async function createAndSendQuotation(
   revalidatePath("/");
   revalidatePath("/cotizaciones");
   revalidatePath("/seguimiento");
+  revalidatePath("/pagos");
   revalidatePath(`/clientes/${clientId}`);
 
   return {
     ok: true,
     message: followUpRegistered
-      ? `${number} enviada a ${recipientEmail} y registrada en Seguimiento.`
+      ? `${number} ${existingQuotation ? "actualizada y reenviada" : "enviada"} a ${recipientEmail}, con registro en Seguimiento.`
       : `${number} enviada a ${recipientEmail}; revisa el registro manual en Seguimiento.`,
     quotationId: quotationLog.id,
   };
@@ -572,6 +761,19 @@ export async function deleteQuotation(
 
   await prisma.$transaction(
     async (transaction) => {
+      if (quotation.flowPaymentId) {
+        await transaction.payment.updateMany({
+          where: {
+            id: quotation.flowPaymentId,
+            status: { in: ["PENDING", "OVERDUE"] },
+          },
+          data: {
+            status: "CANCELLED",
+            notes: `Pago cancelado porque ${quotation.number} fue eliminada.`,
+          },
+        });
+      }
+
       for (const prospect of linkedProspects) {
         const nextMetadata =
           removeQuotationFromProspect(
@@ -632,6 +834,7 @@ export async function deleteQuotation(
   revalidatePath("/");
   revalidatePath("/cotizaciones");
   revalidatePath("/seguimiento");
+  revalidatePath("/pagos");
 
   if (quotationLog.clientId) {
     revalidatePath(

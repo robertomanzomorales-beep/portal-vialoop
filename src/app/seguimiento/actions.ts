@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { requireUser } from "@/lib/auth";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -101,9 +102,13 @@ export async function saveProspect(
       formData,
       "interest",
     ),
+    lastContactAt: validDateKey(
+      value(formData, "lastContactAt"),
+    ),
     nextFollowUp: validDateKey(
       value(formData, "nextFollowUp"),
     ),
+    nextAction: value(formData, "nextAction"),
     assignedTo: value(
       formData,
       "assignedTo",
@@ -111,6 +116,7 @@ export async function saveProspect(
     notes: value(formData, "notes"),
     updatedAt: new Date().toISOString(),
     quotations: [],
+    activities: [],
   };
 
   if (id) {
@@ -143,6 +149,8 @@ export async function saveProspect(
       ...metadata,
       quotations:
         previous?.quotations ?? [],
+      activities:
+        previous?.activities ?? [],
     };
 
     await prisma.activityLog.update({
@@ -189,6 +197,86 @@ export async function saveProspect(
     ok: true,
     message: `${metadata.company} agregado al seguimiento.`,
     savedId: prospect.id,
+  };
+}
+
+export async function addProspectActivity(
+  id: string,
+  formData: FormData,
+): Promise<ProspectActionState> {
+  const user = await requireUser();
+  const contactedAt = validDateKey(value(formData, "contactedAt"));
+  const nextFollowUp = validDateKey(value(formData, "nextFollowUp"));
+  const action = value(formData, "action");
+  const note = value(formData, "note");
+  const responsible = value(formData, "responsible");
+
+  if (!id || !contactedAt || !action) {
+    return {
+      ok: false,
+      message: "Indica la fecha de la gestión y la próxima acción.",
+    };
+  }
+
+  const existing = await prisma.activityLog.findFirst({
+    where: {
+      id,
+      entityType: "Prospect",
+    },
+    select: {
+      id: true,
+      metadata: true,
+    },
+  });
+  const prospect = existing ? parseProspectMetadata(existing.metadata) : null;
+
+  if (!existing || !prospect) {
+    return {
+      ok: false,
+      message: "La oportunidad ya no existe.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const nextMetadata: ProspectMetadata = {
+    ...prospect,
+    status: prospect.status === "NEW" ? "CONTACTED" : prospect.status,
+    lastContactAt: contactedAt,
+    nextFollowUp,
+    nextAction: action,
+    assignedTo: responsible || prospect.assignedTo,
+    updatedAt: now,
+    activities: [
+      {
+        id: randomUUID(),
+        contactedAt,
+        nextFollowUp,
+        action,
+        note,
+        responsible: responsible || prospect.assignedTo || "Equipo",
+        createdAt: now,
+      },
+      ...prospect.activities,
+    ].slice(0, 100),
+  };
+
+  await prisma.activityLog.update({
+    where: { id },
+    data: {
+      userId: user.id,
+      action: "PROSPECT_ACTIVITY_RECORDED",
+      description: `Gestión registrada para ${prospect.company}: ${action}.`,
+      metadata: json(nextMetadata),
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/seguimiento");
+
+  return {
+    ok: true,
+    message: `Gestión registrada para ${prospect.company}.`,
+    savedId: id,
   };
 }
 

@@ -191,7 +191,6 @@ export default async function ProjectsPage({
       _count: {
         select: {
           supportRequests: true,
-          documents: true,
           renewals: true,
         },
       },
@@ -530,13 +529,6 @@ export default async function ProjectsPage({
                             solicitudes
                           </span>
 
-                          <span>
-                            {
-                              project._count
-                                .documents
-                            }{" "}
-                            documentos
-                          </span>
                         </div>
                       </td>
 

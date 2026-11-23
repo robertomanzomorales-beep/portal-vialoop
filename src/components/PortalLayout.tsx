@@ -30,9 +30,11 @@ type NavigationIconName =
   | "followup"
   | "quote"
   | "sale"
+  | "expense"
   | "charge"
   | "clients"
   | "project"
+  | "planning"
   | "support"
   | "plan"
   | "subscription"
@@ -65,6 +67,7 @@ const navigationGroups: NavigationGroup[] = [
       { label: "Seguimiento", href: "/seguimiento", icon: "followup" },
       { label: "Cotizaciones", href: "/cotizaciones", icon: "quote" },
       { label: "Ventas", href: "/ventas", icon: "sale" },
+      { label: "Gastos", href: "/gastos", icon: "expense" },
       { label: "Cobros manuales", href: "/cobros", icon: "charge" },
     ],
   },
@@ -73,6 +76,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { label: "Clientes", href: "/clientes", icon: "clients" },
       { label: "Proyectos", href: "/proyectos", icon: "project" },
+      { label: "Planificación", href: "/planificacion", icon: "planning" },
       { label: "Solicitudes", href: "/solicitudes", icon: "support" },
     ],
   },
@@ -161,6 +165,13 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
             <path d="M12.5 4H16v3.5" />
           </>
         );
+      case "expense":
+        return (
+          <>
+            <path d="M3 5.5h14v10H3Z" />
+            <path d="M5.5 5.5V3.5h9v2M6.5 10.5h7M10 8v5" />
+          </>
+        );
       case "charge":
         return (
           <>
@@ -181,6 +192,13 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
           <>
             <path d="M2.5 5.5h6l1.5 2h7.5v9.5h-15Z" />
             <path d="M2.5 5.5V3h5l1.5 2.5" />
+          </>
+        );
+      case "planning":
+        return (
+          <>
+            <rect height="14" rx="2" width="15" x="2.5" y="3.5" />
+            <path d="M6 2.5v3M14 2.5v3M2.5 7.5h15M6 11h3M6 14h7" />
           </>
         );
       case "support":
@@ -249,6 +267,7 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
 export default function PortalLayout({ children, user }: PortalLayoutProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -269,6 +288,16 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
     const currentTheme =
       document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     const frame = window.requestAnimationFrame(() => setTheme(currentTheme));
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setSidebarCollapsed(
+        window.localStorage.getItem("portal-vialoop-sidebar") === "collapsed",
+      );
+    });
 
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -329,6 +358,17 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
     window.localStorage.setItem("portal-vialoop-theme", nextTheme);
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem(
+        "portal-vialoop-sidebar",
+        next ? "collapsed" : "expanded",
+      );
+      return next;
+    });
+  };
+
   const brand = (
     <>
       <span className={styles.brandMark}>
@@ -383,7 +423,7 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
       )}
 
       <aside
-        className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}
+        className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ""} ${menuOpen ? styles.sidebarOpen : ""}`}
         id="portal-navigation"
       >
         <div className={styles.sidebarHeader}>
@@ -394,6 +434,16 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
           >
             {brand}
           </Link>
+
+          <button
+            aria-label={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+            className={styles.collapseButton}
+            onClick={toggleSidebar}
+            title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"}
+            type="button"
+          >
+            {sidebarCollapsed ? "→" : "←"}
+          </button>
 
           <button
             aria-label="Cerrar menú"
@@ -430,6 +480,7 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
                       href={item.href}
                       key={item.href}
                       onClick={(event) => handleNavigation(event, item.href)}
+                      title={sidebarCollapsed ? item.label : undefined}
                     >
                       <NavigationIcon name={item.icon} />
                       <span>{item.label}</span>
@@ -476,13 +527,16 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
 
           <form action={logout}>
             <button className={styles.logoutButton} type="submit">
-              Cerrar sesión
+              <span className={styles.logoutLabel}>Cerrar sesión</span>
+              <span aria-hidden="true" className={styles.logoutIcon}>↪</span>
             </button>
           </form>
         </div>
       </aside>
 
-      <div className={styles.main}>{children}</div>
+      <div className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ""}`}>
+        {children}
+      </div>
 
       {navigating && (
         <div aria-live="polite" className={styles.routeProgress} role="status">

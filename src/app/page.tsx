@@ -5,6 +5,9 @@ import {
   parseProspectMetadata,
 } from "@/lib/prospect";
 import { getMonthlySalesGoal } from "@/lib/sales-goal";
+import { parseExpenseMetadata } from "@/lib/expense";
+import { parseScheduledTaskMetadata } from "@/lib/scheduled-task";
+import CompanyDataCards from "./CompanyDataCards";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -224,6 +227,8 @@ export default async function Home() {
     pendingPaymentCount,
     pendingPaymentAmountResult,
     prospectLogs,
+    expenseLogs,
+    taskLogs,
     priorityRenewals,
     monthlySalesAmountResult,
     monthlySalesCount,
@@ -288,6 +293,18 @@ export default async function Home() {
         createdAt: true,
         metadata: true,
       },
+    }),
+    prisma.activityLog.findMany({
+      where: { entityType: "Expense" },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      select: { id: true, metadata: true },
+    }),
+    prisma.activityLog.findMany({
+      where: { entityType: "ScheduledTask" },
+      orderBy: { createdAt: "desc" },
+      take: 1000,
+      select: { id: true, metadata: true },
     }),
     prisma.renewal.findMany({
       where: {
@@ -438,6 +455,24 @@ export default async function Home() {
   const undatedFollowUps = openProspects.filter(
     ({ metadata }) => !metadata.nextFollowUp,
   ).length;
+  const activeExpenses = expenseLogs.flatMap((log) => {
+    const expense = parseExpenseMetadata(log.metadata);
+    return expense?.active ? [{ id: log.id, metadata: expense }] : [];
+  });
+  const overdueExpenses = activeExpenses.filter(
+    ({ metadata }) => metadata.nextDueDate && metadata.nextDueDate < todayKey,
+  ).length;
+  const upcomingExpenses = activeExpenses.filter(
+    ({ metadata }) =>
+      metadata.nextDueDate >= todayKey && metadata.nextDueDate <= nextThirtyDaysKey,
+  ).length;
+  const activeTasks = taskLogs.flatMap((log) => {
+    const task = parseScheduledTaskMetadata(log.metadata);
+    return task && task.status !== "COMPLETED" ? [{ id: log.id, metadata: task }] : [];
+  });
+  const overdueTasks = activeTasks.filter(
+    ({ metadata }) => metadata.dueDate < todayKey,
+  ).length;
   const agendaProspects = datedProspects
     .filter(
       ({ metadata }) => metadata.nextFollowUp <= nextThirtyDaysKey,
@@ -575,6 +610,8 @@ export default async function Home() {
         ))}
       </section>
 
+      <CompanyDataCards />
+
       <section className={styles.focusGrid}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
@@ -671,6 +708,18 @@ export default async function Home() {
             <Link href="/pagos">
               <span>Cobros por gestionar</span>
               <strong>{pendingPaymentCount}</strong>
+            </Link>
+            <Link className={overdueTasks > 0 ? styles.alertCritical : ""} href="/planificacion">
+              <span>Trabajos atrasados</span>
+              <strong>{overdueTasks}</strong>
+            </Link>
+            <Link className={overdueExpenses > 0 ? styles.alertCritical : ""} href="/gastos">
+              <span>Gastos vencidos</span>
+              <strong>{overdueExpenses}</strong>
+            </Link>
+            <Link href="/gastos">
+              <span>Gastos próximos 30 días</span>
+              <strong>{upcomingExpenses}</strong>
             </Link>
           </div>
 

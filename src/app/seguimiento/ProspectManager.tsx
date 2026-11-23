@@ -1,18 +1,21 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   useActionState,
   useMemo,
   useState,
+  useTransition,
+  type FormEvent,
 } from "react";
 import {
-  buildProspectMessages,
   getProspectStatusLabel,
   prospectStatuses,
   type ProspectMetadata,
   type ProspectStatus,
 } from "@/lib/prospect";
 import {
+  addProspectActivity,
   deleteProspect,
   saveProspect,
   type ProspectActionState,
@@ -156,23 +159,16 @@ function quotationValidity(
 
 function whatsappUrl(
   phone: string,
-  message: string,
 ) {
   const digits = phone.replace(/\D/g, "");
 
   return digits
-    ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+    ? `https://wa.me/${digits}`
     : "";
 }
 
-function emailUrl(
-  email: string,
-  subject: string,
-  message: string,
-) {
-  return email
-    ? `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`
-    : "";
+function emailUrl(email: string) {
+  return email ? `mailto:${email}` : "";
 }
 
 export default function ProspectManager({
@@ -180,6 +176,8 @@ export default function ProspectManager({
 }: {
   prospects: ProspectRecord[];
 }) {
+  const router = useRouter();
+  const today = chileDateKey();
   const [state, formAction, pending] =
     useActionState(
       saveProspect,
@@ -197,8 +195,6 @@ export default function ProspectManager({
     useState<ProspectStatus | "ALL">(
       "ALL",
     );
-  const [copiedId, setCopiedId] =
-    useState<string | null>(null);
   const [deletingId, setDeletingId] =
     useState<string | null>(null);
   const [removedIds, setRemovedIds] =
@@ -208,6 +204,13 @@ export default function ProspectManager({
       ok: boolean;
       message: string;
     } | null>(null);
+  const [activityPending, startActivityTransition] = useTransition();
+  const [loggingId, setLoggingId] = useState<string | null>(null);
+  const [activityFeedback, setActivityFeedback] = useState<{
+    id: string;
+    ok: boolean;
+    message: string;
+  } | null>(null);
 
   const filteredProspects = useMemo(() => {
     const normalizedQuery = normalize(
@@ -276,18 +279,34 @@ export default function ProspectManager({
     }, 20);
   };
 
-  const copyMessage = async (
-    id: string,
-    message: string,
+  const recordActivity = (
+    event: FormEvent<HTMLFormElement>,
+    prospect: ProspectRecord,
   ) => {
-    await navigator.clipboard.writeText(
-      message,
-    );
-    setCopiedId(id);
-    window.setTimeout(
-      () => setCopiedId(null),
-      1800,
-    );
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    setLoggingId(prospect.id);
+    setActivityFeedback(null);
+
+    startActivityTransition(async () => {
+      try {
+        const result = await addProspectActivity(prospect.id, formData);
+        setActivityFeedback({ id: prospect.id, ...result });
+        if (result.ok) {
+          form.reset();
+          router.refresh();
+        }
+      } catch {
+        setActivityFeedback({
+          id: prospect.id,
+          ok: false,
+          message: "No fue posible registrar la gestión.",
+        });
+      } finally {
+        setLoggingId(null);
+      }
+    });
   };
 
   const removeProspect = async (
@@ -492,6 +511,15 @@ export default function ProspectManager({
             </label>
 
             <label>
+              <span>Última gestión</span>
+              <input
+                defaultValue={editing?.metadata.lastContactAt}
+                name="lastContactAt"
+                type="date"
+              />
+            </label>
+
+            <label>
               <span>Próximo seguimiento</span>
               <input
                 defaultValue={
@@ -531,6 +559,15 @@ export default function ProspectManager({
                 }
                 name="interest"
                 placeholder="Sitio web, software, hosting..."
+              />
+            </label>
+
+            <label className={styles.wideField}>
+              <span>Próxima acción</span>
+              <input
+                defaultValue={editing?.metadata.nextAction}
+                name="nextAction"
+                placeholder="Ej.: Llamar para revisar la cotización"
               />
             </label>
 
@@ -671,18 +708,10 @@ export default function ProspectManager({
         <div className={styles.prospectList}>
           {filteredProspects.map((prospect) => {
             const { id, metadata } = prospect;
-            const messages =
-              buildProspectMessages(metadata);
             const whatsapp = whatsappUrl(
               metadata.phone,
-              messages.whatsapp,
             );
-            const mail = emailUrl(
-              metadata.email,
-              messages.emailSubject,
-              messages.emailBody,
-            );
-            const emailCopy = `Asunto: ${messages.emailSubject}\n\n${messages.emailBody}`;
+            const mail = emailUrl(metadata.email);
             const latestQuotation =
               metadata.quotations[0];
             const validity = latestQuotation
@@ -722,7 +751,7 @@ export default function ProspectManager({
                         "Por definir"}
                     </strong>
                     <small>
-                      {metadata.assignedTo || "Equipo"}
+                      {metadata.nextAction || metadata.assignedTo || "Acción por definir"}
                     </small>
                   </div>
 
@@ -802,7 +831,7 @@ export default function ProspectManager({
 
                 <details className={styles.recordDetails}>
                   <summary>
-                    Ver contacto, notas y mensajes
+                    Ver ficha y registrar gestión
                   </summary>
 
                   <div className={styles.detailGrid}>
@@ -837,7 +866,26 @@ export default function ProspectManager({
                               "Sin registrar"}
                           </dd>
                         </div>
+                        <div>
+                          <dt>Última gestión</dt>
+                          <dd>{formatDate(metadata.lastContactAt)}</dd>
+                        </div>
+                        <div>
+                          <dt>Responsable</dt>
+                          <dd>{metadata.assignedTo || "Equipo"}</dd>
+                        </div>
                       </dl>
+
+                      {(whatsapp || mail) && (
+                        <div className={styles.contactActions}>
+                          {whatsapp ? (
+                            <a href={whatsapp} rel="noreferrer" target="_blank">
+                              Abrir WhatsApp
+                            </a>
+                          ) : null}
+                          {mail ? <a href={mail}>Escribir correo</a> : null}
+                        </div>
+                      )}
 
                       {metadata.notes && (
                         <p className={styles.notesBlock}>
@@ -860,66 +908,85 @@ export default function ProspectManager({
                       )}
                     </section>
 
-                    <section className={styles.messageBlock}>
-                      <span className={styles.detailLabel}>
-                        Mensaje para WhatsApp
-                      </span>
-                      <p>{messages.whatsapp}</p>
-                      <div className={styles.messageActions}>
+                    <section className={styles.activityBlock}>
+                      <span className={styles.detailLabel}>Registrar gestión</span>
+                      <form onSubmit={(event) => recordActivity(event, prospect)}>
+                        <label>
+                          <span>Fecha de contacto o gestión *</span>
+                          <input defaultValue={today} name="contactedAt" required type="date" />
+                        </label>
+                        <label>
+                          <span>Próximo contacto</span>
+                          <input defaultValue={metadata.nextFollowUp} name="nextFollowUp" type="date" />
+                        </label>
+                        <label className={styles.activityWideField}>
+                          <span>Próxima acción *</span>
+                          <input
+                            defaultValue={metadata.nextAction}
+                            name="action"
+                            placeholder="Ej.: Llamar para revisar propuesta"
+                            required
+                          />
+                        </label>
+                        <label className={styles.activityWideField}>
+                          <span>Resultado o nota</span>
+                          <textarea
+                            name="note"
+                            placeholder="Qué se conversó, decisión o antecedente relevante"
+                            rows={3}
+                          />
+                        </label>
+                        <label>
+                          <span>Responsable</span>
+                          <select defaultValue={metadata.assignedTo || "Doris"} name="responsible">
+                            <option value="Doris">Doris</option>
+                            <option value="Roberto">Roberto</option>
+                            <option value="Equipo">Equipo</option>
+                          </select>
+                        </label>
                         <button
-                          onClick={() =>
-                            copyMessage(
-                              `${id}-whatsapp`,
-                              messages.whatsapp,
-                            )
-                          }
-                          type="button"
+                          disabled={activityPending && loggingId === id}
+                          type="submit"
                         >
-                          {copiedId ===
-                          `${id}-whatsapp`
-                            ? "Copiado"
-                            : "Copiar texto"}
+                          {activityPending && loggingId === id
+                            ? "Registrando..."
+                            : "Registrar gestión"}
                         </button>
-                        {whatsapp && (
-                          <a
-                            href={whatsapp}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            Abrir WhatsApp
-                          </a>
-                        )}
-                      </div>
+                      </form>
+                      {activityFeedback?.id === id ? (
+                        <p
+                          className={activityFeedback.ok ? styles.feedbackSuccess : styles.feedbackError}
+                          role="status"
+                        >
+                          {activityFeedback.message}
+                        </p>
+                      ) : null}
                     </section>
 
-                    <section className={styles.messageBlock}>
-                      <span className={styles.detailLabel}>
-                        Correo sugerido
-                      </span>
-                      <strong>
-                        {messages.emailSubject}
-                      </strong>
-                      <p>{messages.emailBody}</p>
-                      <div className={styles.messageActions}>
-                        <button
-                          onClick={() =>
-                            copyMessage(
-                              `${id}-email`,
-                              emailCopy,
-                            )
-                          }
-                          type="button"
-                        >
-                          {copiedId === `${id}-email`
-                            ? "Copiado"
-                            : "Copiar correo"}
-                        </button>
-                        {mail && (
-                          <a href={mail}>
-                            Abrir correo
-                          </a>
-                        )}
-                      </div>
+                    <section className={styles.timelineBlock}>
+                      <span className={styles.detailLabel}>Historial de gestiones</span>
+                      {metadata.activities.length === 0 ? (
+                        <p className={styles.timelineEmpty}>
+                          Aún no hay gestiones registradas.
+                        </p>
+                      ) : (
+                        <ol>
+                          {metadata.activities.slice(0, 8).map((activity) => (
+                            <li key={activity.id}>
+                              <div>
+                                <strong>{activity.action}</strong>
+                                <span>
+                                  {formatDate(activity.contactedAt)} · {activity.responsible || "Equipo"}
+                                </span>
+                              </div>
+                              {activity.note ? <p>{activity.note}</p> : null}
+                              {activity.nextFollowUp ? (
+                                <small>Próximo contacto: {formatDate(activity.nextFollowUp)}</small>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
                     </section>
                   </div>
                 </details>

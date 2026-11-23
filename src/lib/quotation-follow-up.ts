@@ -292,6 +292,7 @@ export async function registerQuotationInFollowUp({
         ? previous.status
         : "FOLLOW_UP",
     interest: quotedInterest(quotation),
+    lastContactAt: previous?.lastContactAt || "",
     nextFollowUp:
       alreadyLinked &&
       previous &&
@@ -302,6 +303,9 @@ export async function registerQuotationInFollowUp({
             previous?.nextFollowUp || "",
             quotation.validUntil,
           ),
+    nextAction:
+      previous?.nextAction ||
+      `Contactar para revisar ${quotation.number}`,
     assignedTo:
       previous?.assignedTo ||
       getResponsible(quotation),
@@ -311,6 +315,7 @@ export async function registerQuotationInFollowUp({
     ),
     updatedAt: new Date().toISOString(),
     quotations,
+    activities: previous?.activities ?? [],
   };
 
   if (existing) {

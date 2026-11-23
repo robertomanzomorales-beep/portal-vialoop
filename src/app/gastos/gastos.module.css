@@ -1,0 +1,381 @@
+.page {
+  display: grid;
+  width: min(100%, 1680px);
+  min-height: 100vh;
+  margin: 0 auto;
+  gap: 18px;
+  padding: 34px clamp(22px, 3.5vw, 46px) 52px;
+  color: var(--portal-text);
+}
+
+.hero h1 {
+  margin: 6px 0 7px;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -0.045em;
+}
+
+.hero p,
+.managerHeader p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.eyebrow {
+  color: var(--portal-accent);
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metrics article,
+.manager {
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.metrics article {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 17px 18px;
+}
+
+.metrics span,
+.metrics small {
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metrics strong {
+  color: var(--portal-text);
+  font-size: 25px;
+  letter-spacing: -0.045em;
+}
+
+.metrics .metricAlert {
+  border-color: var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+}
+
+.metricAlert strong {
+  color: var(--portal-danger);
+}
+
+.manager {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.managerHeader,
+.editorHeading,
+.editorActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.managerHeader h2 {
+  margin: 5px 0;
+  font-size: 18px;
+  letter-spacing: -0.025em;
+}
+
+.primaryButton,
+.textButton,
+.expenseActions button {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--portal-text);
+  background: var(--portal-text);
+  color: var(--portal-on-accent);
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: var(--portal-text-secondary);
+}
+
+.editor {
+  display: grid;
+  scroll-margin-top: 24px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  border: 1px solid var(--portal-border);
+  border-radius: 13px;
+  background: var(--portal-surface-soft);
+  padding: 18px;
+}
+
+.editorHeading,
+.editorActions {
+  grid-column: 1 / -1;
+}
+
+.editorHeading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.editorHeading strong {
+  font-size: 13px;
+}
+
+.editorHeading span {
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.editor label {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.editor label > span {
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.editor input,
+.editor select,
+.editor textarea,
+.filters input,
+.filters select {
+  width: 100%;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  background: var(--portal-surface);
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 11px;
+}
+
+.editor input,
+.editor select,
+.filters input,
+.filters select {
+  height: 38px;
+  padding: 0 10px;
+}
+
+.editor textarea {
+  min-height: 76px;
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.wideField {
+  grid-column: 1 / -1;
+}
+
+.editorActions {
+  border-top: 1px solid var(--portal-border);
+  padding-top: 13px;
+}
+
+.feedbackSuccess,
+.feedbackError {
+  margin: 0;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.feedbackSuccess {
+  border: 1px solid var(--portal-success-border);
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.feedbackError {
+  border: 1px solid var(--portal-danger-border);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) 210px;
+  gap: 10px;
+}
+
+.expenseList {
+  display: grid;
+  gap: 8px;
+}
+
+.expenseList article {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.5fr) minmax(130px, 0.6fr) minmax(155px, 0.75fr) auto;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface-soft);
+  padding: 13px 14px;
+}
+
+.expenseIdentity,
+.expenseAmount,
+.expenseDue {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.expenseIdentity span,
+.expenseAmount span,
+.expenseDue span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.expenseIdentity strong,
+.expenseAmount strong,
+.expenseDue strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expenseIdentity small {
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.expenseOverdue strong {
+  color: var(--portal-danger);
+}
+
+.expenseActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.expenseActions button {
+  min-height: 32px;
+  border: 1px solid var(--portal-border-strong);
+  background: var(--portal-surface);
+  color: var(--portal-text-secondary);
+  padding: 0 9px;
+  font-size: 9px;
+}
+
+.expenseActions .dangerButton {
+  border-color: transparent;
+  background: transparent;
+  color: var(--portal-danger);
+}
+
+.expenseInactive {
+  opacity: 0.58;
+}
+
+.emptyState {
+  display: grid;
+  min-height: 140px;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  border: 1px dashed var(--portal-border);
+  border-radius: 11px;
+  color: var(--portal-muted);
+  font-size: 10px;
+}
+
+.emptyState strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .expenseList article {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .expenseActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 850px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .managerHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding: 26px 15px 38px;
+  }
+
+  .metrics,
+  .editor,
+  .filters,
+  .expenseList article {
+    grid-template-columns: 1fr;
+  }
+
+  .manager {
+    padding: 16px;
+  }
+
+  .managerHeader .primaryButton,
+  .editorActions .primaryButton {
+    width: 100%;
+  }
+
+  .editorActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .expenseActions {
+    grid-column: auto;
+    flex-wrap: wrap;
+  }
+}

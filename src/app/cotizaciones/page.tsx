@@ -2,7 +2,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { parseQuotationMetadata } from "@/lib/quotation";
 import DeleteQuotationButton from "./DeleteQuotationButton";
-import QuotationForm from "./QuotationForm";
+import QuotationForm, {
+  type QuotationFormInitialValue,
+} from "./QuotationForm";
 import styles from "./cotizaciones.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,8 +27,19 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-export default async function QuotationsPage() {
-  const [clients, logs] =
+type QuotationsPageProps = {
+  searchParams: Promise<{
+    editar?: string;
+    duplicar?: string;
+  }>;
+};
+
+export default async function QuotationsPage({
+  searchParams,
+}: QuotationsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const sourceId = resolvedSearchParams.editar || resolvedSearchParams.duplicar || "";
+  const [clients, logs, sourceLog] =
     await Promise.all([
       prisma.client.findMany({
         where: {
@@ -52,6 +65,14 @@ export default async function QuotationsPage() {
         },
         take: 50,
       }),
+      sourceId
+        ? prisma.activityLog.findFirst({
+            where: {
+              id: sourceId,
+              entityType: "Quotation",
+            },
+          })
+        : Promise.resolve(null),
     ]);
 
   const quotations = logs
@@ -83,6 +104,17 @@ export default async function QuotationsPage() {
       sum + item.metadata.totalAmount,
     0,
   );
+  const sourceMetadata = sourceLog
+    ? parseQuotationMetadata(sourceLog.metadata)
+    : null;
+  const initialValue: QuotationFormInitialValue | undefined =
+    sourceLog && sourceMetadata
+      ? {
+          id: sourceLog.id,
+          mode: resolvedSearchParams.editar ? "EDIT" : "DUPLICATE",
+          metadata: sourceMetadata,
+        }
+      : undefined;
 
   return (
     <main className={styles.page}>
@@ -123,6 +155,7 @@ export default async function QuotationsPage() {
             client.mainContactName ?? "",
           email: client.email ?? "",
         }))}
+        initialValue={initialValue}
       />
 
       <section className={styles.historyPanel}>
@@ -167,7 +200,12 @@ export default async function QuotationsPage() {
                         <small>{metadata.recipientEmail}</small>
                       </td>
                       <td>
-                        {metadata.projectName || "Propuesta general"}
+                        <strong>
+                          {metadata.referenceName || metadata.projectName || "Propuesta general"}
+                        </strong>
+                        {metadata.referenceName && metadata.projectName ? (
+                          <small>{metadata.projectName}</small>
+                        ) : null}
                       </td>
                       <td>
                         <strong>
@@ -201,6 +239,18 @@ export default async function QuotationsPage() {
                             target="_blank"
                           >
                             Ver PDF
+                          </Link>
+                          <Link
+                            className={styles.secondaryHistoryAction}
+                            href={`/cotizaciones?editar=${log.id}`}
+                          >
+                            Editar
+                          </Link>
+                          <Link
+                            className={styles.secondaryHistoryAction}
+                            href={`/cotizaciones?duplicar=${log.id}`}
+                          >
+                            Duplicar
                           </Link>
                           <DeleteQuotationButton
                             quotationId={log.id}

@@ -168,6 +168,80 @@
   white-space: nowrap;
 }
 
+.companyDataGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 13px;
+}
+
+.companyDataCard {
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+.companyDataHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--portal-border);
+  padding: 14px 17px;
+}
+
+.companyDataHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.companyDataHeader span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.companyDataHeader strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+.companyDataHeader button {
+  min-height: 30px;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: 8px;
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-secondary);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.companyDataContent {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 16px;
+  padding: 14px 17px 16px;
+}
+
+.companyDataContent span {
+  overflow-wrap: anywhere;
+  color: var(--portal-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.companyDataContent span:first-child {
+  color: var(--portal-text);
+  font-weight: 750;
+}
+
 .focusGrid,
 .performanceGrid,
 .activityGrid {
@@ -681,6 +755,7 @@
 }
 
 @media (max-width: 900px) {
+  .companyDataGrid,
   .focusGrid,
   .performanceGrid,
   .activityGrid {
@@ -719,6 +794,10 @@
 
   .metricCard {
     padding: 16px;
+  }
+
+  .companyDataContent {
+    grid-template-columns: 1fr;
   }
 
   .panel,

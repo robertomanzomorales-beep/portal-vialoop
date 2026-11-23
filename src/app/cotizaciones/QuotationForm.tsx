@@ -11,6 +11,7 @@ import {
   createAndSendQuotation,
   type QuotationActionState,
 } from "./actions";
+import type { QuotationMetadata } from "@/lib/quotation";
 import styles from "./cotizaciones.module.css";
 
 type ClientOption = {
@@ -28,6 +29,12 @@ type EditableItem = {
   unitPrice: string;
 };
 
+export type QuotationFormInitialValue = {
+  id: string;
+  mode: "EDIT" | "DUPLICATE";
+  metadata: QuotationMetadata;
+};
+
 const initialState: QuotationActionState = {
   ok: false,
   message: "",
@@ -43,9 +50,12 @@ function currency(value: number) {
 
 export default function QuotationForm({
   clients,
+  initialValue,
 }: {
   clients: ClientOption[];
+  initialValue?: QuotationFormInitialValue;
 }) {
+  const initialQuotation = initialValue?.metadata;
   const [
     state,
     formAction,
@@ -56,25 +66,37 @@ export default function QuotationForm({
   );
 
   const [clientId, setClientId] =
-    useState("");
+    useState(initialQuotation?.clientId ?? "");
   const [contactName, setContactName] =
-    useState("");
+    useState(initialQuotation?.contactName ?? "");
   const [recipientEmail, setRecipientEmail] =
-    useState("");
+    useState(initialQuotation?.recipientEmail ?? "");
+  const [referenceName, setReferenceName] =
+    useState(initialQuotation?.referenceName ?? initialQuotation?.projectName ?? "");
   const [projectName, setProjectName] =
-    useState("");
+    useState(initialQuotation?.projectName ?? "");
   const [nextItemId, setNextItemId] =
-    useState(2);
+    useState((initialQuotation?.items.length ?? 1) + 1);
   const [items, setItems] =
-    useState<EditableItem[]>([
-      {
-        id: 1,
-        description: "",
-        detail: "",
-        quantity: "1",
-        unitPrice: "",
-      },
-    ]);
+    useState<EditableItem[]>(() =>
+      initialQuotation?.items.length
+        ? initialQuotation.items.map((item, index) => ({
+            id: index + 1,
+            description: item.description,
+            detail: item.detail,
+            quantity: String(item.quantity),
+            unitPrice: String(item.unitPrice),
+          }))
+        : [
+            {
+              id: 1,
+              description: "",
+              detail: "",
+              quantity: "1",
+              unitPrice: "",
+            },
+          ],
+    );
 
   const totals = useMemo(() => {
     const net = items.reduce(
@@ -175,6 +197,11 @@ export default function QuotationForm({
       className={styles.quotationForm}
     >
       <input
+        name="editQuotationId"
+        type="hidden"
+        value={initialValue?.mode === "EDIT" ? initialValue.id : ""}
+      />
+      <input
         name="items"
         type="hidden"
         value={serializedItems}
@@ -183,6 +210,23 @@ export default function QuotationForm({
       <div className={styles.quotationWorkspace}>
         <div className={styles.quotationEditor}>
           <div className={styles.formSection}>
+        {initialValue && (
+          <div className={styles.editingBanner}>
+            <div>
+              <strong>
+                {initialValue.mode === "EDIT"
+                  ? `Editando ${initialQuotation?.number}`
+                  : `Duplicando ${initialQuotation?.number}`}
+              </strong>
+              <span>
+                {initialValue.mode === "EDIT"
+                  ? "Se conservará el número y se enviará una nueva versión."
+                  : "Se generará una cotización nueva con estos datos como base."}
+              </span>
+            </div>
+            <Link href="/cotizaciones">Cancelar</Link>
+          </div>
+        )}
         <div className={styles.sectionHeading}>
           <span>01</span>
           <div>
@@ -254,7 +298,11 @@ export default function QuotationForm({
           <label className={styles.field}>
             <span>Enviar de parte de *</span>
             <select
-              defaultValue="doris"
+              defaultValue={
+                initialQuotation?.senderEmail === "rmanzo@vialoop.cl"
+                  ? "roberto"
+                  : "doris"
+              }
               name="sender"
               required
             >
@@ -265,6 +313,19 @@ export default function QuotationForm({
                 Roberto Manzo · Proyectos
               </option>
             </select>
+          </label>
+
+          <label
+            className={`${styles.field} ${styles.fullWidth}`}
+          >
+            <span>Nombre de referencia *</span>
+            <input
+              name="referenceName"
+              onChange={(event) => setReferenceName(event.target.value)}
+              placeholder="Ej.: Landing y logo corporativo"
+              required
+              value={referenceName}
+            />
           </label>
 
           <label
@@ -319,7 +380,6 @@ export default function QuotationForm({
                 <label>
                   <span>Nombre del servicio *</span>
                   <input
-                    maxLength={160}
                     onChange={(event) =>
                       updateItem(
                         item.id,
@@ -336,7 +396,6 @@ export default function QuotationForm({
                 <label className={styles.itemDetail}>
                   <span>Detalle del ítem</span>
                   <textarea
-                    maxLength={1000}
                     onChange={(event) =>
                       updateItem(
                         item.id,
@@ -420,7 +479,7 @@ export default function QuotationForm({
 
         <button
           className={styles.addItemButton}
-          disabled={items.length >= 20}
+          disabled={items.length >= 50}
           onClick={addItem}
           type="button"
         >
@@ -458,7 +517,18 @@ export default function QuotationForm({
           <label className={styles.field}>
             <span>Vigencia en días</span>
             <input
-              defaultValue="15"
+              defaultValue={
+                initialQuotation?.issuedAt && initialQuotation.validUntil
+                  ? Math.max(
+                      1,
+                      Math.round(
+                        (new Date(`${initialQuotation.validUntil}T12:00:00Z`).getTime() -
+                          new Date(`${initialQuotation.issuedAt}T12:00:00Z`).getTime()) /
+                          86_400_000,
+                      ),
+                    )
+                  : 15
+              }
               max="90"
               min="1"
               name="validDays"
@@ -466,12 +536,25 @@ export default function QuotationForm({
             />
           </label>
 
+          <label className={styles.field}>
+            <span>Forma de pago</span>
+            <select
+              defaultValue={initialQuotation?.paymentOption ?? "TRANSFER"}
+              name="paymentOption"
+            >
+              <option value="TRANSFER">Transferencia bancaria</option>
+              <option value="TRANSFER_FLOW">
+                Transferencia + botón Flow
+              </option>
+            </select>
+          </label>
+
           <label
             className={`${styles.field} ${styles.fullWidth}`}
           >
             <span>Condiciones y observaciones</span>
             <textarea
-              maxLength={2000}
+              defaultValue={initialQuotation?.notes ?? ""}
               name="notes"
               placeholder="Forma de pago, plazos, alcance o información adicional."
               rows={5}
@@ -504,7 +587,7 @@ export default function QuotationForm({
           <div className={styles.previewClient}>
             <span>Preparada para</span>
             <strong>{selectedClient?.name || "Selecciona un cliente"}</strong>
-            <small>{projectName || "Proyecto o propuesta por definir"}</small>
+            <small>{referenceName || projectName || "Referencia por definir"}</small>
           </div>
 
           <div className={styles.previewSummary}>
@@ -566,7 +649,11 @@ export default function QuotationForm({
         >
           {pending
             ? "Generando y enviando..."
-            : "Generar y enviar cotización"}
+            : initialValue?.mode === "EDIT"
+              ? "Actualizar y reenviar cotización"
+              : initialValue?.mode === "DUPLICATE"
+                ? "Crear y enviar duplicado"
+                : "Generar y enviar cotización"}
         </button>
       </footer>
     </form>

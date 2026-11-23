@@ -193,12 +193,6 @@ export default async function ClientDetailPage({
         },
       },
 
-      documents: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-
       activityLogs: {
         where: {
           entityType: "Quotation",
@@ -216,7 +210,6 @@ export default async function ClientDetailPage({
           subscriptions: true,
           payments: true,
           supportRequests: true,
-          documents: true,
         },
       },
     },
@@ -689,8 +682,8 @@ export default async function ClientDetailPage({
             </div>
 
             <div>
-              <dt>Documentos</dt>
-              <dd>{client._count.documents}</dd>
+              <dt>Cotizaciones</dt>
+              <dd>{quotations.length}</dd>
             </div>
 
             <div>
