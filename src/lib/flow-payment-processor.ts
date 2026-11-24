@@ -4,6 +4,7 @@ import {
   getFlowPaymentStatus,
   type FlowPaymentStatusResponse,
 } from "@/lib/flow";
+import { synchronizeQuotationPaymentToSale } from "@/lib/quotation-sales";
 
 type BillingCycleValue =
   | "MONTHLY"
@@ -576,6 +577,34 @@ export async function synchronizeFlowPayment(
             },
           });
 
+          if (
+            payment.reference?.startsWith(
+              "quotation:",
+            )
+          ) {
+            await synchronizeQuotationPaymentToSale(
+              transaction,
+              {
+                quotationId:
+                  payment.reference.replace(
+                    "quotation:",
+                    "",
+                  ),
+                paymentId:
+                  payment.id,
+                paidAt:
+                  payment.paidAt ??
+                  paidAt,
+                amount: Number(
+                  payment.amount,
+                ),
+                method:
+                  payment.method ??
+                  "FLOW",
+              },
+            );
+          }
+
           return {
             alreadyProcessed:
               true,
@@ -627,11 +656,34 @@ export async function synchronizeFlowPayment(
             amount:
               flowAmount,
             paidAt,
-            method: "OTHER",
+            method: "FLOW",
             notes:
               paymentNotes,
           },
         });
+
+        if (
+          payment.reference?.startsWith(
+            "quotation:",
+          )
+        ) {
+          await synchronizeQuotationPaymentToSale(
+            transaction,
+            {
+              quotationId:
+                payment.reference.replace(
+                  "quotation:",
+                  "",
+                ),
+              paymentId:
+                payment.id,
+              paidAt,
+              amount:
+                flowAmount,
+              method: "FLOW",
+            },
+          );
+        }
 
         let processedSubscriptionId =
           payment.subscriptionId;

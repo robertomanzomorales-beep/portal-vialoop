@@ -4,7 +4,10 @@ import {
 } from "next/server";
 
 import {
+  createSessionToken,
   SESSION_COOKIE_NAME,
+  SESSION_DURATION_SECONDS,
+  SESSION_REFRESH_THRESHOLD_SECONDS,
   verifySessionToken,
 } from "@/lib/session-token";
 
@@ -108,9 +111,40 @@ export function proxy(
     );
   }
 
-  return createNextResponse(
+  const response = createNextResponse(
     request,
   );
+  const now = Math.floor(
+    Date.now() / 1000,
+  );
+
+  if (
+    session.expiresAt - now <=
+    SESSION_REFRESH_THRESHOLD_SECONDS
+  ) {
+    const refreshed = createSessionToken({
+      userId: session.userId,
+      role: session.role,
+    });
+
+    response.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: refreshed.token,
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge:
+        SESSION_DURATION_SECONDS,
+      expires: new Date(
+        refreshed.expiresAt * 1000,
+      ),
+    });
+  }
+
+  return response;
 }
 
 export const config = {

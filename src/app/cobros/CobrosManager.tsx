@@ -432,7 +432,7 @@ export default function CobrosManager({
                           rel="noreferrer"
                           target="_blank"
                         >
-                          Acceder a Flow · cuotas
+                          Pagar con Flow · hasta 3 cuotas
                         </a>
                       ) : null}
 

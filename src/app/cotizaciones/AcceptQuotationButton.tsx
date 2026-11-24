@@ -8,9 +8,11 @@ import styles from "./cotizaciones.module.css";
 export default function AcceptQuotationButton({
   quotationId,
   quotationNumber,
+  repairOnly = false,
 }: {
   quotationId: string;
   quotationNumber: string;
+  repairOnly?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -19,7 +21,9 @@ export default function AcceptQuotationButton({
   const accept = () => {
     if (
       !window.confirm(
-        `¿Confirmas que ${quotationNumber} fue aceptada? Se creará el cobro pendiente y la oportunidad quedará ganada.`,
+        repairOnly
+          ? `¿Completar el vínculo comercial de ${quotationNumber}? Se conciliará con su venta y cobro sin duplicar registros.`
+          : `¿Confirmas que ${quotationNumber} fue aceptada? Se creará la venta, el cobro pendiente y la oportunidad quedará ganada.`,
       )
     ) {
       return;
@@ -50,7 +54,11 @@ export default function AcceptQuotationButton({
         onClick={accept}
         type="button"
       >
-        {pending ? "Preparando cobro..." : "Aceptar y preparar cobro"}
+        {pending
+          ? "Conciliando..."
+          : repairOnly
+            ? "Completar vínculo"
+            : "Aceptar y crear venta"}
       </button>
       {error ? <small role="alert">{error}</small> : null}
     </div>

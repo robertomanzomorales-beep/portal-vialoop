@@ -7,7 +7,10 @@ export const SESSION_COOKIE_NAME =
   "vialoop_portal_session";
 
 export const SESSION_DURATION_SECONDS =
-  60 * 60 * 8;
+  60 * 60 * 24 * 7;
+
+export const SESSION_REFRESH_THRESHOLD_SECONDS =
+  60 * 60 * 24;
 
 export type SessionRole =
   | "ADMIN"

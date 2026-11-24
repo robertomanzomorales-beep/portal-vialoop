@@ -209,6 +209,7 @@ export default async function SalesPage({
     financials,
     chartSales,
     chartPaidPayments,
+    chartSynchronizedPayments,
     recentSales,
     monthlyGoal,
     latestMonthEvent,
@@ -250,6 +251,7 @@ export default async function SalesPage({
         },
       },
       select: {
+        id: true,
         paidAt: true,
         amount: true,
         description: true,
@@ -265,6 +267,23 @@ export default async function SalesPage({
             },
           },
         },
+      },
+    }),
+    prisma.salePayment.findMany({
+      where: {
+        paidAt: {
+          gte: createDateOnly(firstChartYear, firstChartMonth),
+          lt: currentMonth.end,
+        },
+        reference: {
+          startsWith: "payment:",
+        },
+        sale: {
+          status: "ACTIVE",
+        },
+      },
+      select: {
+        reference: true,
       },
     }),
     prisma.sale.findMany({
@@ -335,8 +354,20 @@ export default async function SalesPage({
   const monthlyHostingPayments = financials.hostingPayments;
   const hostingRenewalIds = new Set(financials.hostingRenewalIds);
 
-  const chartHostingPayments = chartPaidPayments.filter((payment) =>
-    isHostingPayment(payment, hostingRenewalIds),
+  const chartSynchronizedPaymentIds = new Set(
+    chartSynchronizedPayments
+      .map((payment) =>
+        /^payment:(.+)$/.exec(
+          payment.reference?.trim() ?? "",
+        )?.[1],
+      )
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  const chartHostingPayments = chartPaidPayments.filter(
+    (payment) =>
+      !chartSynchronizedPaymentIds.has(payment.id) &&
+      isHostingPayment(payment, hostingRenewalIds),
   );
 
   const { summary } = financials;

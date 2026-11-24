@@ -24,6 +24,7 @@ type RenewalFilter =
   | "7"
   | "15"
   | "30"
+  | "futuras"
   | "notificadas"
   | "pagadas"
   | "renovadas";
@@ -395,9 +396,15 @@ function isRenewalVisibleByFilter(
     isOperationalRenewal(renewal);
 
   if (filter === "pendientes") {
+    const attentionLimit = addDays(
+      today,
+      30,
+    );
+
     return (
       operational &&
-      isOpenRenewalStatus(renewal.status)
+      isOpenRenewalStatus(renewal.status) &&
+      renewal.dueDate <= attentionLimit
     );
   }
 
@@ -410,11 +417,17 @@ function isRenewalVisibleByFilter(
   if (
     filter === "sin-aviso"
   ) {
+    const attentionLimit = addDays(
+      today,
+      30,
+    );
+
     return (
       operational &&
       isOpenRenewalStatus(
         renewal.status,
       ) &&
+      renewal.dueDate <= attentionLimit &&
       renewal.notifications.length === 0
     );
   }
@@ -438,6 +451,19 @@ function isRenewalVisibleByFilter(
       operational &&
       renewal.status ===
       "NOTIFIED"
+    );
+  }
+
+  if (filter === "futuras") {
+    const attentionLimit = addDays(
+      today,
+      30,
+    );
+
+    return (
+      operational &&
+      isOpenRenewalStatus(renewal.status) &&
+      renewal.dueDate > attentionLimit
     );
   }
 
@@ -504,6 +530,7 @@ export default async function RenewalsPage({
     "7",
     "15",
     "30",
+    "futuras",
     "notificadas",
     "pagadas",
     "renovadas",
@@ -615,7 +642,15 @@ export default async function RenewalsPage({
   );
   const pendingCount =
     operationalRenewals.filter((renewal) =>
-      isOpenRenewalStatus(renewal.status),
+      isOpenRenewalStatus(renewal.status) &&
+      renewal.dueDate <= thirtyDays,
+    ).length;
+
+  const futureCount =
+    operationalRenewals.filter(
+      (renewal) =>
+        isOpenRenewalStatus(renewal.status) &&
+        renewal.dueDate > thirtyDays,
     ).length;
 
   const filteredRenewals =
@@ -644,6 +679,8 @@ export default async function RenewalsPage({
         isOpenRenewalStatus(
           renewal.status,
         ) &&
+        renewal.dueDate <=
+          thirtyDays &&
         renewal.notifications
           .length === 0,
     ).length;
@@ -710,7 +747,9 @@ export default async function RenewalsPage({
       .filter((renewal) =>
         isOpenRenewalStatus(
           renewal.status,
-        ),
+        ) &&
+        renewal.dueDate <=
+          thirtyDays,
       )
       .reduce(
         (
@@ -732,7 +771,7 @@ export default async function RenewalsPage({
   }> = [
     {
       label:
-        "Pendientes",
+        "Por gestionar",
 
       value:
         "pendientes",
@@ -794,6 +833,17 @@ export default async function RenewalsPage({
 
       count:
         nextThirtyDaysCount,
+    },
+
+    {
+      label:
+        "Ciclos futuros",
+
+      value:
+        "futuras",
+
+      count:
+        futureCount,
     },
 
     {
@@ -1000,7 +1050,7 @@ export default async function RenewalsPage({
       >
         <article>
           <span>
-            Renovaciones pendientes
+            Por gestionar
           </span>
 
           <strong>
@@ -1008,8 +1058,7 @@ export default async function RenewalsPage({
           </strong>
 
           <p>
-            {renewals.length} registros históricos en el
-            sistema
+            Vencidas y próximas durante los siguientes 30 días
           </p>
         </article>
 
@@ -1051,7 +1100,7 @@ export default async function RenewalsPage({
 
         <article>
           <span>
-            Monto pendiente registrado
+            Monto por gestionar
           </span>
 
           <strong
@@ -1065,8 +1114,7 @@ export default async function RenewalsPage({
           </strong>
 
           <p>
-            Suma de renovaciones
-            abiertas
+            Vencidas y próximas dentro de 30 días
           </p>
         </article>
       </section>

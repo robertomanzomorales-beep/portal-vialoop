@@ -131,7 +131,10 @@ export async function getMonthlyFinancials(year: number, month: number) {
         paidAt: { gte: range.start, lt: range.end },
         sale: { status: "ACTIVE" },
       },
-      select: { amount: true },
+      select: {
+        amount: true,
+        reference: true,
+      },
     }),
     prisma.payment.findMany({
       where: {
@@ -177,8 +180,19 @@ export async function getMonthlyFinancials(year: number, month: number) {
   ]);
 
   const hostingRenewalIds = new Set(hostingRenewals.map(({ id }) => id));
-  const hostingPayments = paidServicePayments.filter((payment) =>
-    isHostingPayment(payment, hostingRenewalIds),
+  const synchronizedPaymentIds = new Set(
+    cashSalePayments
+      .map((payment) =>
+        /^payment:(.+)$/.exec(
+          payment.reference?.trim() ?? "",
+        )?.[1],
+      )
+      .filter((id): id is string => Boolean(id)),
+  );
+  const hostingPayments = paidServicePayments.filter(
+    (payment) =>
+      !synchronizedPaymentIds.has(payment.id) &&
+      isHostingPayment(payment, hostingRenewalIds),
   );
 
   const manualSalesNet = manualSales.reduce(

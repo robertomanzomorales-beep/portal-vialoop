@@ -16,6 +16,10 @@ import {
 import { buildQuotationEmail } from "@/lib/quotation-email";
 import { registerQuotationInFollowUp } from "@/lib/quotation-follow-up";
 import {
+  ensureQuotationSale,
+  synchronizeQuotationPaymentToSale,
+} from "@/lib/quotation-sales";
+import {
   parseProspectMetadata,
   type ProspectMetadata,
 } from "@/lib/prospect";
@@ -152,6 +156,33 @@ function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "No fue posible enviar la cotización.";
+}
+
+function appendNote(
+  current: string | null,
+  note: string,
+) {
+  return [current, note]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function quotationPaidAt(
+  quotation: QuotationMetadata,
+) {
+  const source =
+    quotation.paidAt ||
+    quotation.acceptedAt;
+
+  if (source) {
+    const parsed = new Date(source);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return new Date();
 }
 
 function flowAppUrl() {
@@ -429,6 +460,7 @@ export async function createAndSendQuotation(
     acceptedAt: undefined,
     acceptedBy: undefined,
     paidAt: undefined,
+    saleId: undefined,
     flowPaymentId: undefined,
     flowPaymentUrl: undefined,
     emailStatus: "PENDING",
@@ -638,30 +670,11 @@ export async function acceptQuotation(
     };
   }
 
-  if (quotation.commercialStatus === "PAID") {
-    return {
-      ok: true,
-      message: `${quotation.number} ya está pagada.`,
-    };
-  }
-
-  if (quotation.commercialStatus === "ACCEPTED") {
-    return {
-      ok: true,
-      message: `${quotation.number} ya está aceptada y su cobro está pendiente.`,
-    };
-  }
-
-  if (quotation.commercialStatus !== "SENT") {
-    return {
-      ok: false,
-      message:
-        "Primero envía correctamente la cotización. Luego podrás aceptar la versión que recibió el cliente.",
-    };
-  }
-
   const existingPayment = await prisma.payment.findFirst({
     where: {
+      status: {
+        in: ["PENDING", "OVERDUE", "PAID"],
+      },
       OR: [
         { reference: `quotation:${quotationLog.id}` },
         ...(quotation.flowPaymentId
@@ -681,26 +694,93 @@ export async function acceptQuotation(
     },
   });
 
-  if (existingPayment?.status === "PAID") {
-    await prisma.activityLog.update({
-      where: { id: quotationLog.id },
-      data: {
-        action: "QUOTATION_PAID",
-        description: `${quotation.number} pagada.`,
-        metadata: json({
-          ...quotation,
-          commercialStatus: "PAID",
-          paymentStatus: "PAID",
-          paidAt: existingPayment.paidAt?.toISOString(),
-          flowPaymentId: existingPayment.id,
-        }),
-      },
+  if (
+    quotation.commercialStatus === "PAID" ||
+    existingPayment?.status === "PAID"
+  ) {
+    const reconciliation = await prisma.$transaction(async (transaction) => {
+      const paidAt =
+        existingPayment?.paidAt ??
+        quotationPaidAt(quotation);
+      let paidPayment: Pick<
+        NonNullable<typeof existingPayment>,
+        "id" | "paidAt" | "amount" | "method"
+      > | null =
+        existingPayment?.status === "PAID"
+          ? existingPayment
+          : null;
+
+      if (
+        !paidPayment &&
+        quotation.commercialStatus === "PAID"
+      ) {
+        paidPayment =
+          existingPayment &&
+          (existingPayment.status === "PENDING" ||
+            existingPayment.status === "OVERDUE")
+            ? await transaction.payment.update({
+                where: { id: existingPayment.id },
+                data: {
+                  status: "PAID",
+                  paidAt,
+                  method: existingPayment.method ?? "OTHER",
+                  notes: appendNote(
+                    existingPayment.notes,
+                    `Pago histórico conciliado desde ${quotation.number}.`,
+                  ),
+                },
+              })
+            : await transaction.payment.create({
+                data: {
+                  clientId: quotation.clientId,
+                  description: `Pago histórico de cotización ${quotation.number}`,
+                  amount: quotation.totalAmount,
+                  dueDate: new Date(
+                    `${quotation.validUntil || chileDateKey()}T12:00:00.000Z`,
+                  ),
+                  paidAt,
+                  status: "PAID",
+                  method: "OTHER",
+                  reference: `quotation:${quotationLog.id}`,
+                  notes: `Cobro histórico creado al conciliar ${quotation.number} con Ventas.`,
+                },
+              });
+      }
+
+      if (paidPayment) {
+        return synchronizeQuotationPaymentToSale(transaction, {
+          quotationId: quotationLog.id,
+          paymentId: paidPayment.id,
+          paidAt: paidPayment.paidAt ?? paidAt,
+          amount: Number(paidPayment.amount),
+          method: paidPayment.method ?? "OTHER",
+        });
+      }
+
+      return { synchronized: false as const };
     });
 
+    revalidatePath("/");
     revalidatePath("/cotizaciones");
+    revalidatePath("/ventas");
+    revalidatePath(`/clientes/${quotation.clientId}`);
+
     return {
-      ok: true,
-      message: `${quotation.number} ya tiene el pago registrado.`,
+      ok: reconciliation.synchronized,
+      message: reconciliation.synchronized
+        ? `${quotation.number} está pagada y vinculada con su venta.`
+        : `No fue posible conciliar ${quotation.number} con su venta.`,
+    };
+  }
+
+  if (
+    quotation.commercialStatus !== "SENT" &&
+    quotation.commercialStatus !== "ACCEPTED"
+  ) {
+    return {
+      ok: false,
+      message:
+        "Primero envía correctamente la cotización. Luego podrás aceptar la versión que recibió el cliente.",
     };
   }
 
@@ -751,7 +831,8 @@ export async function acceptQuotation(
     }
   }
 
-  const acceptedAt = new Date().toISOString();
+  const newlyAccepted = quotation.commercialStatus !== "ACCEPTED";
+  const acceptedAt = quotation.acceptedAt ?? new Date().toISOString();
   const candidates = await prisma.activityLog.findMany({
     where: {
       entityType: "Prospect",
@@ -783,23 +864,33 @@ export async function acceptQuotation(
     commercialStatus: "ACCEPTED",
     paymentStatus: "PENDING",
     acceptedAt,
-    acceptedBy: user.name,
+    acceptedBy: quotation.acceptedBy ?? user.name,
     flowPaymentId: paymentId,
     flowPaymentUrl: paymentUrl || undefined,
   };
 
-  await prisma.$transaction(async (transaction) => {
+  const acceptedSale = await prisma.$transaction(async (transaction) => {
+    const sale = await ensureQuotationSale(
+      transaction,
+      quotationLog.id,
+      acceptedMetadata,
+    );
+    const linkedMetadata: QuotationMetadata = {
+      ...acceptedMetadata,
+      saleId: sale.id,
+    };
+
     await transaction.activityLog.update({
       where: { id: quotationLog.id },
       data: {
         userId: user.id,
         action: "QUOTATION_ACCEPTED",
         description: `${quotation.number} aceptada por ${user.name}; cobro pendiente.`,
-        metadata: json(acceptedMetadata),
+        metadata: json(linkedMetadata),
       },
     });
 
-    if (linkedProspect?.metadata) {
+    if (linkedProspect?.metadata && newlyAccepted) {
       const prospectMetadata: ProspectMetadata = {
         ...linkedProspect.metadata,
         status: "WON",
@@ -831,17 +922,22 @@ export async function acceptQuotation(
         },
       });
     }
+
+    return sale;
   });
 
   revalidatePath("/");
   revalidatePath("/cotizaciones");
   revalidatePath("/seguimiento");
   revalidatePath("/pagos");
+  revalidatePath("/ventas");
   revalidatePath(`/clientes/${quotation.clientId}`);
 
   return {
     ok: true,
-    message: `${quotation.number} quedó aceptada y pendiente de pago.`,
+    message: newlyAccepted
+      ? `${quotation.number} quedó aceptada, registrada como venta N.º ${acceptedSale.number} y pendiente de pago.`
+      : `${quotation.number} quedó vinculada con la venta N.º ${acceptedSale.number} y mantiene su cobro pendiente.`,
   };
 }
 
@@ -922,6 +1018,32 @@ export async function deleteQuotation(
       ok: false,
       message:
         "La cotización ya no existe o su registro no es válido.",
+    };
+  }
+
+  const settledPayment = await prisma.payment.findFirst({
+    where: {
+      status: "PAID",
+      OR: [
+        { reference: `quotation:${quotationId}` },
+        ...(quotation.flowPaymentId
+          ? [{ id: quotation.flowPaymentId }]
+          : []),
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (
+    quotation.commercialStatus === "ACCEPTED" ||
+    quotation.commercialStatus === "PAID" ||
+    quotation.saleId ||
+    settledPayment
+  ) {
+    return {
+      ok: false,
+      message:
+        "Una cotización aceptada o pagada forma parte del historial comercial y no se elimina. Gestiona su venta o cobro asociado.",
     };
   }
 

@@ -8,6 +8,8 @@ import {
   buildInvoiceEmail,
   buildPaymentReceiptEmail,
 } from "@/lib/payment-email-templates";
+import { synchronizeQuotationPaymentToSale } from "@/lib/quotation-sales";
+import { settleRenewal } from "@/lib/renewal-lifecycle";
 
 type PaymentMethodValue =
   | "BANK_TRANSFER"
@@ -1373,6 +1375,41 @@ export async function markPaymentAsPaid(
   if (
     payment.status === "PAID"
   ) {
+    if (
+      payment.reference?.startsWith("quotation:") &&
+      !payment.notes?.includes("[PRUEBA]")
+    ) {
+      await prisma.$transaction((transaction) =>
+        synchronizeQuotationPaymentToSale(transaction, {
+          quotationId: payment.reference!.replace("quotation:", ""),
+          paymentId: payment.id,
+          paidAt: payment.paidAt ?? new Date(),
+          amount: Number(payment.amount),
+          method: (payment.method ?? "OTHER") as PaymentMethodValue,
+        }),
+      );
+      revalidatePath("/cotizaciones");
+      revalidatePath("/ventas");
+      revalidatePath("/seguimiento");
+    }
+
+    if (
+      payment.reference?.startsWith("renewal:") &&
+      !payment.notes?.includes("[PRUEBA]")
+    ) {
+      await settleRenewal({
+        renewalId: payment.reference.replace("renewal:", ""),
+        settledAt: payment.paidAt ?? new Date(),
+        source: "paid-payment",
+        paymentId: payment.id,
+        createNextRenewal: true,
+      });
+      revalidatePath("/");
+      revalidatePath("/renovaciones");
+      revalidatePath("/seguimiento");
+      revalidatePath(`/clientes/${payment.clientId}`);
+    }
+
     redirect(
       "/pagos?resultado=pagado",
     );
@@ -1491,6 +1528,38 @@ export async function markPaymentAsPaid(
             paidWithoutRenewing:
               false,
             subscriptionId:
+              null,
+          };
+        }
+
+        if (
+          payment.reference?.startsWith(
+            "quotation:",
+          )
+        ) {
+          await synchronizeQuotationPaymentToSale(
+            transaction,
+            {
+              quotationId:
+                payment.reference.replace(
+                  "quotation:",
+                  "",
+                ),
+              paymentId: payment.id,
+              paidAt,
+              amount: paidAmount,
+              method: paymentMethod,
+            },
+          );
+
+          return {
+            isTest: false,
+            renewalProcessed: false,
+            nextRenewalCreated: false,
+            nextRenewalAlreadyExists: false,
+            paidWithoutRenewing: false,
+            subscriptionId:
+              payment.subscriptionId ??
               null,
           };
         }
@@ -2005,6 +2074,9 @@ export async function markPaymentAsPaid(
 
   revalidatePath("/");
   revalidatePath("/pagos");
+  revalidatePath("/cotizaciones");
+  revalidatePath("/ventas");
+  revalidatePath("/seguimiento");
   revalidatePath(
     "/renovaciones",
   );

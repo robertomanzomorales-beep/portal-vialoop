@@ -53,6 +53,12 @@ function quotationTerm(issuedAt: string, validUntil: string) {
   return `${days} día${days === 1 ? "" : "s"} de vigencia`;
 }
 
+function paymentPriority(status: string) {
+  if (status === "PAID") return 3;
+  if (status === "PENDING" || status === "OVERDUE") return 2;
+  return 1;
+}
+
 type QuotationsPageProps = {
   searchParams: Promise<{
     cliente?: string;
@@ -165,7 +171,15 @@ export default async function QuotationsPage({
       ? payment.reference.replace("quotation:", "")
       : quotations.find(({ metadata }) => metadata.flowPaymentId === payment.id)?.log.id;
 
-    if (quotationId && !paymentByQuotation.has(quotationId)) {
+    const current = quotationId
+      ? paymentByQuotation.get(quotationId)
+      : null;
+
+    if (
+      quotationId &&
+      (!current ||
+        paymentPriority(payment.status) > paymentPriority(current.status))
+    ) {
       paymentByQuotation.set(quotationId, payment);
     }
   }
@@ -286,6 +300,14 @@ export default async function QuotationsPage({
                     const canAccept =
                       metadata.commercialStatus === "SENT" &&
                       metadata.emailStatus === "SENT";
+                    const hasActivePayment =
+                      payment &&
+                      ["PENDING", "OVERDUE", "PAID"].includes(
+                        payment.status,
+                      );
+                    const needsSaleRepair =
+                      (isAccepted || isPaid) &&
+                      (!metadata.saleId || !hasActivePayment);
                     const flowUrl =
                       payment?.flowOrders[0]?.paymentUrl ||
                       metadata.flowPaymentUrl;
@@ -370,18 +392,27 @@ export default async function QuotationsPage({
                           >
                             Duplicar
                           </Link>
-                          {canAccept ? (
+                          {canAccept || needsSaleRepair ? (
                             <AcceptQuotationButton
+                              repairOnly={needsSaleRepair}
                               quotationId={log.id}
                               quotationNumber={metadata.number}
                             />
                           ) : null}
-                          <DeleteQuotationButton
-                            quotationId={log.id}
-                            quotationNumber={
-                              metadata.number
-                            }
-                          />
+                          {!isAccepted && !isPaid ? (
+                            <DeleteQuotationButton
+                              quotationId={log.id}
+                              quotationNumber={metadata.number}
+                            />
+                          ) : null}
+                          {metadata.saleId ? (
+                            <Link
+                              className={styles.secondaryHistoryAction}
+                              href={`/ventas?cliente=${metadata.clientId}`}
+                            >
+                              Ver venta
+                            </Link>
+                          ) : null}
                           {isAccepted || isPaid ? (
                             <Link
                               className={styles.secondaryHistoryAction}
@@ -397,7 +428,7 @@ export default async function QuotationsPage({
                               rel="noreferrer"
                               target="_blank"
                             >
-                              Abrir pago · cuotas
+                              Pagar con Flow · hasta 3 cuotas
                             </a>
                           ) : null}
                         </div>

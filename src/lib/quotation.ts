@@ -56,6 +56,7 @@ export type QuotationMetadata = {
   acceptedAt?: string;
   acceptedBy?: string;
   paidAt?: string;
+  saleId?: string;
   flowPaymentId?: string;
   flowPaymentUrl?: string;
   emailStatus: "PENDING" | "SENT" | "FAILED";
@@ -207,6 +208,10 @@ export function parseQuotationMetadata(value: unknown): QuotationMetadata | null
     paidAt:
       typeof value.paidAt === "string"
         ? value.paidAt
+        : undefined,
+    saleId:
+      typeof value.saleId === "string"
+        ? value.saleId
         : undefined,
     flowPaymentId:
       typeof value.flowPaymentId === "string"
