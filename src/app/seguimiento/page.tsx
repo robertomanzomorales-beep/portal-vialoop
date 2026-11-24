@@ -53,10 +53,31 @@ function quotationTerm(issuedAt: string, validUntil: string) {
   return `Plazo ${days} día${days === 1 ? "" : "s"}`;
 }
 
+function renewalTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    DOMAIN: "Dominio",
+    HOSTING: "Hosting",
+    EMAIL: "Correo",
+    SSL: "Certificado SSL",
+    SUBSCRIPTION: "Suscripción",
+    ADDITIONAL_SERVICE: "Servicio adicional",
+  };
+
+  return labels[type] ?? "Renovación";
+}
+
 export default async function FollowUpPage() {
   await syncSentQuotationsToFollowUp();
 
-  const [logs, expenseLogs, taskLogs, renewals, payments, supportRequests] =
+  const [
+    logs,
+    expenseLogs,
+    taskLogs,
+    renewals,
+    hostingProjects,
+    payments,
+    supportRequests,
+  ] =
     await Promise.all([
       prisma.activityLog.findMany({
       where: {
@@ -91,6 +112,24 @@ export default async function FollowUpPage() {
           project: { select: { name: true, domain: true } },
         },
         orderBy: { dueDate: "asc" },
+        take: 500,
+      }),
+      prisma.project.findMany({
+        where: {
+          hostingRenewalDate: { not: null },
+          status: { in: ["DEVELOPMENT", "ACTIVE", "MAINTENANCE"] },
+          client: { status: "ACTIVE" },
+        },
+        select: {
+          id: true,
+          name: true,
+          domain: true,
+          hostingRenewalDate: true,
+          client: {
+            select: { id: true, businessName: true, tradeName: true },
+          },
+        },
+        orderBy: { hostingRenewalDate: "asc" },
         take: 500,
       }),
       prisma.payment.findMany({
@@ -248,11 +287,35 @@ export default async function FollowUpPage() {
     kind: "RENEWAL",
     company: renewal.client.tradeName || renewal.client.businessName,
     date: renewal.dueDate.toISOString().slice(0, 10),
-    status: renewal.project?.domain || renewal.project?.name || renewal.description,
+    status: `${renewalTypeLabel(renewal.type)} · ${
+      renewal.project?.domain || renewal.project?.name || renewal.description
+    }${renewal.amount === null ? "" : ` · ${formatCurrency(renewal.amount)}`}`,
     assignedTo: "Renovaciones",
     quotationNumber: "",
-    href: "/renovaciones",
+    href: `/renovaciones#renewal-${renewal.id}`,
   }));
+  const openHostingProjectIds = new Set(
+    renewals
+      .filter((renewal) => renewal.type === "HOSTING" && renewal.projectId)
+      .map((renewal) => renewal.projectId),
+  );
+  const hostingProjectCalendarEntries: FollowUpCalendarEntry[] =
+    hostingProjects.flatMap((project) => {
+      if (!project.hostingRenewalDate || openHostingProjectIds.has(project.id)) {
+        return [];
+      }
+
+      return [{
+        id: `hosting-project-${project.id}`,
+        kind: "RENEWAL" as const,
+        company: project.client.tradeName || project.client.businessName,
+        date: project.hostingRenewalDate.toISOString().slice(0, 10),
+        status: `Hosting · ${project.domain || project.name} · fecha técnica sin renovación asociada`,
+        assignedTo: "Renovaciones",
+        quotationNumber: "",
+        href: `/clientes/${project.client.id}?vista=servicios`,
+      }];
+    });
   const taskCalendarEntries: FollowUpCalendarEntry[] = taskLogs.flatMap((log) => {
     const task = parseScheduledTaskMetadata(log.metadata);
     if (!task || task.status === "COMPLETED" || !task.dueDate) return [];
@@ -308,6 +371,7 @@ export default async function FollowUpPage() {
     ...expenseCalendarEntries,
     ...taskCalendarEntries,
     ...renewalCalendarEntries,
+    ...hostingProjectCalendarEntries,
     ...paymentCalendarEntries,
     ...supportCalendarEntries,
   ];

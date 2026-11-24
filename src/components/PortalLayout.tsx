@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type MouseEvent,
   type ReactNode,
 } from "react";
 import { logout } from "@/app/login/actions";
+import type { PortalAlertSummary } from "@/lib/portal-alerts";
 import styles from "./PortalLayout.module.css";
 
 type PortalUser = {
@@ -23,6 +25,7 @@ type PortalUser = {
 type PortalLayoutProps = {
   children: ReactNode;
   user: PortalUser;
+  alerts: PortalAlertSummary;
 };
 
 type NavigationIconName =
@@ -288,12 +291,23 @@ function LogoutIcon() {
   );
 }
 
-export default function PortalLayout({ children, user }: PortalLayoutProps) {
+function AlertIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" viewBox="0 0 20 20">
+      <path d="M4.5 13.8h11l-1.2-1.6V8.4a4.3 4.3 0 0 0-8.6 0v3.8Z" />
+      <path d="M8.2 15.2a1.9 1.9 0 0 0 3.6 0" />
+    </svg>
+  );
+}
+
+export default function PortalLayout({ children, user, alerts }: PortalLayoutProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navigationTarget, setNavigationTarget] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const alertDockRef = useRef<HTMLDivElement>(null);
 
   const visibleNavigationGroups = useMemo(
     () =>
@@ -346,6 +360,35 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!alertsOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        alertDockRef.current &&
+        event.target instanceof Node &&
+        !alertDockRef.current.contains(event.target)
+      ) {
+        setAlertsOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setAlertsOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [alertsOpen]);
 
   const initials = getInitials(user.name);
   const navigating = Boolean(
@@ -562,6 +605,90 @@ export default function PortalLayout({ children, user }: PortalLayoutProps) {
 
       <div className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ""}`}>
         {children}
+      </div>
+
+      <div className={styles.alertDock} ref={alertDockRef}>
+        <button
+          aria-expanded={alertsOpen}
+          aria-haspopup="dialog"
+          aria-label={
+            alerts.total > 0
+              ? `${alerts.total} avisos operativos`
+              : "Sin avisos operativos pendientes"
+          }
+          className={`${styles.alertButton} ${
+            alerts.critical > 0 ? styles.alertButtonCritical : ""
+          }`}
+          onClick={() => setAlertsOpen((current) => !current)}
+          type="button"
+        >
+          <AlertIcon />
+          {alerts.total > 0 ? (
+            <span>{alerts.total > 99 ? "99+" : alerts.total}</span>
+          ) : null}
+        </button>
+
+        {alertsOpen ? (
+          <section
+            aria-label="Avisos operativos"
+            className={styles.alertPopover}
+            role="dialog"
+          >
+            <header className={styles.alertPopoverHeader}>
+              <div>
+                <span>Control operativo</span>
+                <strong>Avisos próximos</strong>
+              </div>
+              <small>
+                {alerts.critical > 0
+                  ? `${alerts.critical} requieren atención inmediata`
+                  : "Sin urgencias vencidas"}
+              </small>
+            </header>
+
+            {alerts.items.length > 0 ? (
+              <div className={styles.alertList}>
+                {alerts.items.map((alert) => (
+                  <Link
+                    className={styles.alertItem}
+                    href={alert.href}
+                    key={alert.id}
+                    onClick={() => setAlertsOpen(false)}
+                  >
+                    <i
+                      className={
+                        alert.tone === "critical"
+                          ? styles.alertToneCritical
+                          : alert.tone === "warning"
+                            ? styles.alertToneWarning
+                            : styles.alertToneNeutral
+                      }
+                    />
+                    <span>
+                      <small>{alert.label} · {alert.dateLabel}</small>
+                      <strong>{alert.title}</strong>
+                      <em>{alert.detail}</em>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.alertEmpty}>
+                <strong>Todo al día</strong>
+                <p>No hay vencimientos ni pagos que requieran atención en 30 días.</p>
+              </div>
+            )}
+
+            <Link
+              className={styles.alertFooter}
+              href="/seguimiento"
+              onClick={() => setAlertsOpen(false)}
+            >
+              Abrir agenda completa
+              <span aria-hidden="true">→</span>
+            </Link>
+          </section>
+        ) : null}
       </div>
 
       {navigating && (

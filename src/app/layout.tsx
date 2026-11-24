@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import PortalLayout from "@/components/PortalLayout";
 import { getCurrentUser } from "@/lib/auth";
+import { getPortalAlerts } from "@/lib/portal-alerts";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -109,6 +110,14 @@ export default async function RootLayout({
     );
   }
 
+  const alerts =
+    user && !isLoginPage
+      ? await getPortalAlerts().catch((error) => {
+          console.error("No fue posible cargar los avisos del portal:", error);
+          return { items: [], total: 0, critical: 0 };
+        })
+      : { items: [], total: 0, critical: 0 };
+
   return (
     <html
       className={`${geistSans.variable} ${geistMono.variable}`}
@@ -128,6 +137,7 @@ export default async function RootLayout({
           children
         ) : (
           <PortalLayout
+            alerts={alerts}
             user={user!}
           >
             {children}

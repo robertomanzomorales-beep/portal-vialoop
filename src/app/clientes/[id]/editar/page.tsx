@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { parseHostingAccessMetadata } from "@/lib/hosting-access";
 import { prisma } from "@/lib/prisma";
 import { updateClient } from "../../actions";
 import styles from "../../clientes.module.css";
@@ -82,6 +83,18 @@ export default async function EditClientPage({
     projectRenewals[0] ??
     clientRenewals[0] ??
     null;
+  const hostingAccessLog = mainProject
+    ? await prisma.activityLog.findFirst({
+        where: {
+          clientId: client.id,
+          projectId: mainProject.id,
+          entityType: "HostingAccess",
+        },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, metadata: true },
+      })
+    : null;
+  const hostingAccess = parseHostingAccessMetadata(hostingAccessLog?.metadata);
 
   const updateClientWithId = updateClient.bind(null, client.id);
 
@@ -120,6 +133,12 @@ export default async function EditClientPage({
           type="hidden"
           name="renewalId"
           value={mainRenewal?.id ?? ""}
+        />
+
+        <input
+          type="hidden"
+          name="hostingAccessRecord"
+          value={hostingAccessLog ? "1" : ""}
         />
 
         <section className={styles.formSection}>
@@ -386,6 +405,93 @@ export default async function EditClientPage({
                 placeholder="Información técnica, accesos pendientes o condiciones del servicio."
               />
             </label>
+          </div>
+
+          <div className={styles.accessBlock}>
+            <div className={styles.accessHeader}>
+              <div>
+                <span>Acceso técnico</span>
+                <h3>Cuenta de hosting</h3>
+                <p>
+                  Centraliza los datos operativos que Doris y el equipo necesitan
+                  para administrar el servicio.
+                </p>
+              </div>
+              <div className={styles.securityNote}>
+                <strong>Credenciales protegidas</strong>
+                <span>
+                  Guarda aquí la referencia de 1Password, Bitwarden o tu bóveda;
+                  nunca la contraseña en texto visible.
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.formGrid}>
+              <label className={`${styles.field} ${styles.fullWidth}`}>
+                <span>URL del panel de hosting</span>
+                <input
+                  autoComplete="off"
+                  defaultValue={hostingAccess?.panelUrl ?? ""}
+                  name="hostingPanelUrl"
+                  placeholder="https://panel.proveedor.cl"
+                  type="url"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Usuario de acceso</span>
+                <input
+                  autoComplete="off"
+                  defaultValue={hostingAccess?.username ?? ""}
+                  name="hostingUsername"
+                  placeholder="usuario o correo de acceso"
+                  type="text"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>N.º de cuenta o referencia</span>
+                <input
+                  autoComplete="off"
+                  defaultValue={hostingAccess?.accountReference ?? ""}
+                  name="hostingAccountReference"
+                  placeholder="ID del cliente en el proveedor"
+                  type="text"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Correo de recuperación</span>
+                <input
+                  autoComplete="off"
+                  defaultValue={hostingAccess?.recoveryEmail ?? ""}
+                  name="hostingRecoveryEmail"
+                  placeholder="soporte@vialoop.cl"
+                  type="email"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Referencia de credencial segura</span>
+                <input
+                  autoComplete="off"
+                  defaultValue={hostingAccess?.credentialReference ?? ""}
+                  name="hostingCredentialReference"
+                  placeholder="Ej. Bitwarden: Vialoop / empresa.cl"
+                  type="text"
+                />
+              </label>
+
+              <label className={`${styles.field} ${styles.fullWidth}`}>
+                <span>Notas de acceso</span>
+                <textarea
+                  defaultValue={hostingAccess?.notes ?? ""}
+                  name="hostingAccessNotes"
+                  placeholder="Ruta del panel, verificación en dos pasos, contacto del proveedor u observaciones operativas."
+                  rows={3}
+                />
+              </label>
+            </div>
           </div>
         </section>
 

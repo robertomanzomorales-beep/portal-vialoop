@@ -39,6 +39,7 @@ type RenewalEmailComposerProps = {
   alreadyNotified: boolean;
   sentToday: boolean;
   notificationHistory: NotificationHistoryItem[];
+  returnTo?: string;
 };
 
 function SubmitButton({
@@ -239,6 +240,7 @@ export default function RenewalEmailComposer({
   alreadyNotified,
   sentToday,
   notificationHistory,
+  returnTo = "",
 }: RenewalEmailComposerProps) {
   const [isOpen, setIsOpen] =
     useState(false);
@@ -537,6 +539,10 @@ export default function RenewalEmailComposer({
                 type="hidden"
                 value={reminderType}
               />
+
+              {returnTo ? (
+                <input name="returnTo" type="hidden" value={returnTo} />
+              ) : null}
 
               <label
                 className={styles.field}

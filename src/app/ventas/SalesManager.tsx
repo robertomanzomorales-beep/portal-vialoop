@@ -34,6 +34,7 @@ export type SaleListItem = SaleFinancialItem & {
   displayDate: string;
   netAmount: number;
   formattedAmount: string;
+  formattedVatAmount: string;
   notes: string;
   status: "ACTIVE" | "CANCELLED";
   payments: SalePaymentItem[];
@@ -297,7 +298,7 @@ export default function SalesManager({
                 <th>Fecha</th>
                 <th>Cliente</th>
                 <th>Servicio</th>
-                <th>Monto neto</th>
+                <th>Neto / IVA / total</th>
                 <th>Pago</th>
                 <th>Venta</th>
                 <th>Acciones</th>
@@ -323,8 +324,9 @@ export default function SalesManager({
                     {sale.notes ? <small>{sale.notes}</small> : null}
                   </td>
                   <td className={styles.amountCell}>
-                    <strong>{sale.formattedAmount}</strong>
-                    <small>Con IVA: {sale.formattedGrossAmount}</small>
+                    <strong>Neto {sale.formattedAmount}</strong>
+                    <small>IVA {sale.formattedVatAmount}</small>
+                    <small>Total {sale.formattedGrossAmount}</small>
                   </td>
                   <td>
                     <span

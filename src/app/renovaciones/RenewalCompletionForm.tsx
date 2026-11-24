@@ -16,6 +16,7 @@ type Props = {
   description: string;
   domain: string;
   amount: string;
+  returnTo?: string;
 };
 
 function chileToday() {
@@ -62,6 +63,7 @@ export default function RenewalCompletionForm({
   description,
   domain,
   amount,
+  returnTo = "",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [sendConfirmation, setSendConfirmation] = useState(
@@ -181,6 +183,10 @@ export default function RenewalCompletionForm({
               action={action}
               className={styles.emailForm}
             >
+              {returnTo ? (
+                <input name="returnTo" type="hidden" value={returnTo} />
+              ) : null}
+
               <div
                 className={styles.completionGrid}
               >
@@ -273,7 +279,7 @@ export default function RenewalCompletionForm({
                     <label className={styles.field}>
                       <span>Asunto</span>
                       <input
-                        defaultValue={`Hosting renovado · ${domain}`}
+                        defaultValue={`Renovación confirmada · ${domain}`}
                         maxLength={180}
                         name="confirmationSubject"
                         required

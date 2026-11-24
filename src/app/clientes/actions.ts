@@ -16,6 +16,7 @@ import {
   buildClientWelcomeEmail,
   DORIS_EMAIL,
 } from "@/lib/client-welcome-email";
+import { hasHostingAccessData } from "@/lib/hosting-access";
 import { sendEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import {
@@ -588,7 +589,7 @@ export async function updateClient(
   clientId: string,
   formData: FormData,
 ) {
-  await requireUser();
+  const user = await requireUser();
 
   const businessName = getRequiredString(formData, "businessName");
   const email = getOptionalString(formData, "email");
@@ -631,6 +632,34 @@ export async function updateClient(
     formData,
     "renewalAmount",
   );
+  const hostingAccess = {
+    panelUrl: getOptionalString(formData, "hostingPanelUrl") ?? "",
+    username: getOptionalString(formData, "hostingUsername") ?? "",
+    accountReference:
+      getOptionalString(formData, "hostingAccountReference") ?? "",
+    recoveryEmail:
+      getOptionalString(formData, "hostingRecoveryEmail") ?? "",
+    credentialReference:
+      getOptionalString(formData, "hostingCredentialReference") ?? "",
+    notes: getOptionalString(formData, "hostingAccessNotes") ?? "",
+  };
+  const hasExistingHostingAccess =
+    getOptionalString(formData, "hostingAccessRecord") === "1";
+  const hasHostingAccessInformation = hasHostingAccessData(hostingAccess);
+
+  validateEmail(hostingAccess.recoveryEmail || null);
+
+  if (hostingAccess.panelUrl) {
+    try {
+      const panelUrl = new URL(hostingAccess.panelUrl);
+
+      if (!["http:", "https:"].includes(panelUrl.protocol)) {
+        throw new Error();
+      }
+    } catch {
+      throw new Error("La URL del panel de hosting no es válida.");
+    }
+  }
 
   const projectData = {
     name: projectName,
@@ -691,6 +720,9 @@ export async function updateClient(
       Boolean(projectId) ||
       Boolean(domain) ||
       Boolean(websiteUrl) ||
+      Boolean(hostingRenewalDate) ||
+      Boolean(domainRenewalDate) ||
+      hasHostingAccessInformation ||
       Boolean(getOptionalString(formData, "hostingCapacity")) ||
       Boolean(getOptionalString(formData, "hostingProvider"));
 
@@ -726,6 +758,30 @@ export async function updateClient(
 
         savedProjectId = createdProject.id;
       }
+    }
+
+    if (
+      savedProjectId &&
+      (hasHostingAccessInformation || hasExistingHostingAccess)
+    ) {
+      await transaction.activityLog.create({
+        data: {
+          userId: user.id,
+          clientId,
+          projectId: savedProjectId,
+          action: "HOSTING_ACCESS_UPDATED",
+          entityType: "HostingAccess",
+          entityId: savedProjectId,
+          description: hasHostingAccessInformation
+            ? "Datos de acceso técnico del hosting actualizados."
+            : "Datos de acceso técnico del hosting limpiados.",
+          metadata: json({
+            ...hostingAccess,
+            updatedAt: new Date().toISOString(),
+            updatedBy: user.name,
+          }),
+        },
+      });
     }
 
     const hasRenewalInformation =
@@ -783,6 +839,7 @@ export async function updateClient(
   revalidatePath(`/clientes/${clientId}`);
   revalidatePath(`/clientes/${clientId}/editar`);
   revalidatePath("/renovaciones");
+  revalidatePath("/seguimiento");
 
   redirect(`/clientes/${clientId}`);
 }

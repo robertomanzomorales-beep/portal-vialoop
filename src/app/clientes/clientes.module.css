@@ -222,6 +222,55 @@
   scrollbar-width: none;
 }
 
+.actionFeedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+  border: 1px solid var(--portal-border);
+  border-left-width: 3px;
+  border-radius: 10px;
+  background: var(--portal-surface);
+  padding: 11px 13px;
+}
+
+.actionFeedback div,
+.actionFeedback strong,
+.actionFeedback span {
+  display: block;
+}
+
+.actionFeedback strong {
+  color: var(--portal-text);
+  font-size: 11px;
+}
+
+.actionFeedback span {
+  margin-top: 2px;
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.actionFeedback > a {
+  color: var(--portal-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.actionFeedbacksuccess {
+  border-left-color: var(--portal-success);
+}
+
+.actionFeedbackwarning {
+  border-left-color: var(--portal-warning);
+}
+
+.actionFeedbackdanger {
+  border-left-color: var(--portal-danger);
+}
+
 .workspaceNav::-webkit-scrollbar {
   display: none;
 }
@@ -818,6 +867,59 @@
   gap: 16px;
 }
 
+.accessBlock {
+  margin-top: 20px;
+  border: 1px solid var(--portal-border);
+  border-radius: 12px;
+  background: var(--portal-surface-soft);
+  padding: 17px;
+}
+
+.accessHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.accessHeader > div:first-child > span {
+  color: var(--portal-accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.accessHeader h3 {
+  margin: 4px 0;
+  color: var(--portal-text);
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.accessHeader p,
+.securityNote span {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.securityNote {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 3px solid var(--portal-accent);
+  background: var(--portal-accent-soft);
+  padding: 10px 12px;
+}
+
+.securityNote strong {
+  margin-bottom: 3px;
+  color: var(--portal-text);
+  font-size: 10px;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -1005,6 +1107,345 @@
 
 .projectCard dd a {
   color: var(--portal-accent);
+}
+
+.projectRenewalGap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-top: 1px solid var(--portal-warning-border);
+  background: var(--portal-warning-soft);
+  padding: 9px 14px;
+}
+
+.projectRenewalGap strong,
+.projectRenewalGap span {
+  display: block;
+}
+
+.projectRenewalGap strong {
+  color: var(--portal-text);
+  font-size: 9px;
+}
+
+.projectRenewalGap span {
+  margin-top: 2px;
+  color: var(--portal-muted);
+  font-size: 8px;
+}
+
+.projectRenewalGap > a {
+  flex: 0 0 auto;
+  color: var(--portal-warning);
+  font-size: 9px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.hostingAccessSummary {
+  border-top: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+}
+
+.hostingAccessSummary > header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px 8px;
+}
+
+.hostingAccessSummary > header div > span,
+.hostingAccessSummary > header div > strong {
+  display: block;
+}
+
+.hostingAccessSummary > header div > span {
+  color: var(--portal-accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.hostingAccessSummary > header div > strong {
+  margin-top: 2px;
+  color: var(--portal-text);
+  font-size: 11px;
+}
+
+.hostingAccessSummary > header > small {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+}
+
+.hostingAccessSummary dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--portal-border);
+}
+
+.hostingAccessSummary dl > div {
+  border-top: 0;
+}
+
+.hostingAccessSummary dl > div:nth-child(n + 3) {
+  border-top: 1px solid var(--portal-border);
+}
+
+.hostingAccessSummary dl > .hostingAccessWide {
+  grid-column: 1 / -1;
+}
+
+.hostingAccessSummary .hostingAccessWide dd {
+  white-space: normal;
+}
+
+.hostingAccessEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  padding: 10px 14px;
+  color: var(--portal-muted);
+  font-size: 9px;
+}
+
+.hostingAccessEmpty a {
+  color: var(--portal-accent);
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.renewalWorkspace {
+  display: grid;
+  gap: 13px;
+}
+
+.renewalProcess {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  background: var(--portal-surface-soft);
+}
+
+.renewalProcess > div {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  column-gap: 9px;
+  padding: 11px 13px;
+}
+
+.renewalProcess > div + div {
+  border-left: 1px solid var(--portal-border);
+}
+
+.renewalProcess span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  grid-row: 1 / span 2;
+  place-items: center;
+  border: 1px solid var(--portal-accent-border);
+  border-radius: 50%;
+  background: var(--portal-surface);
+  color: var(--portal-accent);
+  font-size: 8px;
+  font-weight: 820;
+}
+
+.renewalProcess strong {
+  color: var(--portal-text);
+  font-size: 10px;
+}
+
+.renewalProcess small {
+  margin-top: 1px;
+  color: var(--portal-muted);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.renewalCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 10px;
+}
+
+.renewalCard {
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 11px;
+  background: var(--portal-surface);
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    box-shadow var(--portal-motion-fast) var(--portal-ease),
+    transform var(--portal-motion-fast) var(--portal-ease);
+}
+
+.renewalCard:hover {
+  border-color: var(--portal-border-strong);
+  box-shadow: var(--portal-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.renewalCard > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 15px 12px;
+}
+
+.renewalCard > header > div,
+.renewalCard > header > div > span,
+.renewalCard > header > div > strong,
+.renewalCard > header > div > small {
+  display: block;
+  min-width: 0;
+}
+
+.renewalCard > header > div > span {
+  margin-bottom: 3px;
+  color: var(--portal-accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.renewalCard > header > div > strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.renewalCard > header > div > small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--portal-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.renewalState {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 8px;
+  font-weight: 760;
+}
+
+.renewalStateActive {
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+}
+
+.renewalStateDanger {
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
+}
+
+.renewalStateClosed {
+  background: var(--portal-success-soft);
+  color: var(--portal-success);
+}
+
+.renewalFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--portal-border);
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface-soft);
+}
+
+.renewalFacts > div {
+  min-width: 0;
+  padding: 9px 14px;
+}
+
+.renewalFacts > div:nth-child(even) {
+  border-left: 1px solid var(--portal-border);
+}
+
+.renewalFacts > div:nth-child(n + 3) {
+  border-top: 1px solid var(--portal-border);
+}
+
+.renewalFacts span,
+.renewalFacts strong {
+  display: block;
+}
+
+.renewalFacts span {
+  color: var(--portal-muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.renewalFacts strong {
+  overflow: hidden;
+  margin-top: 3px;
+  color: var(--portal-text-secondary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.renewalCard > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 14px;
+}
+
+.renewalNextStep span,
+.renewalNextStep strong {
+  display: block;
+}
+
+.renewalNextStep span {
+  color: var(--portal-muted);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.renewalNextStep strong {
+  margin-top: 2px;
+  color: var(--portal-text);
+  font-size: 9px;
+}
+
+.renewalActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.renewalActions > button {
+  min-height: 34px;
+  border-radius: 8px;
+  padding: 0 11px;
+  font-size: 10px;
+}
+
+.closedCycle {
+  color: var(--portal-success);
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .inlineEmpty {
@@ -1891,6 +2332,52 @@
     grid-template-columns: 1fr;
   }
 
+  .hostingAccessSummary dl > .hostingAccessWide {
+    grid-column: auto;
+  }
+
+  .hostingAccessSummary dl > div,
+  .hostingAccessSummary dl > div:nth-child(n + 3) {
+    border-top: 1px solid var(--portal-border);
+  }
+
+  .hostingAccessSummary dl > div:first-child {
+    border-top: 0;
+  }
+
+  .hostingAccessEmpty {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .projectRenewalGap {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .renewalProcess {
+    grid-template-columns: 1fr;
+  }
+
+  .renewalProcess > div + div {
+    border-top: 1px solid var(--portal-border);
+    border-left: 0;
+  }
+
+  .renewalCard > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .renewalActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .renewalActions > button {
+    width: 100%;
+  }
+
   .projectCard dl > div,
   .projectCard dl > div:nth-child(-n + 2) {
     border-top: 1px solid var(--portal-border);
@@ -1919,6 +2406,10 @@
   .financialMetrics,
   .formGrid,
   .operationStartForm {
+    grid-template-columns: 1fr;
+  }
+
+  .accessHeader {
     grid-template-columns: 1fr;
   }
 

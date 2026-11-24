@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mail";
 import { confirmRenewalPayment } from "@/lib/renewal-lifecycle";
 import { buildRenewalConfirmationEmail } from "@/lib/renewal-confirmation-email";
+import { buildRenewalNoticeEmail } from "@/lib/renewal-notice-email";
 
 type ReminderType =
   | "FIRST_NOTICE"
@@ -154,6 +155,39 @@ function getSentOnDate(
   );
 }
 
+function getReturnPath(
+  formData: FormData,
+  result: string,
+) {
+  const value = formData.get("returnTo");
+  const fallback = "/renovaciones";
+  const requested =
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//")
+      ? value
+      : fallback;
+  const [path, hash] = requested.split("#", 2);
+  const separator = path.includes("?") ? "&" : "?";
+
+  return `${path}${separator}resultado=${encodeURIComponent(result)}${
+    hash ? `#${hash}` : ""
+  }`;
+}
+
+function getRenewalServiceLabel(type: string) {
+  const labels: Record<string, string> = {
+    DOMAIN: "Dominio",
+    HOSTING: "Hosting",
+    EMAIL: "Correo",
+    SSL: "Certificado SSL",
+    SUBSCRIPTION: "Suscripción",
+    ADDITIONAL_SERVICE: "Servicio adicional",
+  };
+
+  return labels[type] ?? "Servicio";
+}
+
 export async function generatePaymentFromRenewal(
   renewalId: string,
 ) {
@@ -278,6 +312,9 @@ export async function generatePaymentFromRenewal(
     "/pagos",
   );
   revalidatePath(
+    "/seguimiento",
+  );
+  revalidatePath(
     `/clientes/${renewal.clientId}`,
   );
 
@@ -381,15 +418,35 @@ export async function markRenewalAsNotified(
     existingNotification
   ) {
     redirect(
-      "/renovaciones?resultado=duplicada",
+      getReturnPath(formData, "duplicada"),
     );
   }
+
+  const domain =
+    renewal.project?.domain ??
+    renewal.project?.name ??
+    renewal.client.tradeName ??
+    renewal.client.businessName;
+  const email = buildRenewalNoticeEmail({
+    subject,
+    body,
+    clientName: renewal.client.tradeName || renewal.client.businessName,
+    serviceName: getRenewalServiceLabel(renewal.type),
+    domain,
+    dueDate: renewal.dueDate,
+    amount: renewal.amount === null ? null : Number(renewal.amount),
+    reminderLabel: getReminderLabel(reminderType),
+  });
 
   const mailResult =
     await sendEmail({
       to: recipient,
-      subject,
-      text: body,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+      fromEmail: "hosting@vialoop.cl",
+      fromName: "Vialoop Hosting",
+      replyTo: "hosting@vialoop.cl",
     }).catch((error) => {
       console.error(
         "Error al enviar el correo de renovación:",
@@ -397,7 +454,7 @@ export async function markRenewalAsNotified(
       );
 
       redirect(
-        "/renovaciones?resultado=error-envio",
+        getReturnPath(formData, "error-envio"),
       );
     });
 
@@ -515,11 +572,14 @@ export async function markRenewalAsNotified(
     "/pagos",
   );
   revalidatePath(
+    "/seguimiento",
+  );
+  revalidatePath(
     `/clientes/${renewal.clientId}`,
   );
 
   redirect(
-    "/renovaciones?resultado=enviada",
+    getReturnPath(formData, "enviada"),
   );
 }
 
@@ -623,6 +683,7 @@ export async function confirmRenewalAsPaid(
   revalidatePath("/");
   revalidatePath("/renovaciones");
   revalidatePath("/pagos");
+  revalidatePath("/seguimiento");
   revalidatePath(
     `/clientes/${outcome.clientId}`,
   );
@@ -717,14 +778,14 @@ export async function confirmRenewalAsPaid(
   }
 
   const baseResult = createNextRenewal ? "renovada" : "pagada";
-
-  redirect(
+  const result =
     outcome.state === "already-closed"
-      ? "/renovaciones?resultado=ya-cerrada"
+      ? "ya-cerrada"
       : confirmationStatus === "sent"
-        ? `/renovaciones?resultado=${baseResult}-confirmada`
+        ? `${baseResult}-confirmada`
         : confirmationStatus === "failed"
-          ? `/renovaciones?resultado=${baseResult}-correo-error`
-          : `/renovaciones?resultado=${baseResult}`,
-  );
+          ? `${baseResult}-correo-error`
+          : baseResult;
+
+  redirect(getReturnPath(formData, result));
 }

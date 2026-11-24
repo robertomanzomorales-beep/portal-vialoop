@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import RenewalCompletionForm from "@/app/renovaciones/RenewalCompletionForm";
+import RenewalEmailComposer from "@/app/renovaciones/RenewalEmailComposer";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getClientOperationSummary,
@@ -13,6 +15,10 @@ import {
   isClientOperationTask,
   parseScheduledTaskMetadata,
 } from "@/lib/scheduled-task";
+import {
+  hasHostingAccessData,
+  parseHostingAccessMetadata,
+} from "@/lib/hosting-access";
 import ClientOperationBoard from "../ClientOperationBoard";
 import DeleteClientButton from "../DeleteClientButton";
 import WelcomeEmailComposer from "../WelcomeEmailComposer";
@@ -30,6 +36,7 @@ type ClientDetailPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{
     bienvenida?: string;
+    resultado?: string;
     vista?: string;
   }>;
 };
@@ -137,6 +144,125 @@ function getRenewalTypeLabel(type: string) {
   });
 }
 
+type ClientRenewalReminderType =
+  | "FIRST_NOTICE"
+  | "SECOND_NOTICE"
+  | "FINAL_NOTICE"
+  | "OVERDUE_NOTICE"
+  | "MANUAL";
+
+function getRenewalReminder(dueDate: Date, today: string) {
+  const dueDateKey = dueDate.toISOString().slice(0, 10);
+  const difference = Math.round(
+    (new Date(`${dueDateKey}T12:00:00.000Z`).getTime() -
+      new Date(`${today}T12:00:00.000Z`).getTime()) /
+      86_400_000,
+  );
+
+  if (difference < 0) {
+    return {
+      type: "OVERDUE_NOTICE" as ClientRenewalReminderType,
+      label: "Seguimiento de servicio vencido",
+    };
+  }
+
+  if (difference <= 7) {
+    return {
+      type: "FINAL_NOTICE" as ClientRenewalReminderType,
+      label: difference === 0 ? "Vence hoy" : "Recordatorio final",
+    };
+  }
+
+  if (difference <= 15) {
+    return {
+      type: "SECOND_NOTICE" as ClientRenewalReminderType,
+      label: "Segundo recordatorio",
+    };
+  }
+
+  if (difference <= 30) {
+    return {
+      type: "FIRST_NOTICE" as ClientRenewalReminderType,
+      label: "Primer aviso",
+    };
+  }
+
+  return {
+    type: "MANUAL" as ClientRenewalReminderType,
+    label: "Aviso manual",
+  };
+}
+
+function getReminderTypeLabel(type: string) {
+  return labelFrom(type, {
+    FIRST_NOTICE: "Primer aviso",
+    SECOND_NOTICE: "Segundo recordatorio",
+    FINAL_NOTICE: "Recordatorio final",
+    OVERDUE_NOTICE: "Seguimiento vencido",
+    MANUAL: "Aviso manual",
+  });
+}
+
+function getRenewalResult(result?: string) {
+  const messages: Record<
+    string,
+    { tone: "success" | "warning" | "danger"; title: string; detail: string }
+  > = {
+    enviada: {
+      tone: "success",
+      title: "Correo de renovación enviado",
+      detail: "El aviso quedó registrado en el historial del cliente.",
+    },
+    duplicada: {
+      tone: "warning",
+      title: "Este aviso ya fue enviado hoy",
+      detail: "El portal evitó un correo duplicado al mismo cliente.",
+    },
+    "error-envio": {
+      tone: "danger",
+      title: "No fue posible enviar el correo",
+      detail: "La renovación no cambió de estado. Revisa el destinatario y vuelve a intentarlo.",
+    },
+    renovada: {
+      tone: "success",
+      title: "Renovación registrada",
+      detail: "El ciclo quedó cerrado y el próximo vencimiento fue incorporado a la agenda.",
+    },
+    "renovada-confirmada": {
+      tone: "success",
+      title: "Renovación registrada y cliente notificado",
+      detail: "El próximo vencimiento ya está en agenda y la confirmación fue enviada.",
+    },
+    "renovada-correo-error": {
+      tone: "warning",
+      title: "Renovación registrada; correo pendiente",
+      detail: "El ciclo quedó correcto, pero la confirmación no pudo enviarse.",
+    },
+    pagada: {
+      tone: "success",
+      title: "Pago confirmado",
+      detail: "El ciclo fue cerrado sin crear un próximo vencimiento.",
+    },
+    "pagada-confirmada": {
+      tone: "success",
+      title: "Pago confirmado y cliente notificado",
+      detail: "El cierre y la confirmación quedaron registrados.",
+    },
+    "pagada-correo-error": {
+      tone: "warning",
+      title: "Pago confirmado; correo pendiente",
+      detail: "El cierre quedó correcto, pero la confirmación no pudo enviarse.",
+    },
+    "ya-cerrada": {
+      tone: "warning",
+      title: "La renovación ya estaba cerrada",
+      detail: "No se duplicaron el pago ni el próximo vencimiento.",
+    },
+  };
+
+  return result ? messages[result] ?? null : null;
+}
+
 function getSubscriptionStatusLabel(status: string) {
   return labelFrom(status, {
     ACTIVE: "Activa",
@@ -194,7 +320,10 @@ export default async function ClientDetailPage({
           orderBy: { createdAt: "desc" },
           include: { renewals: { orderBy: { dueDate: "asc" } } },
         },
-        renewals: { orderBy: { dueDate: "asc" } },
+        renewals: {
+          orderBy: { dueDate: "asc" },
+          include: { notifications: { orderBy: { sentAt: "desc" } } },
+        },
         subscriptions: {
           orderBy: { createdAt: "desc" },
           include: { plan: true, project: true },
@@ -208,7 +337,12 @@ export default async function ClientDetailPage({
         activityLogs: {
           where: {
             entityType: {
-              in: ["Quotation", "ClientWelcomeEmail", "ScheduledTask"],
+              in: [
+                "Quotation",
+                "ClientWelcomeEmail",
+                "ScheduledTask",
+                "HostingAccess",
+              ],
             },
           },
           orderBy: { createdAt: "desc" },
@@ -233,6 +367,7 @@ export default async function ClientDetailPage({
     resolvedSearchParams.bienvenida === "preparar"
       ? "operacion"
       : getWorkspaceView(resolvedSearchParams.vista);
+  const renewalResult = getRenewalResult(resolvedSearchParams.resultado);
   const clientName = client.tradeName || client.businessName;
   const mainProject = client.projects[0] ?? null;
   const nextRenewal =
@@ -282,6 +417,25 @@ export default async function ClientDetailPage({
   const welcomeEmails = client.activityLogs.filter(
     (log) => log.entityType === "ClientWelcomeEmail",
   );
+  const hostingAccessByProject = new Map<
+    string,
+    NonNullable<ReturnType<typeof parseHostingAccessMetadata>>
+  >();
+
+  for (const log of client.activityLogs) {
+    if (
+      log.entityType !== "HostingAccess" ||
+      !log.projectId ||
+      hostingAccessByProject.has(log.projectId)
+    ) {
+      continue;
+    }
+
+    const access = parseHostingAccessMetadata(log.metadata);
+    if (access) {
+      hostingAccessByProject.set(log.projectId, access);
+    }
+  }
   const scheduledTasks: ClientOperationTaskRecord[] = client.activityLogs
     .filter((log) => log.entityType === "ScheduledTask")
     .map((log) => ({
@@ -466,6 +620,21 @@ export default async function ClientDetailPage({
           </Link>
         ))}
       </nav>
+
+      {renewalResult ? (
+        <section
+          className={`${styles.actionFeedback} ${
+            styles[`actionFeedback${renewalResult.tone}`]
+          }`}
+          role="status"
+        >
+          <div>
+            <strong>{renewalResult.title}</strong>
+            <span>{renewalResult.detail}</span>
+          </div>
+          <Link href={`/clientes/${client.id}?vista=servicios`}>Cerrar</Link>
+        </section>
+      ) : null}
 
       <section className={styles.clientCommandBar}>
         <div>
@@ -755,7 +924,9 @@ export default async function ClientDetailPage({
             {client.sales.length > 0 ? (
               <dl className={styles.detailList}>
                 {client.sales.slice(0, 10).map((sale) => {
-                  const grossAmount = grossFromNet(Number(sale.netAmount));
+                  const netAmount = Number(sale.netAmount);
+                  const grossAmount = grossFromNet(netAmount);
+                  const vatAmount = grossAmount - netAmount;
                   const paidAmount = sale.payments.reduce(
                     (sum, payment) => sum + Number(payment.amount),
                     0,
@@ -766,7 +937,8 @@ export default async function ClientDetailPage({
                     <div key={sale.id}>
                       <dt>Venta N.º {sale.number} · {sale.service}<br />{formatDate(sale.saleDate)}</dt>
                       <dd>
-                        {formatCurrency(grossAmount)}<br />
+                        Neto {formatCurrency(netAmount)} · IVA {formatCurrency(vatAmount)}<br />
+                        Total {formatCurrency(grossAmount)} · {" "}
                         {sale.status === "CANCELLED" ? "Anulada" : balance <= 0 ? "Pagada" : `Saldo ${formatCurrency(balance)}`}
                       </dd>
                     </div>
@@ -793,23 +965,74 @@ export default async function ClientDetailPage({
               </div>
               {client.projects.length > 0 ? (
                 <div className={styles.projectStack}>
-                  {client.projects.map((project) => (
-                    <section className={styles.projectCard} key={project.id}>
-                      <header>
-                        <div><strong>{project.name}</strong><span>{project.domain || "Sin dominio registrado"}</span></div>
-                        <span className={styles.projectStatus}>{getProjectStatusLabel(project.status)}</span>
-                      </header>
-                      <dl>
-                        <div>
-                          <dt>Sitio</dt>
-                          <dd>{project.websiteUrl ? <a href={project.websiteUrl} rel="noreferrer" target="_blank">{project.websiteUrl}</a> : "Sin URL"}</dd>
-                        </div>
-                        <div><dt>Tecnología</dt><dd>{project.technology || project.websiteType || "Sin información"}</dd></div>
-                        <div><dt>Hosting</dt><dd>{[project.hostingProvider, project.hostingCapacity].filter(Boolean).join(" · ") || "Sin información"}</dd></div>
-                        <div><dt>Renovación hosting</dt><dd>{formatDate(project.hostingRenewalDate)}</dd></div>
-                      </dl>
-                    </section>
-                  ))}
+                  {client.projects.map((project) => {
+                    const access = hostingAccessByProject.get(project.id);
+                    const showAccess = access && hasHostingAccessData(access);
+                    const hasOpenHostingRenewal = client.renewals.some(
+                      (renewal) =>
+                        renewal.projectId === project.id &&
+                        renewal.type === "HOSTING" &&
+                        ["UPCOMING", "NOTIFIED", "EXPIRED"].includes(
+                          renewal.status,
+                        ),
+                    );
+
+                    return (
+                      <section className={styles.projectCard} key={project.id}>
+                        <header>
+                          <div><strong>{project.name}</strong><span>{project.domain || "Sin dominio registrado"}</span></div>
+                          <span className={styles.projectStatus}>{getProjectStatusLabel(project.status)}</span>
+                        </header>
+                        <dl>
+                          <div>
+                            <dt>Sitio</dt>
+                            <dd>{project.websiteUrl ? <a href={project.websiteUrl} rel="noreferrer" target="_blank">{project.websiteUrl}</a> : "Sin URL"}</dd>
+                          </div>
+                          <div><dt>Tecnología</dt><dd>{project.technology || project.websiteType || "Sin información"}</dd></div>
+                          <div><dt>Hosting</dt><dd>{[project.hostingProvider, project.hostingCapacity].filter(Boolean).join(" · ") || "Sin información"}</dd></div>
+                          <div><dt>Renovación hosting</dt><dd>{formatDate(project.hostingRenewalDate)}</dd></div>
+                        </dl>
+
+                        {project.hostingRenewalDate && !hasOpenHostingRenewal ? (
+                          <div className={styles.projectRenewalGap}>
+                            <div>
+                              <strong>Fecha técnica sin seguimiento activo</strong>
+                              <span>Formalízala para habilitar avisos, cobro y próximo vencimiento.</span>
+                            </div>
+                            <Link href={`/clientes/${client.id}/editar`}>Crear renovación</Link>
+                          </div>
+                        ) : null}
+
+                        {showAccess ? (
+                          <div className={styles.hostingAccessSummary}>
+                            <header>
+                              <div>
+                                <span>Acceso operativo</span>
+                                <strong>Cuenta de hosting</strong>
+                              </div>
+                              {access.updatedBy ? <small>Actualizado por {access.updatedBy}</small> : null}
+                            </header>
+                            <dl>
+                              <div>
+                                <dt>Panel</dt>
+                                <dd>{access.panelUrl ? <a href={access.panelUrl} rel="noreferrer" target="_blank">Abrir panel ↗</a> : "Sin URL"}</dd>
+                              </div>
+                              <div><dt>Usuario</dt><dd>{access.username || "Sin usuario"}</dd></div>
+                              <div><dt>Cuenta</dt><dd>{access.accountReference || "Sin referencia"}</dd></div>
+                              <div><dt>Recuperación</dt><dd>{access.recoveryEmail ? <a href={`mailto:${access.recoveryEmail}`}>{access.recoveryEmail}</a> : "Sin correo"}</dd></div>
+                              <div className={styles.hostingAccessWide}><dt>Credencial segura</dt><dd>{access.credentialReference || "Sin referencia de bóveda"}</dd></div>
+                              {access.notes ? <div className={styles.hostingAccessWide}><dt>Notas</dt><dd>{access.notes}</dd></div> : null}
+                            </dl>
+                          </div>
+                        ) : (
+                          <div className={styles.hostingAccessEmpty}>
+                            <span>Accesos de hosting aún no documentados.</span>
+                            <Link href={`/clientes/${client.id}/editar`}>Completar datos</Link>
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className={styles.inlineEmpty}>Este cliente no tiene servicios técnicos registrados.</div>
@@ -848,30 +1071,122 @@ export default async function ClientDetailPage({
               <Link href="/renovaciones">Gestionar renovaciones</Link>
             </div>
             {client.renewals.length > 0 ? (
-              <div className={styles.serviceTableWrap}>
-                <table className={styles.serviceTable}>
-                  <thead><tr><th>Servicio</th><th>Vencimiento</th><th>Monto</th><th>Estado</th><th>Última gestión</th></tr></thead>
-                  <tbody>
-                    {client.renewals.map((renewal) => (
-                      <tr key={renewal.id}>
-                        <td><strong>{getRenewalTypeLabel(renewal.type)}</strong><small>{renewal.description}</small></td>
-                        <td>{formatDate(renewal.dueDate)}</td>
-                        <td>{formatCurrency(renewal.amount)}</td>
-                        <td>{getRenewalStatusLabel(renewal.status)}</td>
-                        <td>
-                          {renewal.renewedAt
-                            ? `Renovada ${formatDate(renewal.renewedAt)}`
-                            : renewal.notifiedAt
-                              ? `Notificada ${formatDate(renewal.notifiedAt)}`
-                              : "Sin gestión"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className={styles.renewalWorkspace}>
+                <div className={styles.renewalProcess} aria-label="Flujo de renovación">
+                  <div><span>01</span><strong>Avisar</strong><small>Correo editable al cliente</small></div>
+                  <div><span>02</span><strong>Confirmar</strong><small>Pago y continuidad real</small></div>
+                  <div><span>03</span><strong>Programar</strong><small>Próximo vencimiento en agenda</small></div>
+                </div>
+
+                <div className={styles.renewalCards}>
+                  {client.renewals.map((renewal) => {
+                      const project = client.projects.find(
+                        (item) => item.id === renewal.projectId,
+                      );
+                      const domain = project?.domain || project?.name || clientName;
+                      const serviceName = getRenewalTypeLabel(renewal.type);
+                      const reminder = getRenewalReminder(renewal.dueDate, today);
+                      const open = ["UPCOMING", "NOTIFIED", "EXPIRED"].includes(
+                        renewal.status,
+                      );
+                      const sentToday = renewal.notifications.some(
+                        (notification) =>
+                          notification.type === reminder.type &&
+                          notification.sentOn.toISOString().slice(0, 10) === today,
+                      );
+                      const history = renewal.notifications.map((notification) => ({
+                        id: notification.id,
+                        type: notification.type,
+                        label: getReminderTypeLabel(notification.type),
+                        recipient: notification.recipient,
+                        subject: notification.subject,
+                        sentAt: formatDate(notification.sentAt),
+                      }));
+                      const returnTo = `/clientes/${client.id}?vista=servicios#renewal-${renewal.id}`;
+                      const lastManagement = renewal.renewedAt
+                        ? `Renovada ${formatDate(renewal.renewedAt)}`
+                        : renewal.notifiedAt
+                          ? `Notificada ${formatDate(renewal.notifiedAt)}`
+                          : "Sin gestión todavía";
+                      const stateTone = renewal.status === "EXPIRED"
+                        ? styles.renewalStateDanger
+                        : open
+                          ? styles.renewalStateActive
+                          : styles.renewalStateClosed;
+
+                      return (
+                        <article
+                          className={styles.renewalCard}
+                          id={`renewal-${renewal.id}`}
+                          key={renewal.id}
+                        >
+                          <header>
+                            <div>
+                              <span>{serviceName}</span>
+                              <strong>{renewal.description}</strong>
+                              <small>{domain}</small>
+                            </div>
+                            <span className={`${styles.renewalState} ${stateTone}`}>
+                              {getRenewalStatusLabel(renewal.status)}
+                            </span>
+                          </header>
+
+                          <div className={styles.renewalFacts}>
+                            <div><span>Vencimiento</span><strong>{formatDate(renewal.dueDate)}</strong></div>
+                            <div><span>Total con IVA</span><strong>{formatCurrency(renewal.amount)}</strong></div>
+                            <div><span>Última gestión</span><strong>{lastManagement}</strong></div>
+                            <div><span>Historial</span><strong>{renewal.notifications.length} {renewal.notifications.length === 1 ? "aviso" : "avisos"}</strong></div>
+                          </div>
+
+                          <footer>
+                            <div className={styles.renewalNextStep}>
+                              <span>{open ? "Próxima acción" : "Resultado"}</span>
+                              <strong>{open ? reminder.label : "Ciclo cerrado correctamente"}</strong>
+                            </div>
+                            {open ? (
+                              <div className={styles.renewalActions}>
+                                <RenewalEmailComposer
+                                  alreadyNotified={renewal.notifications.length > 0}
+                                  amount={formatCurrency(renewal.amount)}
+                                  clientName={clientName}
+                                  description={renewal.description}
+                                  domain={domain}
+                                  dueDate={formatDate(renewal.dueDate)}
+                                  mainContactName={client.mainContactName ?? ""}
+                                  notificationHistory={history}
+                                  recipient={client.email ?? ""}
+                                  reminderLabel={reminder.label}
+                                  reminderType={reminder.type}
+                                  renewalId={renewal.id}
+                                  returnTo={returnTo}
+                                  sentToday={sentToday}
+                                  serviceName={serviceName}
+                                />
+                                <RenewalCompletionForm
+                                  amount={formatCurrency(renewal.amount)}
+                                  clientName={clientName}
+                                  contactName={client.mainContactName ?? ""}
+                                  description={renewal.description}
+                                  domain={domain}
+                                  recipient={client.email ?? ""}
+                                  renewalId={renewal.id}
+                                  returnTo={returnTo}
+                                />
+                              </div>
+                            ) : (
+                              <span className={styles.closedCycle}>Ciclo cerrado</span>
+                            )}
+                          </footer>
+                        </article>
+                      );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className={styles.inlineEmpty}>Este cliente no tiene renovaciones registradas.</div>
+              <div className={styles.inlineEmpty}>
+                Este cliente no tiene renovaciones operativas registradas. Las fechas
+                técnicas del proyecto seguirán visibles en la agenda hasta formalizarlas.
+              </div>
             )}
           </section>
         </>
@@ -895,12 +1210,14 @@ export default async function ClientDetailPage({
               {activeSales.length > 0 ? (
                 <dl className={styles.detailList}>
                   {activeSales.slice(0, 10).map((sale) => {
-                    const grossAmount = grossFromNet(Number(sale.netAmount));
+                    const netAmount = Number(sale.netAmount);
+                    const grossAmount = grossFromNet(netAmount);
+                    const vatAmount = grossAmount - netAmount;
                     const paidAmount = sale.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
                     const balance = Math.max(grossAmount - paidAmount, 0);
                     return (
                       <div key={sale.id}>
-                        <dt>Venta N.º {sale.number} · {sale.service}<br />Total {formatCurrency(grossAmount)}</dt>
+                        <dt>Venta N.º {sale.number} · {sale.service}<br />Neto {formatCurrency(netAmount)} · IVA {formatCurrency(vatAmount)} · Total {formatCurrency(grossAmount)}</dt>
                         <dd>Cobrado {formatCurrency(paidAmount)}<br />Saldo {formatCurrency(balance)}</dd>
                       </div>
                     );

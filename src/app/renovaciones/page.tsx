@@ -1384,6 +1384,7 @@ export default async function RenewalsPage({
                         key={
                           renewal.id
                         }
+                        id={`renewal-${renewal.id}`}
                       >
                         <td>
                           <Link

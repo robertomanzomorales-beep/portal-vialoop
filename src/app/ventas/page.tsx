@@ -439,6 +439,7 @@ export default async function SalesPage({
       displayDate: formatDateOnly(sale.saleDate),
       netAmount,
       formattedAmount: formatCurrency(netAmount),
+      formattedVatAmount: formatCurrency(grossAmount - netAmount),
       grossAmount,
       formattedGrossAmount: formatCurrency(grossAmount),
       paidAmount,
