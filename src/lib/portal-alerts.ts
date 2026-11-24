@@ -140,7 +140,10 @@ export async function getPortalAlerts(): Promise<PortalAlertSummary> {
         status: { in: ["PENDING", "OVERDUE"] },
         dueDate: { not: null, lte: limitDate },
         client: { status: "ACTIVE" },
-        NOT: { reference: { startsWith: "renewal:" } },
+        OR: [
+          { reference: null },
+          { NOT: { reference: { startsWith: "renewal:" } } },
+        ],
       },
       orderBy: { dueDate: "asc" },
       take: 80,

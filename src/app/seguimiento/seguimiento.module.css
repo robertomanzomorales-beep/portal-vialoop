@@ -152,6 +152,108 @@
   letter-spacing: -0.025em;
 }
 
+.calendarViewToggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(78px, 1fr));
+  gap: 3px;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  background: var(--portal-surface-soft);
+  padding: 3px;
+}
+
+.calendarViewToggle button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--portal-muted);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.calendarViewToggle button:hover {
+  color: var(--portal-text);
+}
+
+.calendarViewToggle .calendarViewActive {
+  background: var(--portal-surface-elevated);
+  box-shadow: 0 1px 4px var(--portal-shadow-color);
+  color: var(--portal-text);
+}
+
+.calendarFilters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  padding: 10px 22px;
+}
+
+.calendarFilters > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.calendarFilters > div:first-child button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0 9px;
+  color: var(--portal-muted);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 690;
+  cursor: pointer;
+  transition:
+    border-color var(--portal-motion-fast) var(--portal-ease),
+    background-color var(--portal-motion-fast) var(--portal-ease),
+    color var(--portal-motion-fast) var(--portal-ease);
+}
+
+.calendarFilters > div:first-child button:hover {
+  background: var(--portal-surface-hover);
+  color: var(--portal-text);
+}
+
+.calendarFilters > div:first-child button strong {
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--portal-surface-soft);
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+}
+
+.calendarFilters > div:first-child .calendarFilterActive {
+  border-color: var(--portal-accent-border);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+}
+
+.calendarFilters > div:first-child .calendarFilterActive strong {
+  background: var(--portal-surface);
+  color: var(--portal-accent);
+}
+
+.calendarFilterSummary {
+  color: var(--portal-text-tertiary);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
 .calendarNavigation {
   display: grid;
   grid-template-columns: auto minmax(145px, auto) auto auto;
@@ -245,6 +347,145 @@
   border-bottom: 1px solid var(--portal-border);
   color: var(--portal-text-tertiary);
   font-size: 9px;
+}
+
+.agendaView {
+  display: grid;
+  max-height: 680px;
+  overflow-y: auto;
+}
+
+.agendaRow {
+  display: grid;
+  grid-template-columns: 46px minmax(220px, 1.35fr) minmax(180px, 0.75fr) auto;
+  align-items: center;
+  gap: 13px;
+  min-height: 68px;
+  border: 0;
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  padding: 9px 16px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--portal-motion-fast) var(--portal-ease);
+}
+
+.agendaRow:last-child {
+  border-bottom: 0;
+}
+
+.agendaRow:hover {
+  background: var(--portal-surface-hover);
+}
+
+.agendaRowOverdue {
+  box-shadow: inset 3px 0 0 var(--portal-danger);
+}
+
+.agendaDate {
+  display: grid;
+  width: 42px;
+  height: 46px;
+  place-items: center;
+  align-content: center;
+  border: 1px solid var(--portal-border);
+  border-radius: 9px;
+  background: var(--portal-surface-soft);
+}
+
+.agendaDate strong,
+.agendaDate small {
+  display: block;
+  line-height: 1;
+  text-align: center;
+}
+
+.agendaDate strong {
+  color: var(--portal-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 14px;
+}
+
+.agendaDate small {
+  margin-top: 4px;
+  color: var(--portal-muted);
+  font-size: 8px;
+  font-weight: 740;
+  text-transform: uppercase;
+}
+
+.agendaRowMain,
+.agendaOwner {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.agendaRowMain small,
+.agendaOwner small {
+  overflow: hidden;
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+  font-weight: 720;
+  letter-spacing: 0.025em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.agendaRowMain strong,
+.agendaOwner strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agendaOwner {
+  border-left: 1px solid var(--portal-border);
+  padding-left: 13px;
+}
+
+.agendaOwner strong {
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+}
+
+.agendaRowOverdue .agendaOwner small,
+.agendaRowOverdue .agendaOpen {
+  color: var(--portal-danger);
+}
+
+.agendaOpen {
+  min-width: 50px;
+  color: var(--portal-accent);
+  font-size: 9px;
+  font-weight: 760;
+  text-align: right;
+}
+
+.agendaEmpty {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 28px;
+  text-align: center;
+}
+
+.agendaEmpty strong {
+  color: var(--portal-text);
+  font-size: 12px;
+}
+
+.agendaEmpty p {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 10px;
 }
 
 .calendarViewport {
@@ -1072,6 +1313,28 @@
     grid-template-columns: auto 1fr auto auto;
   }
 
+  .calendarViewToggle {
+    width: 100%;
+  }
+
+  .calendarFilters {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendarFilters > div:first-child,
+  .calendarNavigation {
+    width: 100%;
+  }
+
+  .agendaRow {
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+  }
+
+  .agendaOwner {
+    display: none;
+  }
+
   .overdueStrip {
     align-items: flex-start;
     flex-direction: column;
@@ -1149,6 +1412,19 @@
     padding: 18px;
   }
 
+  .calendarFilters {
+    padding: 10px 14px;
+  }
+
+  .calendarFilters > div:first-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendarFilters > div:first-child button {
+    justify-content: space-between;
+  }
+
   .calendarNavigation {
     grid-template-columns: auto 1fr auto;
   }
@@ -1162,6 +1438,22 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .agendaRow {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 64px;
+    padding: 9px 12px;
+  }
+
+  .agendaDate {
+    width: 40px;
+    height: 44px;
+  }
+
+  .agendaOpen {
+    display: none;
   }
 
   .prospectForm,

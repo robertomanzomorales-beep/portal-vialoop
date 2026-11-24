@@ -198,22 +198,6 @@ export default async function FollowUpPage() {
       metadata.status !== "WON" &&
       metadata.status !== "LOST",
   );
-  const overdue = openProspects.filter(
-    ({ metadata }) =>
-      metadata.nextFollowUp &&
-      metadata.nextFollowUp < today,
-  ).length;
-  const todayCount = openProspects.filter(
-    ({ metadata }) =>
-      metadata.nextFollowUp === today,
-  ).length;
-  const nextSevenDays =
-    openProspects.filter(
-      ({ metadata }) =>
-        metadata.nextFollowUp > today &&
-        metadata.nextFollowUp <=
-          weekLimit,
-    ).length;
   const won = prospects.filter(
     ({ metadata }) =>
       metadata.status === "WON",
@@ -375,6 +359,15 @@ export default async function FollowUpPage() {
     ...paymentCalendarEntries,
     ...supportCalendarEntries,
   ];
+  const overdueCommitments = calendarEntries.filter(
+    (entry) => entry.date < today,
+  ).length;
+  const todayCommitments = calendarEntries.filter(
+    (entry) => entry.date === today,
+  ).length;
+  const nextSevenDays = calendarEntries.filter(
+    (entry) => entry.date > today && entry.date <= weekLimit,
+  ).length;
 
   return (
     <main className={styles.page}>
@@ -385,7 +378,7 @@ export default async function FollowUpPage() {
           </span>
           <h1>Seguimiento</h1>
           <p>
-            Organiza contactos, cotizaciones y próximos pasos desde una agenda comercial única.
+            Prioriza contactos, cotizaciones, renovaciones, cobros y operación desde una sola agenda.
           </p>
         </div>
 
@@ -410,23 +403,23 @@ export default async function FollowUpPage() {
 
         <article
           className={
-            overdue > 0
+            overdueCommitments > 0
               ? styles.metricAlert
               : undefined
           }
         >
-          <span>Seguimientos vencidos</span>
-          <strong>{overdue}</strong>
+          <span>Compromisos vencidos</span>
+          <strong>{overdueCommitments}</strong>
           <small>
-            {overdue > 0
-              ? "Requieren una nueva gestión"
-              : "Agenda al día"}
+            {overdueCommitments > 0
+              ? "Comercial, finanzas y operación"
+              : "Agenda completa al día"}
           </small>
         </article>
 
         <article>
           <span>Agenda inmediata</span>
-          <strong>{todayCount}</strong>
+          <strong>{todayCommitments}</strong>
           <small>
             Hoy · {nextSevenDays} próximos 7 días
           </small>

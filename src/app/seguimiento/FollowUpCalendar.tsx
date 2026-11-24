@@ -25,6 +25,15 @@ export type FollowUpCalendarEntry = {
   href?: string;
 };
 
+type CalendarFilter =
+  | "ALL"
+  | "COMMERCIAL"
+  | "RENEWAL"
+  | "FINANCE"
+  | "OPERATION";
+
+type CalendarView = "AGENDA" | "MONTH";
+
 const weekdays = [
   "Lun",
   "Mar",
@@ -33,6 +42,14 @@ const weekdays = [
   "Vie",
   "Sáb",
   "Dom",
+];
+
+const filters: Array<{ value: CalendarFilter; label: string }> = [
+  { value: "ALL", label: "Todo" },
+  { value: "COMMERCIAL", label: "Comercial" },
+  { value: "RENEWAL", label: "Renovaciones" },
+  { value: "FINANCE", label: "Finanzas" },
+  { value: "OPERATION", label: "Operación" },
 ];
 
 function chileDateKey() {
@@ -156,6 +173,58 @@ function eventClass(kind: FollowUpCalendarEntry["kind"]) {
   return undefined;
 }
 
+function entryFilter(kind: FollowUpCalendarEntry["kind"]): CalendarFilter {
+  if (kind === "FOLLOW_UP" || kind === "QUOTATION_DEADLINE") {
+    return "COMMERCIAL";
+  }
+
+  if (kind === "RENEWAL") {
+    return "RENEWAL";
+  }
+
+  if (kind === "PAYMENT" || kind === "EXPENSE") {
+    return "FINANCE";
+  }
+
+  return "OPERATION";
+}
+
+function entryTypeLabel(kind: FollowUpCalendarEntry["kind"]) {
+  return {
+    FOLLOW_UP: "Seguimiento",
+    QUOTATION_DEADLINE: "Cotización",
+    RENEWAL: "Renovación",
+    PAYMENT: "Cobro",
+    EXPENSE: "Gasto",
+    SUPPORT: "Solicitud",
+    TASK: "Tarea",
+  }[kind];
+}
+
+function shortDateParts(dateKey: string) {
+  const date = new Date(`${dateKey}T12:00:00.000Z`);
+
+  return {
+    day: new Intl.DateTimeFormat("es-CL", {
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(date),
+    month: new Intl.DateTimeFormat("es-CL", {
+      month: "short",
+      timeZone: "UTC",
+    })
+      .format(date)
+      .replace(".", ""),
+    full: new Intl.DateTimeFormat("es-CL", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date),
+  };
+}
+
 export default function FollowUpCalendar({
   entries,
 }: {
@@ -179,6 +248,33 @@ export default function FollowUpCalendar({
         : firstUpcoming?.date.slice(0, 7) ||
             currentMonth,
     );
+  const [activeFilter, setActiveFilter] =
+    useState<CalendarFilter>("ALL");
+  const [view, setView] =
+    useState<CalendarView>("AGENDA");
+
+  const filteredEntries = useMemo(
+    () =>
+      activeFilter === "ALL"
+        ? entries
+        : entries.filter((entry) => entryFilter(entry.kind) === activeFilter),
+    [activeFilter, entries],
+  );
+  const filterCounts = useMemo(() => {
+    const counts: Record<CalendarFilter, number> = {
+      ALL: entries.length,
+      COMMERCIAL: 0,
+      RENEWAL: 0,
+      FINANCE: 0,
+      OPERATION: 0,
+    };
+
+    entries.forEach((entry) => {
+      counts[entryFilter(entry.kind)] += 1;
+    });
+
+    return counts;
+  }, [entries]);
 
   const days = useMemo(
     () => buildCalendarDays(visibleMonth),
@@ -190,7 +286,7 @@ export default function FollowUpCalendar({
       FollowUpCalendarEntry[]
     >();
 
-    entries.forEach((entry) => {
+    filteredEntries.forEach((entry) => {
       const current =
         grouped.get(entry.date) ?? [];
       current.push(entry);
@@ -198,16 +294,29 @@ export default function FollowUpCalendar({
     });
 
     return grouped;
-  }, [entries]);
-  const overdue = entries
+  }, [filteredEntries]);
+  const overdue = filteredEntries
     .filter((entry) => entry.date < today)
     .sort((first, second) =>
-      first.date.localeCompare(second.date),
+      second.date.localeCompare(first.date),
     );
-  const visibleCount = entries.filter(
+  const visibleCount = filteredEntries.filter(
     (entry) =>
       entry.date.startsWith(visibleMonth),
   ).length;
+  const agendaEntries = useMemo(
+    () =>
+      [...filteredEntries].sort((first, second) =>
+        first.date < today && second.date < today
+          ? second.date.localeCompare(first.date)
+          : first.date < today
+            ? -1
+            : second.date < today
+              ? 1
+              : first.date.localeCompare(second.date),
+      ),
+    [filteredEntries, today],
+  );
 
   return (
     <section className={styles.calendarPanel}>
@@ -222,40 +331,72 @@ export default function FollowUpCalendar({
           </p>
         </div>
 
-        <div className={styles.calendarNavigation}>
+        <div className={styles.calendarViewToggle} role="group" aria-label="Vista de seguimiento">
           <button
-            aria-label="Mes anterior"
-            onClick={() =>
-              setVisibleMonth((month) =>
-                moveMonth(month, -1),
-              )
-            }
+            aria-pressed={view === "AGENDA"}
+            className={view === "AGENDA" ? styles.calendarViewActive : undefined}
+            onClick={() => setView("AGENDA")}
             type="button"
           >
-            Anterior
-          </button>
-          <strong>{monthLabel(visibleMonth)}</strong>
-          <button
-            aria-label="Mes siguiente"
-            onClick={() =>
-              setVisibleMonth((month) =>
-                moveMonth(month, 1),
-              )
-            }
-            type="button"
-          >
-            Siguiente
+            Agenda
           </button>
           <button
-            className={styles.todayButton}
-            onClick={() =>
-              setVisibleMonth(currentMonth)
-            }
+            aria-pressed={view === "MONTH"}
+            className={view === "MONTH" ? styles.calendarViewActive : undefined}
+            onClick={() => setView("MONTH")}
             type="button"
           >
-            Hoy
+            Mes
           </button>
         </div>
+      </div>
+
+      <div className={styles.calendarFilters}>
+        <div aria-label="Filtrar agenda" role="group">
+          {filters.map((filter) => (
+            <button
+              aria-pressed={activeFilter === filter.value}
+              className={activeFilter === filter.value ? styles.calendarFilterActive : undefined}
+              key={filter.value}
+              onClick={() => setActiveFilter(filter.value)}
+              type="button"
+            >
+              <span>{filter.label}</span>
+              <strong>{filterCounts[filter.value]}</strong>
+            </button>
+          ))}
+        </div>
+
+        {view === "MONTH" ? (
+          <div className={styles.calendarNavigation}>
+            <button
+              aria-label="Mes anterior"
+              onClick={() => setVisibleMonth((month) => moveMonth(month, -1))}
+              type="button"
+            >
+              Anterior
+            </button>
+            <strong>{monthLabel(visibleMonth)}</strong>
+            <button
+              aria-label="Mes siguiente"
+              onClick={() => setVisibleMonth((month) => moveMonth(month, 1))}
+              type="button"
+            >
+              Siguiente
+            </button>
+            <button
+              className={styles.todayButton}
+              onClick={() => setVisibleMonth(currentMonth)}
+              type="button"
+            >
+              Hoy
+            </button>
+          </div>
+        ) : (
+          <span className={styles.calendarFilterSummary}>
+            {filteredEntries.length} compromiso{filteredEntries.length === 1 ? "" : "s"} con fecha
+          </span>
+        )}
       </div>
 
       {overdue.length > 0 && (
@@ -292,77 +433,99 @@ export default function FollowUpCalendar({
         </div>
       )}
 
-      <div className={styles.calendarMeta}>
-        <span>
-          {visibleCount} hito
-          {visibleCount === 1 ? "" : "s"} este mes
-        </span>
-        <span>
-          Selecciona un hito para abrir su registro.
-        </span>
-      </div>
+      {view === "AGENDA" ? (
+        <div className={styles.agendaView}>
+          {agendaEntries.length > 0 ? (
+            agendaEntries.slice(0, 80).map((entry) => {
+              const date = shortDateParts(entry.date);
+              const overdueEntry = entry.date < today;
+              const todayEntry = entry.date === today;
 
-      <div className={styles.calendarViewport}>
-        <div className={styles.weekdayRow}>
-          {weekdays.map((weekday) => (
-            <span key={weekday}>{weekday}</span>
-          ))}
+              return (
+                <button
+                  className={`${styles.agendaRow} ${
+                    overdueEntry ? styles.agendaRowOverdue : ""
+                  }`}
+                  key={entry.id}
+                  onClick={() => goToEntry(entry)}
+                  type="button"
+                >
+                  <span className={styles.agendaDate} title={date.full}>
+                    <strong>{date.day}</strong>
+                    <small>{date.month}</small>
+                  </span>
+                  <span className={styles.agendaRowMain}>
+                    <small>{entryTypeLabel(entry.kind)} · {entry.company}</small>
+                    <strong>{eventLabel(entry)}</strong>
+                  </span>
+                  <span className={styles.agendaOwner}>
+                    <small>{overdueEntry ? "Vencido" : todayEntry ? "Hoy" : "Responsable"}</small>
+                    <strong>{overdueEntry || todayEntry ? date.full : entry.assignedTo || "Equipo"}</strong>
+                  </span>
+                  <span className={styles.agendaOpen} aria-hidden="true">Abrir</span>
+                </button>
+              );
+            })
+          ) : (
+            <div className={styles.agendaEmpty}>
+              <strong>No hay compromisos en esta categoría</strong>
+              <p>Cambia el filtro o crea una nueva gestión con fecha.</p>
+            </div>
+          )}
         </div>
+      ) : (
+        <>
+          <div className={styles.calendarMeta}>
+            <span>
+              {visibleCount} hito{visibleCount === 1 ? "" : "s"} este mes
+            </span>
+            <span>Selecciona un hito para abrir su registro.</span>
+          </div>
 
-        <div className={styles.calendarGrid}>
-          {days.map((day) => {
-            const dayEntries =
-              eventsByDate.get(day.key) ?? [];
+          <div className={styles.calendarViewport}>
+            <div className={styles.weekdayRow}>
+              {weekdays.map((weekday) => (
+                <span key={weekday}>{weekday}</span>
+              ))}
+            </div>
 
-            return (
-              <div
-                className={`${styles.calendarDay} ${
-                  day.currentMonth
-                    ? ""
-                    : styles.calendarDayOutside
-                } ${
-                  day.key === today
-                    ? styles.calendarDayToday
-                    : ""
-                }`}
-                key={day.key}
-              >
-                <span className={styles.dayNumber}>
-                  {day.day}
-                </span>
+            <div className={styles.calendarGrid}>
+              {days.map((day) => {
+                const dayEntries = eventsByDate.get(day.key) ?? [];
 
-                <div className={styles.dayEvents}>
-                  {dayEntries
-                    .slice(0, 3)
-                    .map((entry) => (
-                      <button
-                        className={
-                          eventClass(entry.kind)
-                        }
-                        key={entry.id}
-                        onClick={() =>
-                          goToEntry(entry)
-                        }
-                        title={`${entry.company} · ${eventLabel(entry)} · ${entry.assignedTo || "Equipo"}`}
-                        type="button"
-                      >
-                        <strong>{entry.company}</strong>
-                        <span>
-                          {eventLabel(entry)}
-                        </span>
-                      </button>
-                    ))}
-                  {dayEntries.length > 3 && (
-                    <small>
-                      +{dayEntries.length - 3} más
-                    </small>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                return (
+                  <div
+                    className={`${styles.calendarDay} ${
+                      day.currentMonth ? "" : styles.calendarDayOutside
+                    } ${day.key === today ? styles.calendarDayToday : ""}`}
+                    key={day.key}
+                  >
+                    <span className={styles.dayNumber}>{day.day}</span>
+
+                    <div className={styles.dayEvents}>
+                      {dayEntries.slice(0, 3).map((entry) => (
+                        <button
+                          className={eventClass(entry.kind)}
+                          key={entry.id}
+                          onClick={() => goToEntry(entry)}
+                          title={`${entry.company} · ${eventLabel(entry)} · ${entry.assignedTo || "Equipo"}`}
+                          type="button"
+                        >
+                          <strong>{entry.company}</strong>
+                          <span>{eventLabel(entry)}</span>
+                        </button>
+                      ))}
+                      {dayEntries.length > 3 ? (
+                        <small>+{dayEntries.length - 3} más</small>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }
