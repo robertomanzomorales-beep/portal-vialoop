@@ -324,8 +324,7 @@
 
 .agendaList,
 .priorityList,
-.saleList,
-.operationList {
+.saleList {
   border-top: 1px solid var(--portal-border);
 }
 
@@ -371,9 +370,7 @@
 .agendaContext,
 .priorityMain,
 .saleMain,
-.saleAmount,
-.operationMain,
-.operationAmount {
+.saleAmount {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -381,8 +378,7 @@
 
 .agendaMain strong,
 .priorityTopline strong,
-.saleMain strong,
-.operationMain strong {
+.saleMain strong {
   overflow: hidden;
   color: var(--portal-text);
   font-size: 12px;
@@ -942,9 +938,112 @@
   text-decoration: none;
 }
 
+.pipelineSnapshot {
+  display: grid;
+  gap: 14px;
+}
+
+.pipelineSummary {
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  overflow: hidden;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  background: var(--portal-surface-soft);
+}
+
+.pipelineSummary > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 12px 13px;
+}
+
+.pipelineSummary > div + div {
+  border-left: 1px solid var(--portal-border);
+}
+
+.pipelineSummary span {
+  color: var(--portal-muted);
+  font-size: 8px;
+  font-weight: 680;
+}
+
+.pipelineSummary strong {
+  overflow: hidden;
+  color: var(--portal-text);
+  font-size: 17px;
+  letter-spacing: -0.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipelineStages {
+  display: grid;
+  gap: 10px;
+}
+
+.pipelineStage {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.75fr) minmax(120px, 1.6fr) 24px;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipelineStage > span {
+  overflow: hidden;
+  color: var(--portal-text-secondary);
+  font-size: 9px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipelineStage > i {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--portal-border);
+}
+
+.pipelineStage > i > b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--portal-accent), var(--portal-info));
+  transition: width 300ms ease;
+}
+
+.pipelineStage > strong {
+  color: var(--portal-text);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  text-align: right;
+}
+
+.pipelineFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--portal-border);
+  padding-top: 11px;
+}
+
+.pipelineFooter span {
+  color: var(--portal-text-tertiary);
+  font-size: 8px;
+}
+
+.pipelineFooter strong {
+  flex: 0 0 auto;
+  color: var(--portal-accent);
+  font-size: 9px;
+}
+
 .priorityItem,
-.saleItem,
-.operationItem {
+.saleItem {
   display: flex;
   min-height: 68px;
   align-items: center;
@@ -957,14 +1056,12 @@
 }
 
 .priorityItem:last-child,
-.saleItem:last-child,
-.operationItem:last-child {
+.saleItem:last-child {
   border-bottom: 0;
 }
 
 .priorityItem:hover,
-.saleItem:hover,
-.operationItem:hover {
+.saleItem:hover {
   background: var(--portal-surface-soft);
 }
 
@@ -976,8 +1073,7 @@
 }
 
 .priorityMain > span:not(.priorityTopline),
-.saleMain > span,
-.operationMain > span {
+.saleMain > span {
   overflow: hidden;
   margin-top: 4px;
   color: var(--portal-text-secondary);
@@ -987,8 +1083,7 @@
 }
 
 .priorityMain > small,
-.saleMain > small,
-.operationMain > small {
+.saleMain > small {
   margin-top: 4px;
   color: var(--portal-text-tertiary);
   font-size: 9px;
@@ -1043,44 +1138,6 @@
   margin-top: 4px;
   color: var(--portal-text-tertiary);
   font-size: 8px;
-}
-
-.operationAmount {
-  flex: 0 0 128px;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.operationAmount > strong {
-  color: var(--portal-text);
-  font-size: 14px;
-  letter-spacing: -0.03em;
-}
-
-.operationAmount > i {
-  width: 100%;
-  height: 5px;
-  overflow: hidden;
-  margin-top: 6px;
-  border-radius: 999px;
-  background: var(--portal-border);
-}
-
-.operationAmount > i > b {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--portal-accent);
-}
-
-.operationAmount > small {
-  max-width: 128px;
-  overflow: hidden;
-  margin-top: 5px;
-  color: var(--portal-text-tertiary);
-  font-size: 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .emptyState {
@@ -1264,6 +1321,7 @@
   .goalHeader,
   .trendHeader,
   .trendFooter,
+  .pipelineFooter,
   .salesMixLegend {
     align-items: flex-start;
     flex-direction: column;
@@ -1289,16 +1347,27 @@
   }
 
   .priorityItem,
-  .saleItem,
-  .operationItem {
+  .saleItem {
     align-items: flex-start;
     padding: 13px 0;
   }
 
   .priorityAmount,
-  .saleAmount,
-  .operationAmount {
+  .saleAmount {
     max-width: 92px;
+  }
+
+  .pipelineSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .pipelineSummary > div + div {
+    border-top: 1px solid var(--portal-border);
+    border-left: 0;
+  }
+
+  .pipelineStage {
+    grid-template-columns: minmax(82px, 0.9fr) minmax(90px, 1.4fr) 20px;
   }
 }
 
@@ -1308,7 +1377,8 @@
   .metricCard,
   .trendTrack i,
   .salesMixTrack i,
-  .planMixValue > i > b {
+  .planMixValue > i > b,
+  .pipelineStage > i > b {
     transition: none;
   }
 }

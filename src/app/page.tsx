@@ -10,12 +10,6 @@ import {
   isClientOperationTask,
   parseScheduledTaskMetadata,
 } from "@/lib/scheduled-task";
-import {
-  getClientOperationSummary,
-  getLatestClientOperationTasks,
-  type ClientOperationTaskRecord,
-} from "@/lib/client-operation";
-import CompanyDataCards from "./CompanyDataCards";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -321,16 +315,7 @@ export default async function Home() {
       take: 1500,
       select: {
         id: true,
-        clientId: true,
-        createdAt: true,
         metadata: true,
-        client: {
-          select: {
-            businessName: true,
-            tradeName: true,
-            status: true,
-          },
-        },
       },
     }),
     prisma.renewal.findMany({
@@ -507,58 +492,6 @@ export default async function Home() {
   const overdueTasks = activeTasks.filter(
     ({ metadata }) => metadata.dueDate < todayKey,
   ).length;
-  const operationGroups = new Map<
-    string,
-    {
-      clientId: string;
-      clientName: string;
-      tasks: ClientOperationTaskRecord[];
-    }
-  >();
-
-  for (const log of taskLogs) {
-    const metadata = parseScheduledTaskMetadata(log.metadata);
-    if (
-      !metadata ||
-      !isClientOperationTask(metadata) ||
-      !log.clientId ||
-      !log.client ||
-      log.client.status !== "ACTIVE"
-    ) {
-      continue;
-    }
-
-    const group = operationGroups.get(log.clientId) ?? {
-      clientId: log.clientId,
-      clientName: log.client.tradeName || log.client.businessName,
-      tasks: [],
-    };
-    group.tasks.push({
-      id: log.id,
-      createdAt: log.createdAt.toISOString(),
-      metadata,
-    });
-    operationGroups.set(log.clientId, group);
-  }
-
-  const activeClientOperations = [...operationGroups.values()]
-    .flatMap((group) => {
-      const tasks = getLatestClientOperationTasks(group.tasks);
-      if (tasks.length === 0) return [];
-      const summary = getClientOperationSummary(tasks, todayKey);
-      return summary.finished ? [] : [{ ...group, tasks, summary }];
-    })
-    .toSorted((first, second) => {
-      const firstRisk = first.summary.blocked * 100 + first.summary.overdue * 10;
-      const secondRisk = second.summary.blocked * 100 + second.summary.overdue * 10;
-      return (
-        secondRisk - firstRisk ||
-        first.summary.targetDate.localeCompare(second.summary.targetDate)
-      );
-    });
-  const operationIssues = activeClientOperations.filter(
-    ({ summary }) => summary.blocked > 0 || summary.overdue > 0,
-  ).length;
   const agendaProspects = datedProspects
     .filter(
       ({ metadata }) => metadata.nextFollowUp <= nextThirtyDaysKey,
@@ -708,14 +641,47 @@ export default async function Home() {
       : currentTrendTotal > 0
         ? 100
         : 0;
+  const quotedProspects = openProspects.filter(
+    ({ metadata }) => metadata.quotations.length > 0,
+  );
+  const quotedPipelineValue = quotedProspects.reduce(
+    (total, { metadata }) => total + (metadata.quotations[0]?.totalAmount ?? 0),
+    0,
+  );
+  const wonProspects = prospects.filter(
+    ({ metadata }) => metadata.status === "WON",
+  ).length;
+  const lostProspects = prospects.filter(
+    ({ metadata }) => metadata.status === "LOST",
+  ).length;
+  const decidedProspects = wonProspects + lostProspects;
+  const conversionRate =
+    decidedProspects > 0
+      ? Math.round((wonProspects / decidedProspects) * 100)
+      : 0;
+  const pipelineStages = [
+    { key: "NEW", label: "Nuevos" },
+    { key: "CONTACTED", label: "Contactados" },
+    { key: "FOLLOW_UP", label: "En seguimiento" },
+    { key: "LATER", label: "En pausa" },
+  ].map((stage) => ({
+    ...stage,
+    count: openProspects.filter(
+      ({ metadata }) => metadata.status === stage.key,
+    ).length,
+  }));
+  const pipelineMaximum = Math.max(
+    1,
+    ...pipelineStages.map((stage) => stage.count),
+  );
   const agendaCount = overdueFollowUps.length + immediateFollowUps.length;
   const metrics = [
     {
       label: "Clientes activos",
       value: String(clientCount),
-      detail: `${activeClientOperations.length} implementaciones activas`,
+      detail: `${activeSubscriptions.length} planes activos asignados`,
       href: "/clientes",
-      alert: operationIssues > 0,
+      alert: false,
     },
     {
       label: "Agenda comercial",
@@ -747,8 +713,7 @@ export default async function Home() {
           <span className={styles.eyebrow}>Control ejecutivo</span>
           <h1>Dashboard</h1>
           <p>
-            Prioridades reales para vender, implementar, cobrar y renovar sin
-            recorrer todo el software.
+            Ventas, caja, cartera, agenda y renovaciones en una vista ejecutiva.
           </p>
           <span className={styles.currentDate}>
             {formatLongDate(currentDate)}
@@ -986,8 +951,6 @@ export default async function Home() {
         </article>
       </section>
 
-      <CompanyDataCards />
-
       <section className={styles.focusGrid}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
@@ -1089,10 +1052,6 @@ export default async function Home() {
               <span>Trabajos atrasados</span>
               <strong>{overdueTasks}</strong>
             </Link>
-            <Link className={operationIssues > 0 ? styles.alertCritical : ""} href="/planificacion">
-              <span>Implementaciones en riesgo</span>
-              <strong>{operationIssues}</strong>
-            </Link>
             <Link className={overdueExpenses > 0 ? styles.alertCritical : ""} href="/gastos">
               <span>Gastos vencidos</span>
               <strong>{overdueExpenses}</strong>
@@ -1178,51 +1137,61 @@ export default async function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Entrega de servicios</span>
-              <h2>Implementaciones activas</h2>
-              <p>Avance, siguiente hito y riesgos de los nuevos clientes.</p>
+              <span className={styles.panelEyebrow}>Gestión comercial</span>
+              <h2>Pipeline de oportunidades</h2>
+              <p>Volumen abierto, valor cotizado y conversión histórica.</p>
             </div>
-            <Link className={styles.textAction} href="/planificacion">
-              Abrir agenda
+            <Link className={styles.textAction} href="/seguimiento">
+              Abrir seguimiento
             </Link>
           </div>
 
-          {activeClientOperations.length === 0 ? (
+          {openProspects.length === 0 ? (
             <div className={styles.emptyState}>
               <span>✓</span>
               <div>
-                <h3>Sin implementaciones pendientes</h3>
-                <p>Los flujos iniciados desde Nuevo cliente aparecerán aquí.</p>
+                <h3>Sin oportunidades abiertas</h3>
+                <p>Agrega prospectos para medir el avance comercial.</p>
               </div>
             </div>
           ) : (
-            <div className={styles.operationList}>
-              {activeClientOperations.slice(0, 5).map((operation) => (
-                <Link
-                  className={styles.operationItem}
-                  href={`/clientes/${operation.clientId}`}
-                  key={operation.clientId}
-                >
-                  <span className={styles.operationMain}>
-                    <strong>{operation.clientName}</strong>
-                    <span>{operation.summary.serviceName}</span>
-                    <small>Siguiente: {operation.summary.currentTitle}</small>
-                  </span>
-                  <span className={styles.operationAmount}>
-                    <strong>{operation.summary.progress}%</strong>
-                    <i>
-                      <b style={{ width: `${operation.summary.progress}%` }} />
+            <div className={styles.pipelineSnapshot}>
+              <div className={styles.pipelineSummary}>
+                <div>
+                  <span>Oportunidades activas</span>
+                  <strong>{openProspects.length}</strong>
+                </div>
+                <div>
+                  <span>Valor cotizado</span>
+                  <strong>{formatCurrency(quotedPipelineValue)}</strong>
+                </div>
+              </div>
+
+              <div className={styles.pipelineStages}>
+                {pipelineStages.map((stage) => (
+                  <div className={styles.pipelineStage} key={stage.key}>
+                    <span>{stage.label}</span>
+                    <i aria-hidden="true">
+                      <b
+                        style={{
+                          width: `${Math.max(
+                            stage.count > 0 ? 7 : 0,
+                            (stage.count / pipelineMaximum) * 100,
+                          )}%`,
+                        }}
+                      />
                     </i>
-                    <small>
-                      {operation.summary.blocked > 0
-                        ? "Bloqueada"
-                        : operation.summary.overdue > 0
-                          ? `${operation.summary.overdue} hito${operation.summary.overdue === 1 ? "" : "s"} atrasado${operation.summary.overdue === 1 ? "" : "s"}`
-                          : `Objetivo ${formatDateKey(operation.summary.targetDate)}`}
-                    </small>
-                  </span>
-                </Link>
-              ))}
+                    <strong>{stage.count}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className={styles.pipelineFooter}>
+                <span>
+                  {quotedProspects.length} con cotización · {wonProspects} ganadas
+                </span>
+                <strong>{conversionRate}% conversión</strong>
+              </div>
             </div>
           )}
         </article>
