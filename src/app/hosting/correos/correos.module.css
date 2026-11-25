@@ -1,0 +1,342 @@
+.page {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: 21px;
+}
+
+.header h1 {
+  margin: 0 0 5px;
+  font-weight: 630;
+  line-height: 1.12;
+}
+
+.header p,
+.panelHeader p {
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.textLink {
+  color: var(--portal-accent);
+  font-size: 12px;
+  font-weight: 620;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.composer,
+.preview,
+.history {
+  min-width: 0;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--portal-border);
+  padding: 15px 18px;
+}
+
+.panelHeader h2,
+.dialog h2 {
+  margin: 0 0 3px;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.panelHeader p {
+  font-size: 12px;
+}
+
+.fields {
+  display: grid;
+  gap: 13px;
+  padding: 16px 18px 13px;
+}
+
+.pairedFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.fields label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: var(--portal-text-secondary);
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.fields label small {
+  margin-inline-start: 4px;
+  color: var(--portal-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.fields input,
+.fields select,
+.fields textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-sm);
+  background: var(--portal-surface);
+  padding: 7px 9px;
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.fields select {
+  appearance: auto;
+}
+
+.fields textarea {
+  min-height: 155px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.fields input::placeholder,
+.fields textarea::placeholder {
+  color: var(--portal-text-tertiary);
+}
+
+.fieldHint,
+.incomplete {
+  margin-top: -5px;
+  color: var(--portal-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.incomplete {
+  color: var(--portal-warning);
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--portal-border);
+  padding: 12px 18px;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--portal-radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color var(--portal-motion-fast) ease;
+}
+
+.primaryButton {
+  background: var(--portal-action);
+  color: var(--portal-on-action);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--portal-action-hover);
+}
+
+.secondaryButton {
+  border-color: var(--portal-border-strong);
+  color: var(--portal-text-secondary);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--portal-surface-hover);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.58;
+  cursor: default;
+}
+
+.previewFrame {
+  display: block;
+  width: 100%;
+  height: 437px;
+  border: 0;
+  border-radius: 0 0 var(--portal-radius-lg) var(--portal-radius-lg);
+  background: #eef2f6;
+  color-scheme: light;
+}
+
+.history {
+  margin-top: 17px;
+  scroll-margin-top: 8px;
+}
+
+.historyList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 0.8fr) auto;
+  align-items: center;
+  gap: 9px 15px;
+  padding: 13px 18px;
+}
+
+.historyRow + .historyRow {
+  border-top: 1px solid var(--portal-border);
+}
+
+.historyRow > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: var(--portal-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.historyMessage strong {
+  color: var(--portal-text);
+  font-weight: 620;
+}
+
+.historyContext a {
+  color: var(--portal-accent);
+}
+
+.status {
+  justify-self: start;
+  font-size: 11px;
+  font-weight: 620;
+  white-space: nowrap;
+}
+
+.sent {
+  color: var(--portal-success);
+}
+
+.failed {
+  color: var(--portal-danger);
+}
+
+.pending {
+  color: var(--portal-warning);
+}
+
+.feedback,
+.empty {
+  padding: 12px 18px;
+  color: var(--portal-muted);
+  font-size: 13px;
+}
+
+.feedback {
+  margin: 0 0 14px;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius-md);
+  background: var(--portal-surface);
+  overflow-wrap: anywhere;
+}
+
+.feedback[data-status="sent"] { color: var(--portal-success); }
+.feedback[data-status="failed"] { color: var(--portal-danger); }
+.feedback[data-status="pending"] { color: var(--portal-warning); }
+
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  margin: auto;
+  border: 1px solid var(--portal-border-strong);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-surface-elevated);
+  box-shadow: var(--portal-shadow-md);
+  color: var(--portal-text);
+}
+
+.dialog::backdrop {
+  background: var(--portal-overlay);
+}
+
+.dialogContent {
+  padding: 18px;
+}
+
+.dialogContent dl {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px 17px;
+  font-size: 13px;
+}
+
+.dialogContent dl > div {
+  display: grid;
+  grid-template-columns: 53px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.dialogContent dt {
+  color: var(--portal-muted);
+}
+
+.dialogContent dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@container portal-content (max-width: 760px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .previewFrame { height: 365px; }
+}
+
+@container portal-content (max-width: 490px) {
+  .header { align-items: flex-start; flex-direction: column; }
+  .pairedFields { grid-template-columns: minmax(0, 1fr); }
+  .historyRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .historyMessage { grid-column: 1; grid-row: 1; }
+  .historyContext { grid-column: 1; grid-row: 2; }
+  .historyDate { grid-column: 2; grid-row: 2; }
+  .status { grid-column: 2; grid-row: 1; }
+  .fields input, .fields select, .fields textarea { font-size: 16px; }
+}

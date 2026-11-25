@@ -1,24 +1,12 @@
 import type { Metadata } from "next";
-import {
-  Geist,
-  Geist_Mono,
-} from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import PortalLayout from "@/components/PortalLayout";
 import { getCurrentUser } from "@/lib/auth";
 import { getPortalAlerts } from "@/lib/portal-alerts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const themeInitializationScript = `
   try {
@@ -120,7 +108,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
       lang="es"
       suppressHydrationWarning
     >

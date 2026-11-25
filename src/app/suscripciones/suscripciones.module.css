@@ -76,18 +76,15 @@
 .primaryButton,
 .createRenewalButton,
 .confirmModalButton {
-  border: 1px solid var(--portal-accent);
-  background: var(--portal-accent);
-  color: var(--portal-on-accent);
-  box-shadow:
-    0 8px 18px
-    var(--portal-focus);
+  border: 1px solid transparent;
+  background: var(--portal-action);
+  color: var(--portal-on-action);
 }
 
 .primaryButton:hover,
 .createRenewalButton:hover,
 .confirmModalButton:hover {
-  background: var(--portal-accent-hover);
+  background: var(--portal-action-hover);
 }
 
 .primaryButton:disabled,
@@ -665,13 +662,8 @@
   gap: 30px;
   margin-bottom: 18px;
   padding: 24px;
-  border-color: var(--portal-accent-border);
-  background:
-    linear-gradient(
-      135deg,
-      var(--portal-surface) 0%,
-      var(--portal-accent-soft) 100%
-    );
+  border-color: var(--portal-border);
+  background: var(--portal-surface);
 }
 
 .renewalActionInfo {

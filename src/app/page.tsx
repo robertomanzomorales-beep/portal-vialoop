@@ -710,14 +710,10 @@ export default async function Home() {
     <main className={styles.content}>
       <header className={styles.header}>
         <div>
-          <span className={styles.eyebrow}>Control ejecutivo</span>
           <h1>Dashboard</h1>
-          <p>
-            Ventas, caja, cartera, agenda y renovaciones en una vista ejecutiva.
-          </p>
-          <span className={styles.currentDate}>
+          <time className={styles.currentDate} dateTime={todayKey}>
             {formatLongDate(currentDate)}
-          </span>
+          </time>
         </div>
 
         <div className={styles.headerActions}>
@@ -753,7 +749,6 @@ export default async function Home() {
         <article className={styles.goalPanel}>
           <div className={styles.goalHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Pulso del mes</span>
               <h2>Ventas frente a la meta</h2>
             </div>
             <Link className={styles.textAction} href="/ventas">
@@ -770,7 +765,7 @@ export default async function Home() {
               className={styles.goalRing}
               role="progressbar"
               style={{
-                background: `conic-gradient(var(--portal-accent) ${Math.min(
+                background: `conic-gradient(var(--portal-data) ${Math.min(
                   monthlySalesProgress,
                   100,
                 )}%, var(--portal-border) 0)`,
@@ -800,7 +795,6 @@ export default async function Home() {
           <div className={styles.salesMix}>
             <div className={styles.salesMixHeader}>
               <span>Composición de la venta neta</span>
-              <small>Mes actual</small>
             </div>
             <div aria-hidden="true" className={styles.salesMixTrack}>
               <i
@@ -847,8 +841,8 @@ export default async function Home() {
         <article className={styles.trendPanel}>
           <div className={styles.trendHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Últimos 6 meses</span>
               <h2>Evolución de ventas</h2>
+              <p>Últimos 6 meses</p>
             </div>
             <span
               className={`${styles.trendSignal} ${
@@ -866,13 +860,14 @@ export default async function Home() {
             {salesTrend.map((item, index) => {
               const height =
                 item.total > 0
-                  ? Math.max(8, (item.total / salesTrendMaximum) * 100)
+                  ? Math.max(2, (item.total / salesTrendMaximum) * 100)
                   : 0;
               const isCurrentMonth = index === salesTrend.length - 1;
 
               return (
                 <div
                   aria-label={`${item.label}: ${formatCurrency(item.total)}`}
+                  title={`${item.label}: ${formatCurrency(item.total)}`}
                   className={`${styles.trendColumn} ${
                     isCurrentMonth ? styles.trendColumnCurrent : ""
                   }`}
@@ -897,7 +892,6 @@ export default async function Home() {
         <article className={styles.recurringPanel}>
           <div className={styles.trendHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Base recurrente</span>
               <h2>Ingreso por planes</h2>
             </div>
             <Link className={styles.textAction} href="/suscripciones">
@@ -955,7 +949,6 @@ export default async function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Próximas acciones</span>
               <h2>Agenda comercial</h2>
               <p>Contactos vencidos y programados para los próximos 30 días.</p>
             </div>
@@ -1017,10 +1010,9 @@ export default async function Home() {
           )}
         </article>
 
-        <aside className={`${styles.panel} ${styles.controlPanel}`}>
+        <aside className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Control del día</span>
               <h2>Alertas clave</h2>
             </div>
           </div>
@@ -1075,7 +1067,6 @@ export default async function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Servicios activos</span>
               <h2>Renovaciones prioritarias</h2>
               <p>Sólo clientes y proyectos que continúan vigentes.</p>
             </div>
@@ -1137,7 +1128,6 @@ export default async function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelEyebrow}>Gestión comercial</span>
               <h2>Pipeline de oportunidades</h2>
               <p>Volumen abierto, valor cotizado y conversión histórica.</p>
             </div>

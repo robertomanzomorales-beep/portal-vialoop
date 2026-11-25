@@ -71,7 +71,6 @@
   border: 1px solid var(--portal-accent);
   background: var(--portal-accent);
   color: var(--portal-on-accent);
-  box-shadow: 0 8px 18px var(--portal-focus);
 }
 
 .primaryButton:hover {

@@ -39,6 +39,7 @@ type NavigationIconName =
   | "project"
   | "planning"
   | "support"
+  | "mail"
   | "plan"
   | "subscription"
   | "renewal"
@@ -79,6 +80,7 @@ const navigationGroups: NavigationGroup[] = [
       { label: "Agenda operativa", href: "/planificacion", icon: "planning" },
       { label: "Solicitudes", href: "/solicitudes", icon: "support" },
       { label: "Servicios técnicos", href: "/proyectos", icon: "project" },
+      { label: "Correos de hosting", href: "/hosting/correos", icon: "mail" },
     ],
   },
   {
@@ -214,6 +216,13 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
           <>
             <path d="M3 3.5h14v10H9l-4 3v-3H3Z" />
             <path d="M6.5 7h7M6.5 10h4.5" />
+          </>
+        );
+      case "mail":
+        return (
+          <>
+            <rect height="12" rx="2" width="15" x="2.5" y="4" />
+            <path d="m3.2 5.2 6.8 5.4 6.8-5.4" />
           </>
         );
       case "plan":
@@ -378,6 +387,7 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setAlertsOpen(false);
+        alertDockRef.current?.querySelector("button")?.focus();
       }
     };
 
@@ -391,6 +401,9 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
   }, [alertsOpen]);
 
   const initials = getInitials(user.name);
+  const currentGroup = visibleNavigationGroups.find((group) =>
+    group.items.some((item) => isCurrentRoute(pathname, item.href)),
+  );
   const navigating = Boolean(
     navigationTarget && !isCurrentRoute(pathname, navigationTarget),
   );
@@ -405,13 +418,14 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
       event.metaKey ||
       event.ctrlKey ||
       event.shiftKey ||
-      event.altKey ||
-      isCurrentRoute(pathname, href)
+      event.altKey
     ) {
       return;
     }
 
     setMenuOpen(false);
+    setAlertsOpen(false);
+    if (isCurrentRoute(pathname, href)) return;
     setNavigationTarget(href);
     window.setTimeout(
       () => setNavigationTarget((current) => (current === href ? null : current)),
@@ -451,35 +465,70 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
       </span>
       <span className={styles.brandText}>
         <strong>Vialoop</strong>
-        <small>Gestión integral</small>
+        <small>Portal interno</small>
       </span>
     </>
   );
 
+  const notificationControl = (
+    <div className={styles.alertDock} ref={alertDockRef}>
+      <button
+        aria-controls={alertsOpen ? "portal-alerts" : undefined}
+        aria-expanded={alertsOpen}
+        aria-label={alerts.total > 0 ? `${alerts.total} avisos operativos` : "Sin avisos operativos pendientes"}
+        className={`${styles.alertButton} ${alerts.critical > 0 ? styles.alertButtonCritical : ""}`}
+        onClick={() => setAlertsOpen((current) => !current)}
+        type="button"
+      >
+        <AlertIcon />
+        {alerts.total > 0 ? <span aria-hidden="true">{alerts.total > 99 ? "99+" : alerts.total}</span> : null}
+      </button>
+
+      {alertsOpen ? (
+        <section aria-label="Avisos operativos" className={styles.alertPopover} id="portal-alerts">
+          <header className={styles.alertPopoverHeader}>
+            <strong>Avisos operativos</strong>
+            <small>
+              {alerts.critical > 0 ? `${alerts.critical} requieren atención` : "Sin urgencias vencidas"}
+            </small>
+          </header>
+
+          {alerts.items.length > 0 ? (
+            <div className={styles.alertList}>
+              {alerts.items.map((alert) => (
+                <Link className={styles.alertItem} href={alert.href} key={alert.id} onClick={() => setAlertsOpen(false)}>
+                  <i
+                    className={
+                      alert.tone === "critical"
+                        ? styles.alertToneCritical
+                        : alert.tone === "warning" ? styles.alertToneWarning : styles.alertToneNeutral
+                    }
+                  />
+                  <span>
+                    <small>{alert.label} · {alert.dateLabel}</small>
+                    <strong>{alert.title}</strong>
+                    <em>{alert.detail}</em>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.alertEmpty}>
+              <strong>Todo al día</strong>
+              <p>No hay vencimientos ni pagos que requieran atención en 30 días.</p>
+            </div>
+          )}
+
+          <Link className={styles.alertFooter} href="/seguimiento" onClick={() => setAlertsOpen(false)}>
+            Abrir agenda completa
+          </Link>
+        </section>
+      ) : null}
+    </div>
+  );
+
   return (
     <div className={styles.shell}>
-      <header className={styles.mobileHeader}>
-        <Link
-          className={styles.mobileBrand}
-          href="/"
-          onClick={(event) => handleNavigation(event, "/")}
-        >
-          {brand}
-        </Link>
-
-        <button
-          aria-controls="portal-navigation"
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-          className={styles.menuButton}
-          onClick={() => setMenuOpen((currentValue) => !currentValue)}
-          type="button"
-        >
-          <span />
-          <span />
-        </button>
-      </header>
-
       {menuOpen && (
         <button
           aria-label="Cerrar menú"
@@ -523,18 +572,8 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
         </div>
 
         <nav aria-label="Navegación principal" className={styles.navigation}>
-          {visibleNavigationGroups.map((group) => {
-            const groupIsActive = group.items.some((item) =>
-              isCurrentRoute(pathname, item.href),
-            );
-
-            return (
-              <div
-                className={`${styles.navigationGroup} ${
-                  groupIsActive ? styles.navigationGroupActive : ""
-                }`}
-                key={group.label}
-              >
+          {visibleNavigationGroups.map((group) => (
+              <div className={styles.navigationGroup} key={group.label}>
                 <p className={styles.navigationLabel}>{group.label}</p>
 
                 {group.items.map((item) => {
@@ -551,13 +590,11 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
                     >
                       <NavigationIcon name={item.icon} />
                       <span>{item.label}</span>
-                      <i aria-hidden="true" />
                     </Link>
                   );
                 })}
               </div>
-            );
-          })}
+          ))}
         </nav>
 
         <div className={styles.sidebarFooter}>
@@ -604,100 +641,32 @@ export default function PortalLayout({ children, user, alerts }: PortalLayoutPro
       </aside>
 
       <div className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ""}`}>
+        <header className={styles.topbar}>
+          <div className={styles.topbarInner}>
+            <span className={styles.topbarArea}>{pathname === "/" ? "Vista general" : currentGroup?.label || "Portal Vialoop"}</span>
+            <Link className={styles.mobileBrand} href="/" onClick={(event) => handleNavigation(event, "/")}>{brand}</Link>
+            <div className={styles.topbarActions}>
+              {notificationControl}
+              <button
+                aria-controls="portal-navigation"
+                aria-expanded={menuOpen}
+                aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+                className={styles.menuButton}
+                onClick={() => {
+                  setAlertsOpen(false);
+                  setMenuOpen((current) => !current);
+                }}
+                type="button"
+              >
+                <span />
+                <span />
+              </button>
+            </div>
+          </div>
+          {navigating ? <div className={styles.routeProgress} role="status" aria-label="Abriendo módulo de Vialoop"><i aria-hidden="true" /></div> : null}
+        </header>
         {children}
       </div>
-
-      <div className={styles.alertDock} ref={alertDockRef}>
-        <button
-          aria-expanded={alertsOpen}
-          aria-haspopup="dialog"
-          aria-label={
-            alerts.total > 0
-              ? `${alerts.total} avisos operativos`
-              : "Sin avisos operativos pendientes"
-          }
-          className={`${styles.alertButton} ${
-            alerts.critical > 0 ? styles.alertButtonCritical : ""
-          }`}
-          onClick={() => setAlertsOpen((current) => !current)}
-          type="button"
-        >
-          <AlertIcon />
-          {alerts.total > 0 ? (
-            <span>{alerts.total > 99 ? "99+" : alerts.total}</span>
-          ) : null}
-        </button>
-
-        {alertsOpen ? (
-          <section
-            aria-label="Avisos operativos"
-            className={styles.alertPopover}
-            role="dialog"
-          >
-            <header className={styles.alertPopoverHeader}>
-              <div>
-                <span>Control operativo</span>
-                <strong>Avisos próximos</strong>
-              </div>
-              <small>
-                {alerts.critical > 0
-                  ? `${alerts.critical} requieren atención inmediata`
-                  : "Sin urgencias vencidas"}
-              </small>
-            </header>
-
-            {alerts.items.length > 0 ? (
-              <div className={styles.alertList}>
-                {alerts.items.map((alert) => (
-                  <Link
-                    className={styles.alertItem}
-                    href={alert.href}
-                    key={alert.id}
-                    onClick={() => setAlertsOpen(false)}
-                  >
-                    <i
-                      className={
-                        alert.tone === "critical"
-                          ? styles.alertToneCritical
-                          : alert.tone === "warning"
-                            ? styles.alertToneWarning
-                            : styles.alertToneNeutral
-                      }
-                    />
-                    <span>
-                      <small>{alert.label} · {alert.dateLabel}</small>
-                      <strong>{alert.title}</strong>
-                      <em>{alert.detail}</em>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.alertEmpty}>
-                <strong>Todo al día</strong>
-                <p>No hay vencimientos ni pagos que requieran atención en 30 días.</p>
-              </div>
-            )}
-
-            <Link
-              className={styles.alertFooter}
-              href="/seguimiento"
-              onClick={() => setAlertsOpen(false)}
-            >
-              Abrir agenda completa
-              <span aria-hidden="true">→</span>
-            </Link>
-          </section>
-        ) : null}
-      </div>
-
-      {navigating && (
-        <div aria-live="polite" className={styles.routeProgress} role="status">
-          <span>Vialoop</span>
-          <i aria-hidden="true" />
-          <strong>Abriendo módulo…</strong>
-        </div>
-      )}
     </div>
   );
 }

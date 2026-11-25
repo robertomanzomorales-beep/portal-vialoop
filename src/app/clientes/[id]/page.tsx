@@ -645,6 +645,7 @@ export default async function ClientDetailPage({
           <Link href={`/cotizaciones?cliente=${client.id}`}>Nueva cotización</Link>
           <Link href={`/ventas?cliente=${client.id}`}>Registrar venta</Link>
           <Link href={`/solicitudes/nuevo?cliente=${client.id}`}>Crear solicitud</Link>
+          <Link href={`/hosting/correos?cliente=${client.id}`}>Enviar correo de hosting</Link>
           <Link href={`/planificacion?cliente=${client.id}`}>Programar tarea</Link>
         </div>
       </section>

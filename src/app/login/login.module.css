@@ -193,19 +193,7 @@
   display: flex;
   min-height: 100vh;
   align-items: flex-end;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0,
-      transparent calc(100% - 1px),
-      rgb(255 255 255 / 8%) calc(100% - 1px)
-    ),
-    radial-gradient(
-      circle at 75% 20%,
-      color-mix(in srgb, var(--portal-contrast-text) 18%, transparent),
-      transparent 32%
-    ),
-    var(--portal-contrast-bg);
+  background: var(--portal-contrast-bg);
   padding: 72px;
   color: var(--portal-contrast-text);
 }

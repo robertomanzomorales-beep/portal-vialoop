@@ -1,4 +1,7 @@
 .shell {
+  --sidebar-width: 224px;
+  --sidebar-collapsed-width: 66px;
+  --content-inset: clamp(18px, 2.25vw, 32px);
   min-height: 100vh;
   background: var(--portal-bg);
   color: var(--portal-text);
@@ -9,13 +12,15 @@
   inset: 0 auto 0 0;
   z-index: 100;
   display: flex;
-  width: 244px;
+  width: var(--sidebar-width);
   min-height: 100vh;
   flex-direction: column;
   overflow-y: auto;
   border-right: 1px solid var(--portal-border);
   background: var(--portal-surface);
-  padding: 17px 13px 14px;
+  padding: 15px 11px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--portal-border-strong) transparent;
   contain: paint;
   transition:
     width var(--portal-motion-base) var(--portal-ease),
@@ -34,8 +39,9 @@
 
 .sidebarHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  margin-bottom: 13px;
 }
 
 .brand,
@@ -50,20 +56,15 @@
 
 .brand {
   flex: 1;
-  padding: 0 7px 17px;
+  padding: 0 6px;
 }
 
 .brandMark {
   display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  overflow: hidden;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   place-items: center;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 6px 18px var(--portal-shadow-color);
 }
 
 .brandLogo {
@@ -71,6 +72,10 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+:global(html[data-theme="dark"]) .brandLogo {
+  filter: invert(0.93);
 }
 
 .brandText {
@@ -88,12 +93,12 @@
 .brandText strong {
   color: var(--portal-text);
   font-size: 15px;
-  font-weight: 780;
-  letter-spacing: -0.035em;
+  font-weight: 690;
+  letter-spacing: -0.025em;
 }
 
 .brandText small {
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--portal-text-tertiary);
   font-size: 10px;
   font-weight: 520;
@@ -109,12 +114,17 @@
   height: 28px;
   flex: 0 0 28px;
   place-items: center;
-  border: 1px solid var(--portal-border);
-  border-radius: 8px;
-  background: var(--portal-surface-soft);
+  border: 0;
+  border-radius: var(--portal-radius-sm);
+  background: transparent;
   color: var(--portal-muted);
   font: inherit;
   cursor: pointer;
+}
+
+.collapseButton:hover {
+  background: var(--portal-surface-hover);
+  color: var(--portal-text);
 }
 
 .collapseButton svg {
@@ -133,25 +143,16 @@
 }
 
 .navigationGroup {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  border-left: 1px solid transparent;
-  padding-left: 7px;
-}
-
-.navigationGroupActive {
-  border-left-color: var(--portal-border-strong);
+  gap: 1px;
 }
 
 .navigationLabel {
-  margin: 13px 10px 5px;
+  margin: 13px 9px 4px;
   color: var(--portal-text-tertiary);
   font-size: 10px;
-  font-weight: 720;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
+  font-weight: 620;
 }
 
 .navigationGroup:first-child .navigationLabel {
@@ -161,20 +162,19 @@
 .navigation a {
   position: relative;
   display: flex;
-  min-height: 34px;
+  min-height: 32px;
   align-items: center;
-  gap: 10px;
-  border-radius: 8px;
-  padding: 7px 9px;
+  gap: 9px;
+  border-radius: var(--portal-radius-sm);
+  padding: 6px 9px;
   color: var(--portal-text-secondary);
   font-size: 13px;
-  font-weight: 570;
+  font-weight: 520;
   line-height: 1.25;
   text-decoration: none;
   transition:
     background-color var(--portal-motion-fast) var(--portal-ease),
-    color var(--portal-motion-fast) var(--portal-ease),
-    transform var(--portal-motion-fast) var(--portal-ease);
+    color var(--portal-motion-fast) var(--portal-ease);
 }
 
 .navigation a:hover {
@@ -182,15 +182,10 @@
   color: var(--portal-text);
 }
 
-.navigation a:active {
-  transform: scale(0.985);
-}
-
 .navigation a.activeLink {
-  background: var(--portal-accent);
-  color: var(--portal-on-accent);
-  font-weight: 690;
-  box-shadow: 0 7px 20px var(--portal-shadow-color);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+  font-weight: 640;
 }
 
 .navigation a > span {
@@ -198,20 +193,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.navigation a > i {
-  display: none;
-  width: 5px;
-  height: 5px;
-  flex: 0 0 5px;
-  margin-left: auto;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.navigation a.activeLink > i {
-  display: block;
 }
 
 .navigationIcon {
@@ -226,7 +207,7 @@
 }
 
 .navigation a.activeLink .navigationIcon {
-  color: var(--portal-on-accent);
+  color: var(--portal-accent);
 }
 
 .sidebarFooter {
@@ -243,9 +224,7 @@
   min-width: 0;
   align-items: center;
   gap: 9px;
-  border-radius: 11px;
-  background: var(--portal-surface-soft);
-  padding: 9px;
+  padding: 4px 0;
 }
 
 .avatar {
@@ -256,8 +235,8 @@
   place-items: center;
   border: 1px solid var(--portal-border);
   border-radius: 50%;
-  background: var(--portal-text);
-  color: var(--portal-bg);
+  background: var(--portal-surface-hover);
+  color: var(--portal-text-secondary);
   font-size: 10px;
   font-weight: 780;
 }
@@ -385,17 +364,19 @@
 
 .main {
   min-height: 100vh;
-  margin-left: 244px;
+  min-width: 0;
+  margin-left: var(--sidebar-width);
+  container: portal-content / inline-size;
   transition: margin-left var(--portal-motion-base) var(--portal-ease);
 }
 
 .main > :global(main) {
   max-width: 1600px;
-  padding: 26px clamp(18px, 2.7vw, 34px) 40px !important;
+  padding: 22px var(--content-inset) 40px !important;
 }
 
 .sidebarCollapsed {
-  width: 74px;
+  width: var(--sidebar-collapsed-width);
   padding-right: 10px;
   padding-left: 10px;
 }
@@ -413,7 +394,6 @@
 .sidebarCollapsed .brandText,
 .sidebarCollapsed .navigationLabel,
 .sidebarCollapsed .navigation a > span,
-.sidebarCollapsed .navigation a > i,
 .sidebarCollapsed .userDetails,
 .sidebarCollapsed .themeArea,
 .sidebarCollapsed .logoutLabel {
@@ -455,62 +435,66 @@
 }
 
 .mainCollapsed {
-  margin-left: 74px;
+  margin-left: var(--sidebar-collapsed-width);
 }
 
-.routeProgress {
-  position: fixed;
-  top: 18px;
-  right: 72px;
-  z-index: 1000;
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  border-bottom: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+}
+
+.topbarInner {
   display: flex;
+  width: 100%;
+  max-width: 1600px;
+  min-height: 47px;
   align-items: center;
-  gap: 10px;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 999px;
-  background: var(--portal-surface-elevated);
-  box-shadow: var(--portal-shadow-md);
-  padding: 9px 12px;
-  color: var(--portal-text);
-  animation: routeProgressIn var(--portal-motion-base) var(--portal-ease) both;
+  justify-content: space-between;
+  gap: 12px;
+  margin-inline: auto;
+  padding-inline: var(--content-inset);
+}
+
+.topbarArea {
+  color: var(--portal-muted);
+  font-size: 12px;
+  font-weight: 590;
+}
+
+.topbarActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
 }
 
 .alertDock {
-  position: fixed;
-  top: 16px;
-  right: 20px;
-  z-index: 1100;
+  position: relative;
 }
 
 .alertButton {
-  position: relative;
-  display: grid;
-  width: 39px;
-  height: 39px;
-  place-items: center;
-  border: 1px solid var(--portal-border-strong);
-  border-radius: 11px;
-  background: color-mix(in srgb, var(--portal-surface-elevated) 94%, transparent);
-  box-shadow: var(--portal-shadow-sm);
+  display: inline-flex;
+  min-width: 36px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: var(--portal-radius-sm);
+  background: transparent;
+  padding: 0 7px;
   color: var(--portal-text-secondary);
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  transition:
-    transform var(--portal-motion-fast) var(--portal-ease),
-    border-color var(--portal-motion-fast) var(--portal-ease),
-    background-color var(--portal-motion-fast) var(--portal-ease);
+  transition: background-color var(--portal-motion-fast) var(--portal-ease);
 }
 
 .alertButton:hover,
 .alertButton[aria-expanded="true"] {
-  border-color: var(--portal-accent-border);
-  background: var(--portal-surface-elevated);
-  color: var(--portal-accent);
-  transform: translateY(-1px);
-}
-
-.alertButtonCritical {
-  border-color: var(--portal-danger-border);
+  background: var(--portal-surface-hover);
+  color: var(--portal-text);
 }
 
 .alertButton svg {
@@ -523,34 +507,32 @@
 }
 
 .alertButton > span {
-  position: absolute;
-  top: -6px;
-  right: -6px;
   display: grid;
-  min-width: 18px;
-  height: 18px;
+  min-width: 16px;
+  min-height: 16px;
   place-items: center;
-  border: 2px solid var(--portal-bg);
-  border-radius: 999px;
-  background: var(--portal-accent);
-  padding: 0 4px;
-  color: var(--portal-on-accent);
-  font-size: 8px;
-  font-weight: 820;
+  border-radius: 4px;
+  background: var(--portal-surface-hover);
+  padding-inline: 4px;
+  color: var(--portal-text-secondary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
 }
 
 .alertButtonCritical > span {
-  background: var(--portal-danger);
+  background: var(--portal-danger-soft);
+  color: var(--portal-danger);
 }
 
 .alertPopover {
   position: absolute;
-  top: 47px;
+  top: calc(100% + 7px);
   right: 0;
   width: min(370px, calc(100vw - 28px));
   overflow: hidden;
   border: 1px solid var(--portal-border-strong);
-  border-radius: 14px;
+  border-radius: var(--portal-radius-lg);
   background: var(--portal-surface-elevated);
   box-shadow: var(--portal-shadow-md);
   animation: alertPopoverIn var(--portal-motion-base) var(--portal-ease) both;
@@ -558,38 +540,23 @@
 
 .alertPopoverHeader {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   border-bottom: 1px solid var(--portal-border);
-  background: var(--portal-surface-soft);
-  padding: 15px 16px 13px;
+  padding: 13px 14px;
 }
 
-.alertPopoverHeader div > span,
-.alertPopoverHeader div > strong {
-  display: block;
-}
-
-.alertPopoverHeader div > span {
-  margin-bottom: 4px;
-  color: var(--portal-accent);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.alertPopoverHeader div > strong {
+.alertPopoverHeader > strong {
   color: var(--portal-text);
   font-size: 14px;
-  letter-spacing: -0.02em;
+  font-weight: 640;
 }
 
 .alertPopoverHeader > small {
   max-width: 145px;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.35;
   text-align: right;
 }
@@ -623,17 +590,14 @@
 
 .alertToneCritical {
   background: var(--portal-danger);
-  box-shadow: 0 0 0 3px var(--portal-danger-soft);
 }
 
 .alertToneWarning {
   background: var(--portal-warning);
-  box-shadow: 0 0 0 3px var(--portal-warning-soft);
 }
 
 .alertToneNeutral {
   background: var(--portal-accent);
-  box-shadow: 0 0 0 3px var(--portal-accent-soft);
 }
 
 .alertItem > span,
@@ -647,14 +611,14 @@
 .alertItem small {
   margin-bottom: 3px;
   color: var(--portal-muted);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 590;
 }
 
 .alertItem strong {
   overflow: hidden;
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -664,7 +628,7 @@
   margin-top: 3px;
   overflow: hidden;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: 11px;
   font-style: normal;
   line-height: 1.4;
   text-overflow: ellipsis;
@@ -690,59 +654,40 @@
 }
 
 .alertFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: block;
   background: var(--portal-surface-soft);
   padding: 11px 15px;
   color: var(--portal-accent);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 630;
   text-decoration: none;
+}
+
+.alertFooter:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @keyframes alertPopoverIn {
   from {
     opacity: 0;
-    transform: translateY(-5px) scale(0.985);
+    transform: translateY(-4px);
   }
 }
 
-.routeProgress span {
-  font-size: 11px;
-  font-weight: 790;
-  letter-spacing: -0.035em;
+.routeProgress {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  overflow: hidden;
 }
 
 .routeProgress i {
-  position: relative;
-  width: 34px;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--portal-border-strong);
-}
-
-.routeProgress i::after {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 45%;
-  border-radius: inherit;
-  background: var(--portal-text);
-  content: "";
+  display: block;
+  width: 34%;
+  height: 100%;
+  background: var(--portal-data);
   animation: routeProgressTrack 900ms ease-in-out infinite;
-}
-
-.routeProgress strong {
-  font-size: 10px;
-  font-weight: 650;
-}
-
-@keyframes routeProgressIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
 }
 
 @keyframes routeProgressTrack {
@@ -755,48 +700,29 @@
   }
 }
 
-.mobileHeader,
+.mobileBrand,
+.menuButton,
 .backdrop {
   display: none;
 }
 
 @media (max-width: 820px) {
-  .alertDock {
-    top: 11px;
-    right: 68px;
-    z-index: 90;
-  }
-
   .alertPopover {
-    position: fixed;
-    top: 66px;
-    right: 10px;
-    left: 10px;
-    width: auto;
+    right: -44px;
+    width: min(360px, calc(100vw - 32px));
   }
 
-  .routeProgress {
-    top: 68px;
-    right: 10px;
+  .topbarInner {
+    min-height: 54px;
+    padding-inline: 16px;
   }
 
-  .mobileHeader {
-    position: sticky;
-    top: 0;
-    z-index: 80;
+  .topbarArea {
+    display: none;
+  }
+
+  .mobileBrand {
     display: flex;
-    min-height: 62px;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--portal-border);
-    background: var(--portal-surface);
-    padding: 0 16px;
-  }
-
-  .mobileBrand .brandMark {
-    width: 36px;
-    height: 36px;
-    flex-basis: 36px;
   }
 
   .menuButton {
@@ -808,15 +734,16 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
-    border: 1px solid var(--portal-border);
-    border-radius: 10px;
-    background: var(--portal-surface-soft);
+    border: 0;
+    border-radius: var(--portal-radius-sm);
+    background: transparent;
     cursor: pointer;
     transition:
-      border-color var(--portal-motion-fast) var(--portal-ease),
-      background-color var(--portal-motion-fast) var(--portal-ease),
-      transform var(--portal-motion-fast) var(--portal-ease);
+      background-color var(--portal-motion-fast) var(--portal-ease);
   }
+
+  .menuButton:hover { background: var(--portal-surface-hover); }
+  .alertButton { min-height: 38px; }
 
   .menuButton span {
     width: 16px;
@@ -828,17 +755,17 @@
   .sidebar {
     inset: 0 0 0 auto;
     width: 100vw;
-    padding: 18px 14px 14px;
+    visibility: hidden;
+    padding: 16px 14px 14px;
     border-right: 0;
     border-left: 1px solid var(--portal-border);
-    box-shadow: -24px 0 70px var(--portal-shadow-color);
-    transform: translateX(105%);
-    will-change: transform;
+    transform: translateX(100%);
+    transition: transform 220ms var(--portal-ease), visibility 0s 220ms;
   }
 
   .sidebar.sidebarCollapsed {
     width: 100vw;
-    padding: 18px 14px 14px;
+    padding: 16px 14px 14px;
   }
 
   .sidebarCollapsed .sidebarHeader {
@@ -848,7 +775,7 @@
 
   .sidebarCollapsed .brand {
     flex: 1;
-    padding: 0 4px 22px;
+    padding: 0 4px;
   }
 
   .sidebarCollapsed .brandText,
@@ -862,8 +789,6 @@
 
   .sidebarCollapsed .navigationGroup {
     align-items: stretch;
-    border-left: 1px solid transparent;
-    padding-left: 7px;
   }
 
   .sidebarCollapsed .navigation a {
@@ -873,10 +798,6 @@
     padding: 8px 10px;
   }
 
-  .sidebarCollapsed .navigation a.activeLink > i {
-    display: block;
-  }
-
   .sidebarCollapsed .sidebarFooter {
     align-items: stretch;
     padding: 14px 6px 0;
@@ -884,8 +805,7 @@
 
   .sidebarCollapsed .userRow {
     justify-content: flex-start;
-    background: var(--portal-surface-soft);
-    padding: 9px;
+    padding: 4px 0;
   }
 
   .sidebarCollapsed .sidebarFooter form,
@@ -899,7 +819,9 @@
   }
 
   .sidebarOpen {
+    visibility: visible;
     transform: translateX(0);
+    transition-delay: 0s;
   }
 
   .sidebarClose {
@@ -908,9 +830,9 @@
     height: 34px;
     flex: 0 0 34px;
     place-items: center;
-    border: 1px solid var(--portal-border);
-    border-radius: 9px;
-    background: var(--portal-surface-soft);
+    border: 0;
+    border-radius: var(--portal-radius-sm);
+    background: var(--portal-surface-hover);
     color: var(--portal-muted);
     font-family: inherit;
     font-size: 20px;
@@ -943,17 +865,12 @@
   .main > :global(main) {
     padding: 22px 16px 32px !important;
   }
-
-  .routeProgress {
-    top: 72px;
-    right: 14px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar,
-  .routeProgress,
-  .routeProgress i::after {
+  .routeProgress i,
+  .alertPopover {
     transition: none;
     animation: none;
   }

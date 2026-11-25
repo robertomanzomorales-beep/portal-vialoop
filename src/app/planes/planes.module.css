@@ -72,14 +72,13 @@
 }
 
 .primaryButton {
-  border: 1px solid var(--portal-accent);
-  background: var(--portal-accent);
-  color: var(--portal-on-accent);
-  box-shadow: 0 8px 18px var(--portal-focus);
+  border: 1px solid transparent;
+  background: var(--portal-action);
+  color: var(--portal-on-action);
 }
 
 .primaryButton:hover {
-  background: var(--portal-accent-hover);
+  background: var(--portal-action-hover);
 }
 
 .secondaryButton,
@@ -99,14 +98,13 @@
 }
 
 .assignButton {
-  border: 1px solid var(--portal-accent);
-  background: var(--portal-accent);
-  color: var(--portal-on-accent);
-  box-shadow: 0 5px 13px var(--portal-focus);
+  border: 1px solid transparent;
+  background: var(--portal-action);
+  color: var(--portal-on-action);
 }
 
 .assignButton:hover {
-  background: var(--portal-accent-hover);
+  background: var(--portal-action-hover);
 }
 
 .successMessage,
@@ -124,11 +122,9 @@
   align-items: center;
   gap: 24px;
   margin-bottom: 13px;
-  border: 1px solid var(--portal-accent-border);
+  border: 1px solid var(--portal-border);
   border-radius: var(--portal-radius-lg);
-  background:
-    linear-gradient(135deg, var(--portal-accent-soft), transparent 58%),
-    var(--portal-surface);
+  background: var(--portal-surface);
   padding: 18px 20px;
   box-shadow: var(--portal-shadow-sm);
 }
