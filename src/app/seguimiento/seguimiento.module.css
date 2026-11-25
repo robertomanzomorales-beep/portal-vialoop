@@ -23,9 +23,6 @@
 
 .hero h1 {
   margin: 6px 0 7px;
-  font-size: clamp(30px, 4vw, 42px);
-  letter-spacing: -0.045em;
-  line-height: 1.08;
 }
 
 .hero p,
@@ -39,10 +36,10 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 10px;
-  font-weight: 820;
-  letter-spacing: 0.09em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -108,21 +105,23 @@
 
 .metrics span,
 .metrics small {
-  overflow: hidden;
   color: var(--portal-muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--portal-font-caption);
+  line-height: 1.45;
 }
 
 .metrics span {
-  font-weight: 680;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .metrics strong {
   color: var(--portal-text);
-  font-size: 27px;
-  letter-spacing: -0.05em;
+  font-size: var(--portal-font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  letter-spacing: -0.035em;
+  line-height: 1.12;
 }
 
 .metrics .metricAlert {
@@ -148,8 +147,6 @@
 .pipelineHeader h2 {
   margin: 5px 0 5px;
   color: var(--portal-text);
-  font-size: 18px;
-  letter-spacing: -0.025em;
 }
 
 .calendarViewToggle {
@@ -169,8 +166,8 @@
   background: transparent;
   color: var(--portal-muted);
   font: inherit;
-  font-size: 10px;
-  font-weight: 720;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
   cursor: pointer;
 }
 
@@ -212,8 +209,8 @@
   padding: 0 9px;
   color: var(--portal-muted);
   font: inherit;
-  font-size: 9px;
-  font-weight: 690;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   cursor: pointer;
   transition:
     border-color var(--portal-motion-fast) var(--portal-ease),
@@ -234,7 +231,8 @@
   border-radius: 999px;
   background: var(--portal-surface-soft);
   color: var(--portal-text-tertiary);
-  font-size: 8px;
+  font-size: var(--portal-font-caption);
+  font-variant-numeric: tabular-nums;
 }
 
 .calendarFilters > div:first-child .calendarFilterActive {
@@ -250,7 +248,7 @@
 
 .calendarFilterSummary {
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
   white-space: nowrap;
 }
 
@@ -316,7 +314,7 @@
 
 .overdueStrip span {
   color: var(--portal-muted);
-  font-size: 10px;
+  font-size: var(--portal-font-caption);
 }
 
 .overdueActions {
@@ -334,8 +332,8 @@
   color: var(--portal-danger);
   padding: 5px 9px;
   font: inherit;
-  font-size: 9px;
-  font-weight: 740;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   cursor: pointer;
 }
 
@@ -346,7 +344,7 @@
   padding: 10px 22px;
   border-bottom: 1px solid var(--portal-border);
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .agendaView {
@@ -404,15 +402,16 @@
 
 .agendaDate strong {
   color: var(--portal-text);
-  font-family: var(--font-geist-mono), monospace;
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
 }
 
 .agendaDate small {
   margin-top: 4px;
   color: var(--portal-muted);
-  font-size: 8px;
-  font-weight: 740;
+  font-size: 10px;
+  font-weight: var(--portal-weight-label);
   text-transform: uppercase;
 }
 
@@ -427,11 +426,9 @@
 .agendaOwner small {
   overflow: hidden;
   color: var(--portal-text-tertiary);
-  font-size: 8px;
-  font-weight: 720;
-  letter-spacing: 0.025em;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -439,7 +436,9 @@
 .agendaOwner strong {
   overflow: hidden;
   color: var(--portal-text);
-  font-size: 10px;
+  font-size: var(--portal-font-body);
+  font-weight: var(--portal-weight-heading);
+  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -451,7 +450,7 @@
 
 .agendaOwner strong {
   color: var(--portal-text-secondary);
-  font-size: 9px;
+  font-size: var(--portal-font-label);
 }
 
 .agendaRowOverdue .agendaOwner small,
@@ -462,8 +461,8 @@
 .agendaOpen {
   min-width: 50px;
   color: var(--portal-accent);
-  font-size: 9px;
-  font-weight: 760;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-heading);
   text-align: right;
 }
 
@@ -485,7 +484,7 @@
 .agendaEmpty p {
   margin: 0;
   color: var(--portal-muted);
-  font-size: 10px;
+  font-size: var(--portal-font-label);
 }
 
 .calendarViewport {
@@ -507,8 +506,8 @@
 .weekdayRow span {
   padding: 8px 10px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
-  font-weight: 760;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   text-align: center;
   text-transform: uppercase;
 }
@@ -546,9 +545,9 @@
   place-items: center;
   border-radius: 7px;
   color: var(--portal-muted);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--portal-font-caption);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-label);
 }
 
 .calendarDayToday .dayNumber {
@@ -618,13 +617,14 @@
 }
 
 .dayEvents strong {
-  font-size: 8px;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-heading);
 }
 
 .dayEvents span,
 .dayEvents small {
   color: var(--portal-muted);
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .pipelinePanel {
@@ -880,13 +880,11 @@
 
 .recordService span,
 .recordDate span,
-.quotationSummary span,
+.quotationSummary > div > span,
 .detailLabel {
   color: var(--portal-text-tertiary);
-  font-size: 8px;
-  font-weight: 720;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .recordService strong,
@@ -974,15 +972,17 @@
 .quotationSummary strong {
   overflow: hidden;
   color: var(--portal-text);
-  font-size: 10px;
+  font-size: var(--portal-font-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-heading);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .quotationSummary > a {
   color: var(--portal-accent);
-  font-size: 9px;
-  font-weight: 780;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-heading);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -995,36 +995,34 @@
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 0 8px;
-  font-size: 8px !important;
-  font-weight: 780 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   white-space: nowrap;
 }
 
 .quotationActive {
   border-color: var(--portal-success-border);
   background: var(--portal-success-soft);
-  color: var(--portal-success) !important;
+  color: var(--portal-success);
 }
 
 .quotationSoon,
 .quotationToday {
   border-color: var(--portal-warning-border);
   background: var(--portal-warning-soft);
-  color: var(--portal-warning) !important;
+  color: var(--portal-warning);
 }
 
 .quotationExpired {
   border-color: var(--portal-danger-border);
   background: var(--portal-danger-soft);
-  color: var(--portal-danger) !important;
+  color: var(--portal-danger);
 }
 
 .quotationNeutral {
   border-color: var(--portal-border);
   background: var(--portal-surface-soft);
-  color: var(--portal-muted) !important;
+  color: var(--portal-muted);
 }
 
 .recordDetails {

@@ -10,8 +10,6 @@
 
 .hero h1 {
   margin: 6px 0 7px;
-  font-size: clamp(28px, 3.5vw, 38px);
-  letter-spacing: -0.045em;
 }
 
 .hero p,
@@ -24,10 +22,10 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 11px;
-  font-weight: 820;
-  letter-spacing: 0.09em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 

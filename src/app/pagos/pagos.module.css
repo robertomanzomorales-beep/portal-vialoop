@@ -32,17 +32,15 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
 .header h1 {
   margin: 8px 0;
-  font-size: 42px;
-  letter-spacing: -0.04em;
 }
 
 .header p,
@@ -50,6 +48,7 @@
   max-width: 760px;
   margin: 0;
   color: var(--portal-muted);
+  font-size: var(--portal-font-body);
   line-height: 1.6;
 }
 
@@ -154,25 +153,26 @@
 .summary span {
   display: block;
   color: var(--portal-muted);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .summary strong {
   display: block;
   margin: 12px 0 8px;
-  font-size: 30px;
-  letter-spacing: -0.04em;
+  font-size: var(--portal-font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
 }
 
 .summary .amount {
   color: var(--portal-danger);
-  font-size: 24px;
 }
 
 .summary .paidAmount {
   color: var(--portal-success);
-  font-size: 24px;
 }
 
 .summary p {
@@ -266,15 +266,13 @@
 .table th {
   background: var(--portal-surface-soft);
   color: var(--portal-muted);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .table td {
   color: var(--portal-text-secondary);
-  font-size: 13px;
+  font-size: var(--portal-font-body);
 }
 
 .table tbody tr {
@@ -299,6 +297,7 @@
 .description {
   display: block;
   color: var(--portal-text);
+  font-weight: var(--portal-weight-heading);
 }
 
 .clientLink:hover strong {
@@ -316,6 +315,7 @@
 
 .price {
   color: var(--portal-text);
+  font-weight: var(--portal-weight-value);
   white-space: nowrap;
 }
 

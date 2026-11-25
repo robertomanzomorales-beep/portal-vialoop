@@ -20,12 +20,6 @@
   margin: 6px 0;
 }
 
-.pageHeader h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-}
-
 .pageHeader p,
 .listHeader p,
 .modalHeader p,
@@ -36,10 +30,10 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 

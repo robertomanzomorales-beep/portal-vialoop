@@ -67,8 +67,6 @@
 
 .heading h1 {
   margin: 9px 0 10px;
-  font-size: 42px;
-  letter-spacing: -0.045em;
 }
 
 .heading p {
@@ -272,9 +270,5 @@
 
   .brand {
     margin-bottom: 44px;
-  }
-
-  .heading h1 {
-    font-size: 35px;
   }
 }

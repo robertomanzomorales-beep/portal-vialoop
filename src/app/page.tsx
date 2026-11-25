@@ -809,11 +809,11 @@ export default async function Home() {
             <div className={styles.salesMixLegend}>
               <span>
                 <i className={styles.directDot} />
-                Proyectos {formatCurrency(monthlyDirectSalesAmount)}
+                Proyectos <strong>{formatCurrency(monthlyDirectSalesAmount)}</strong>
               </span>
               <span>
                 <i className={styles.hostingDot} />
-                Hosting y renovaciones {formatCurrency(monthlyHostingSalesAmount)}
+                Hosting y renovaciones <strong>{formatCurrency(monthlyHostingSalesAmount)}</strong>
               </span>
             </div>
           </div>

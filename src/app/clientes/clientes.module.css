@@ -23,17 +23,15 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
 .header h1 {
   margin: 8px 0;
-  font-size: 42px;
-  letter-spacing: -0.04em;
 }
 
 .header p,
@@ -158,21 +156,24 @@
 
 .summary span {
   color: var(--portal-muted);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .summary strong {
   display: block;
   margin-top: 8px;
-  font-size: 25px;
+  font-size: var(--portal-font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  line-height: 1.15;
 }
 
 .summary small {
   display: block;
   margin-top: 5px;
   color: var(--portal-text-tertiary);
-  font-size: 10px;
+  font-size: var(--portal-font-caption);
   line-height: 1.4;
 }
 
@@ -200,16 +201,16 @@
 
 .clientTitleLine {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 5px 12px;
   margin-top: 6px;
 }
 
 .clientTitleLine h1 {
+  min-width: 0;
   margin: 0;
   color: var(--portal-text);
-  font-size: clamp(30px, 4vw, 42px);
-  letter-spacing: -0.045em;
 }
 
 .workspaceNav {
@@ -242,19 +243,20 @@
 
 .actionFeedback strong {
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: var(--portal-font-body);
+  font-weight: var(--portal-weight-heading);
 }
 
 .actionFeedback span {
   margin-top: 2px;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: var(--portal-font-label);
 }
 
 .actionFeedback > a {
   color: var(--portal-muted);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   text-decoration: none;
 }
 
@@ -328,12 +330,13 @@
 
 .clientCommandBar strong {
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-heading);
 }
 
 .clientCommandBar span {
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .clientCommandActions {
@@ -355,8 +358,8 @@
   background: var(--portal-surface);
   padding: 0 11px;
   color: var(--portal-text-secondary);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-heading);
   text-decoration: none;
   white-space: nowrap;
   transition:
@@ -396,20 +399,22 @@
 }
 
 .clientPriority span {
-  font-size: 9px;
-  font-weight: 780;
-  letter-spacing: 0.065em;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.035em;
   text-transform: uppercase;
 }
 
 .clientPriority strong {
   color: var(--portal-text);
-  font-size: 13px;
+  font-size: var(--portal-font-body);
+  font-weight: var(--portal-weight-heading);
 }
 
 .clientPriority p {
   margin: 0;
   color: var(--portal-text-secondary);
+  font-size: var(--portal-font-label);
   font-size: 10.5px;
   line-height: 1.45;
 }
@@ -556,19 +561,21 @@
 
 .financialMetrics span {
   color: var(--portal-muted);
-  font-size: 11px;
-  font-weight: 650;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .financialMetrics strong {
   color: var(--portal-text);
   font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
   letter-spacing: -0.03em;
 }
 
 .financialMetrics small {
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
   line-height: 1.4;
 }
 
@@ -594,10 +601,8 @@
 .serviceTable th {
   background: var(--portal-surface-soft);
   color: var(--portal-muted);
-  font-size: 9px;
-  font-weight: 740;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .serviceTable tbody tr:last-child td {
@@ -611,13 +616,14 @@
 
 .serviceTable strong {
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-heading);
 }
 
 .serviceTable small {
   margin-top: 3px;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .panel,
@@ -760,15 +766,13 @@
 .table th {
   color: var(--portal-muted);
   background: var(--portal-surface-soft);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .table td {
   color: var(--portal-text-secondary);
-  font-size: 13px;
+  font-size: var(--portal-font-body);
 }
 
 .table tbody tr {
@@ -811,6 +815,7 @@
 .contactName {
   display: block;
   color: var(--portal-text);
+  font-weight: var(--portal-weight-heading);
 }
 
 .companyLink:hover .companyCell strong {
@@ -1060,15 +1065,15 @@
   white-space: nowrap;
 }
 
-.projectStatus {
+.projectCard > header .projectStatus {
   flex: 0 0 auto;
   border: 1px solid var(--portal-accent-border);
   border-radius: 999px;
   background: var(--portal-accent-soft);
   padding: 5px 8px;
-  color: var(--portal-accent) !important;
-  font-size: 9px !important;
-  font-weight: 750;
+  color: var(--portal-accent);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .projectCard dl {

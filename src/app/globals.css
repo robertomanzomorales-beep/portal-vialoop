@@ -52,6 +52,15 @@
   --portal-radius-md: 8px;
   --portal-radius-lg: 10px;
   --portal-radius-xl: 12px;
+  --portal-font-title: clamp(26px, 2.2vw, 32px);
+  --portal-font-section: 17px;
+  --portal-font-body: 13px;
+  --portal-font-label: 12px;
+  --portal-font-caption: 11px;
+  --portal-font-metric: clamp(23px, 2vw, 29px);
+  --portal-weight-heading: 630;
+  --portal-weight-label: 580;
+  --portal-weight-value: 650;
   --portal-motion-fast: 120ms;
   --portal-motion-base: 170ms;
   --portal-ease: cubic-bezier(0.2, 0.7, 0.25, 1);
@@ -164,12 +173,22 @@ a {
 }
 
 main h1 {
-  font-size: clamp(1.65rem, 2.5vw, 2.1rem) !important;
-  letter-spacing: -0.045em;
+  font-size: var(--portal-font-title);
+  font-weight: var(--portal-weight-heading);
+  letter-spacing: -0.038em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 main h2 {
-  font-size: clamp(1rem, 1.45vw, 1.18rem);
+  font-size: var(--portal-font-section);
+  font-weight: var(--portal-weight-heading);
+  letter-spacing: -0.02em;
+  line-height: 1.28;
+}
+
+main table {
+  font-variant-numeric: tabular-nums;
 }
 
 .portal-route-loading {

@@ -23,17 +23,15 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
 .header h1 {
   margin: 8px 0;
-  font-size: 42px;
-  letter-spacing: -0.04em;
 }
 
 .header p,

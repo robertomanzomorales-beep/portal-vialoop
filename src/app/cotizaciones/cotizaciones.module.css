@@ -24,9 +24,6 @@
 
 .header h1 {
   margin: 7px 0 9px;
-  font-size: clamp(2rem, 3vw, 2.65rem);
-  font-weight: 720;
-  letter-spacing: -0.055em;
 }
 
 .header p,
@@ -34,14 +31,15 @@
 .emptyState p {
   margin: 0;
   color: var(--portal-muted);
+  font-size: var(--portal-font-body);
   line-height: 1.6;
 }
 
 .eyebrow {
-  color: var(--portal-text-tertiary);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.11em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -64,20 +62,22 @@
 
 .metrics span {
   color: var(--portal-muted);
-  font-size: 0.72rem;
-  font-weight: 680;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .metrics small {
   color: var(--portal-text-tertiary);
-  font-size: 0.66rem;
+  font-size: var(--portal-font-caption);
 }
 
 .metrics strong {
   color: var(--portal-text);
-  font-size: 1.55rem;
-  font-weight: 720;
-  letter-spacing: -0.045em;
+  font-size: var(--portal-font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
 }
 
 .quotationForm,
@@ -162,13 +162,10 @@
 .sectionHeading h2 {
   margin: 0 0 5px;
   color: var(--portal-text);
-  font-size: 1.02rem;
-  font-weight: 720;
-  letter-spacing: -0.025em;
 }
 
 .sectionHeading p {
-  font-size: 0.78rem;
+  font-size: var(--portal-font-label);
 }
 
 .formGrid {
@@ -187,8 +184,8 @@
 .itemRow label > span,
 .itemSubtotal > span {
   color: var(--portal-text-secondary);
-  font-size: 0.7rem;
-  font-weight: 720;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .field > small {
@@ -266,10 +263,8 @@
 }
 
 .itemsHeader span {
-  font-size: 0.58rem;
-  font-weight: 780;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .itemsHeader span:nth-child(3) {
@@ -681,8 +676,6 @@
 
 .historyHeader h2 {
   margin: 5px 0 0;
-  font-weight: 720;
-  letter-spacing: -0.03em;
 }
 
 .tableWrap {
@@ -707,14 +700,13 @@
 .tableWrap th {
   background: var(--portal-surface-soft);
   color: var(--portal-muted);
-  font-size: 0.64rem;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .tableWrap td {
   color: var(--portal-text-secondary);
-  font-size: 0.77rem;
+  font-size: var(--portal-font-body);
 }
 
 .tableWrap td strong,
@@ -724,11 +716,13 @@
 
 .tableWrap td strong {
   color: var(--portal-text);
+  font-weight: var(--portal-weight-heading);
 }
 
 .tableWrap td small {
   margin-top: 4px;
   color: var(--portal-text-tertiary);
+  font-size: var(--portal-font-caption);
 }
 
 .status {
@@ -786,10 +780,10 @@
   gap: 4px;
 }
 
-.acceptAction small {
+.tableWrap .acceptAction small {
   max-width: 260px;
-  color: var(--portal-danger) !important;
-  font-size: 0.62rem !important;
+  color: var(--portal-danger);
+  font-size: var(--portal-font-caption);
   text-align: right;
 }
 

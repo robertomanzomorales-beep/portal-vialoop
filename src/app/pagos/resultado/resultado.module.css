@@ -83,13 +83,6 @@
 .card h1 {
   margin: 12px auto 16px;
   max-width: 500px;
-  font-size: clamp(
-    30px,
-    5vw,
-    44px
-  );
-  line-height: 1.08;
-  letter-spacing: -1.5px;
 }
 
 .card > p {

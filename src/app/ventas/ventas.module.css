@@ -34,9 +34,6 @@
 }
 
 .pageHeader h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
-  letter-spacing: -0.04em;
-  line-height: 1.05;
   margin: 8px 0 10px;
 }
 
@@ -50,6 +47,7 @@
 .modalHeader p,
 .emptyState p {
   color: var(--portal-muted);
+  font-size: var(--portal-font-body);
   margin: 0;
 }
 
@@ -107,10 +105,10 @@
 }
 
 .eyebrow {
-  color: var(--portal-accent);
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -211,13 +209,15 @@
 
 .closeMetrics span {
   color: var(--portal-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .closeMetrics strong {
   color: var(--portal-text);
   font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
   letter-spacing: -0.025em;
 }
 
@@ -252,18 +252,22 @@
 
 .metricCard > span {
   color: var(--portal-muted);
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .metricCard > strong {
   color: var(--portal-text);
-  font-size: clamp(1.35rem, 2.1vw, 1.75rem);
-  letter-spacing: -0.04em;
+  font-size: var(--portal-font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
 }
 
 .metricCard > small {
   color: var(--portal-text-tertiary);
+  font-size: var(--portal-font-caption);
   line-height: 1.45;
 }
 
@@ -501,23 +505,24 @@
 .table th {
   background: var(--portal-surface-soft);
   color: var(--portal-muted);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .table td {
   color: var(--portal-text-secondary);
-  font-size: 0.84rem;
+  font-size: var(--portal-font-body);
 }
 
 .table td strong {
   color: var(--portal-text);
+  font-weight: var(--portal-weight-heading);
 }
 
 .table td small {
   color: var(--portal-text-tertiary);
   display: block;
+  font-size: var(--portal-font-caption);
   line-height: 1.4;
   margin-top: 4px;
   max-width: 300px;
@@ -525,7 +530,7 @@
 
 .amountCell {
   color: var(--portal-text) !important;
-  font-weight: 800;
+  font-weight: var(--portal-weight-value);
   white-space: nowrap;
 }
 

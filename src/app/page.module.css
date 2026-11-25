@@ -17,15 +17,13 @@
 .header h1 {
   margin: 0 0 5px;
   color: var(--portal-text);
-  font-weight: 640;
-  letter-spacing: -0.04em;
-  line-height: 1.12;
 }
 
 .currentDate {
   display: block;
   color: var(--portal-muted);
-  font-size: 12px;
+  font-size: var(--portal-font-body);
+  line-height: 1.45;
 }
 
 .headerActions {
@@ -114,8 +112,9 @@
   align-items: center;
   gap: 6px;
   color: var(--portal-muted);
-  font-size: 12px;
-  font-weight: 590;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
+  line-height: 1.35;
 }
 
 .metricCardAlert > span::after {
@@ -132,9 +131,9 @@
   overflow: hidden;
   margin: 6px 0 4px;
   color: var(--portal-text);
-  font-size: clamp(21px, 1.9vw, 28px);
+  font-size: var(--portal-font-metric);
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: var(--portal-weight-value);
   letter-spacing: -0.035em;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -142,13 +141,10 @@
 }
 
 .metricCard p {
-  overflow: hidden;
   margin: 0;
-  color: var(--portal-text-tertiary);
-  font-size: 11px;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
   line-height: 1.45;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .companyDataGrid {
@@ -280,17 +276,14 @@
 .trendHeader h2 {
   margin: 0;
   color: var(--portal-text);
-  font-size: 16px;
-  font-weight: 640;
-  letter-spacing: -0.025em;
 }
 
 .panelHeader p,
 .trendHeader p {
-  margin: 3px 0 0;
-  color: var(--portal-text-tertiary);
-  font-size: 11px;
-  line-height: 1.45;
+  margin: 4px 0 0;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-label);
+  line-height: 1.5;
 }
 
 .textAction {
@@ -340,8 +333,8 @@
   background: var(--portal-surface-soft);
   color: var(--portal-text-secondary);
   padding: 6px 8px;
-  font-size: 9px;
-  font-weight: 740;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   text-align: center;
 }
 
@@ -366,8 +359,9 @@
 .saleMain strong {
   overflow: hidden;
   color: var(--portal-text);
-  font-size: 12px;
-  letter-spacing: -0.01em;
+  font-size: var(--portal-font-body);
+  font-weight: var(--portal-weight-heading);
+  line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -383,7 +377,7 @@
 .agendaMain small {
   margin-top: 4px;
   color: var(--portal-muted);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .agendaContext {
@@ -393,14 +387,15 @@
 
 .agendaContext small {
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .agendaContext strong {
   margin-top: 4px;
   color: var(--portal-text-secondary);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: var(--portal-font-caption);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
 }
 
 .alertList {
@@ -430,8 +425,8 @@
 
 .alertList span {
   color: var(--portal-text-secondary);
-  font-size: 12px;
-  font-weight: 530;
+  font-size: var(--portal-font-label);
+  line-height: 1.4;
 }
 
 .alertList strong {
@@ -461,13 +456,14 @@
 
 .dataWarning strong {
   color: var(--portal-warning);
-  font-size: 10px;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-heading);
 }
 
 .dataWarning span {
   margin-top: 3px;
   color: var(--portal-text-secondary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
   line-height: 1.4;
 }
 
@@ -519,9 +515,8 @@
 }
 
 .goalRing small {
-  color: var(--portal-text-tertiary);
-  font-size: 9px;
-  font-weight: 510;
+  color: var(--portal-muted);
+  font-size: 10px;
 }
 
 .goalSummary {
@@ -530,8 +525,8 @@
 
 .goalSummary > span {
   color: var(--portal-muted);
-  font-size: 11px;
-  font-weight: 540;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .goalSummary > strong {
@@ -551,16 +546,16 @@
 .goalSummary p {
   margin: 6px 0 0;
   color: var(--portal-text-tertiary);
-  font-size: 10px;
+  font-size: var(--portal-font-caption);
   line-height: 1.45;
 }
 
 .goalSummary b {
   display: inline-block;
   margin-top: 4px;
-  color: var(--portal-muted);
-  font-size: 10px;
-  font-weight: 590;
+  color: var(--portal-text-secondary);
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .salesMix {
@@ -577,8 +572,8 @@
 
 .salesMixHeader span {
   color: var(--portal-text-secondary);
-  font-size: 11px;
-  font-weight: 580;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .salesMixTrack {
@@ -608,8 +603,9 @@
   flex-wrap: wrap;
   gap: 4px 10px;
   margin-top: 7px;
-  color: var(--portal-text-tertiary);
-  font-size: 10px;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
+  line-height: 1.4;
 }
 
 .salesMixLegend span {
@@ -617,6 +613,13 @@
   min-width: 0;
   align-items: center;
   gap: 5px;
+}
+
+.salesMixLegend strong {
+  color: var(--portal-text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
+  white-space: nowrap;
 }
 
 .salesMixLegend i {
@@ -660,23 +663,18 @@
   background: var(--portal-surface-hover);
 }
 
-.pulseMetrics small,
-.pulseMetrics strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .pulseMetrics small {
   color: var(--portal-muted);
-  font-size: 11px;
+  font-size: var(--portal-font-caption);
+  line-height: 1.35;
 }
 
 .pulseMetrics strong {
   color: var(--portal-text);
-  font-size: 12px;
+  font-size: var(--portal-font-body);
   font-variant-numeric: tabular-nums;
-  font-weight: 640;
+  font-weight: var(--portal-weight-value);
+  line-height: 1.35;
 }
 
 .trendHeader {
@@ -686,8 +684,8 @@
 .trendSignal {
   flex: 0 0 auto;
   color: var(--portal-muted);
-  font-size: 10px;
-  font-weight: 580;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
   white-space: nowrap;
 }
 
@@ -716,7 +714,7 @@
 
 .trendColumn > span {
   overflow: hidden;
-  color: var(--portal-text-tertiary);
+  color: var(--portal-muted);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
@@ -744,8 +742,8 @@
 
 .trendColumn > strong {
   color: var(--portal-text-secondary);
-  font-size: 11px;
-  font-weight: 560;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .trendColumnCurrent > span,
@@ -766,16 +764,17 @@
 }
 
 .trendFooter span {
-  color: var(--portal-text-tertiary);
-  font-size: 10px;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
   line-height: 1.4;
 }
 
 .trendFooter strong {
   flex: 0 0 auto;
   color: var(--portal-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--portal-font-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
 }
 
 .recurringSummary {
@@ -786,7 +785,8 @@
 
 .recurringSummary > span {
   color: var(--portal-muted);
-  font-size: 11px;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-label);
 }
 
 .recurringSummary > strong {
@@ -831,21 +831,17 @@
   gap: 3px;
 }
 
-.planMixRow > div:first-child strong,
-.planMixRow > div:first-child span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .planMixRow > div:first-child strong {
   color: var(--portal-text);
-  font-size: 11px;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-heading);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .planMixRow > div:first-child span {
   color: var(--portal-text-tertiary);
-  font-size: 10px;
+  font-size: var(--portal-font-caption);
 }
 
 .planMixValue {
@@ -886,15 +882,15 @@
   max-width: 210px;
   margin: 0;
   color: var(--portal-text-tertiary);
-  font-size: 10px;
+  font-size: var(--portal-font-caption);
   line-height: 1.5;
 }
 
 .recurringEmpty a {
   margin-top: 8px;
   color: var(--portal-accent);
-  font-size: 10px;
-  font-weight: 720;
+  font-size: var(--portal-font-label);
+  font-weight: var(--portal-weight-heading);
   text-decoration: none;
 }
 
@@ -931,6 +927,8 @@
   overflow: hidden;
   color: var(--portal-text);
   font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
   letter-spacing: -0.035em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -943,18 +941,15 @@
 
 .pipelineStage {
   display: grid;
-  grid-template-columns: minmax(90px, 0.75fr) minmax(120px, 1.6fr) 24px;
+  grid-template-columns: minmax(105px, 0.9fr) minmax(0, 1.6fr) minmax(24px, auto);
   align-items: center;
   gap: 10px;
 }
 
 .pipelineStage > span {
-  overflow: hidden;
   color: var(--portal-text-secondary);
-  font-size: 9px;
-  font-weight: 680;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .pipelineStage > i {
@@ -975,13 +970,15 @@
 
 .pipelineStage > strong {
   color: var(--portal-text);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
+  font-size: var(--portal-font-label);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
   text-align: right;
 }
 
 .pipelineFooter {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -990,14 +987,15 @@
 }
 
 .pipelineFooter span {
-  color: var(--portal-text-tertiary);
-  font-size: 8px;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
 }
 
 .pipelineFooter strong {
   flex: 0 0 auto;
   color: var(--portal-accent);
-  font-size: 9px;
+  font-size: var(--portal-font-label);
+  font-variant-numeric: tabular-nums;
 }
 
 .priorityItem,
@@ -1035,7 +1033,7 @@
   overflow: hidden;
   margin-top: 4px;
   color: var(--portal-text-secondary);
-  font-size: 10px;
+  font-size: var(--portal-font-label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1044,7 +1042,7 @@
 .saleMain > small {
   margin-top: 4px;
   color: var(--portal-text-tertiary);
-  font-size: 9px;
+  font-size: var(--portal-font-caption);
 }
 
 .urgencyBadge {
@@ -1052,8 +1050,8 @@
   border: 1px solid var(--portal-border-strong);
   border-radius: 999px;
   padding: 3px 6px;
-  font-size: 8px;
-  font-weight: 740;
+  font-size: var(--portal-font-caption);
+  font-weight: var(--portal-weight-label);
 }
 
 .urgencyExpired {
@@ -1077,7 +1075,9 @@
 .priorityAmount {
   flex: 0 0 auto;
   color: var(--portal-text);
-  font-size: 12px;
+  font-size: var(--portal-font-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--portal-weight-value);
   letter-spacing: -0.02em;
 }
 
@@ -1126,13 +1126,14 @@
 .emptyState h3 {
   margin: 0;
   color: var(--portal-text);
-  font-size: 12px;
+  font-size: var(--portal-font-body);
+  font-weight: var(--portal-weight-heading);
 }
 
 .emptyState p {
   margin: 4px 0 0;
-  color: var(--portal-text-tertiary);
-  font-size: 9px;
+  color: var(--portal-muted);
+  font-size: var(--portal-font-caption);
   line-height: 1.45;
 }
 
@@ -1224,6 +1225,10 @@
 }
 
 @container portal-content (max-width: 405px) {
+  .metricCard strong {
+    font-size: clamp(20px, 5.8vw, 23px);
+  }
+
   .goalBody {
     grid-template-columns: 68px minmax(0, 1fr);
     gap: 10px;
@@ -1265,7 +1270,7 @@
   }
 
   .pipelineStage {
-    grid-template-columns: minmax(82px, 0.9fr) minmax(90px, 1.4fr) 20px;
+    grid-template-columns: minmax(82px, 0.9fr) minmax(0, 1.4fr) minmax(20px, auto);
   }
 }
 
