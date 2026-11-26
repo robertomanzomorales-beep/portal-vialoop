@@ -1,9 +1,30 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
-const databaseUrl = process.env.DATABASE_URL;
+function createPrismaClient() {
+  const pooledUrl = process.env.DATABASE_POOL_URL?.trim();
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL no está definida en el archivo .env");
+  if (pooledUrl) {
+    if (!/^postgres(?:ql)?:\/\//i.test(pooledUrl)) {
+      throw new Error("DATABASE_POOL_URL requiere una conexión PostgreSQL.");
+    }
+
+    return new PrismaClient({
+      adapter: new PrismaPg({
+        connectionString: pooledUrl,
+        connectionTimeoutMillis: 5_000,
+        max: 5,
+      }),
+    });
+  }
+
+  const accelerateUrl = process.env.DATABASE_URL;
+
+  if (!accelerateUrl) {
+    throw new Error("Define DATABASE_POOL_URL o DATABASE_URL.");
+  }
+
+  return new PrismaClient({ accelerateUrl });
 }
 
 const globalForPrisma = globalThis as unknown as {
@@ -12,9 +33,7 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({
-    accelerateUrl: databaseUrl,
-  });
+  createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
